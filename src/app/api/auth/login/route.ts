@@ -72,16 +72,20 @@ export async function POST(request: Request) {
       path: "/",
     });
 
-    // Record audit log
-    await prisma.auditLog.create({
-      data: {
-        action: "LOGIN",
-        entityType: "User",
-        entityId: user.id,
-        performedById: user.id,
-        details: `User logged in: ${user.email} (${user.role})`,
-      },
-    });
+    // Record audit log (safely ignored in read-only cloud deployments)
+    try {
+      await prisma.auditLog.create({
+        data: {
+          action: "LOGIN",
+          entityType: "User",
+          entityId: user.id,
+          performedById: user.id,
+          details: `User logged in: ${user.email} (${user.role})`,
+        },
+      });
+    } catch (auditErr) {
+      console.warn("Audit log skipped in read-only environment:", auditErr);
+    }
 
     return response;
   } catch (error: any) {
