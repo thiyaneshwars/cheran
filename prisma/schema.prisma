@@ -1,0 +1,682 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  ACCOUNTANT
+  DATA_ENTRY
+  AUDITOR
+  MANAGEMENT
+  PRODUCTION
+}
+
+enum AccountType {
+  SAVINGS
+  CURRENT
+  OVERDRAFT
+  CASH
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  FROZEN
+}
+
+enum SectionType {
+  SIZING_BILL
+  POWERLOOM
+  DAILY_WAGE
+  TRANSPORT
+  GENERAL
+  BANK_TRANSFER
+}
+
+enum TransactionType {
+  BILL_ISSUED
+  PAYMENT_RECEIVED
+  EXPENSE_RECORDED
+  PAYMENT_PAID
+  ADVANCE_PAID
+  INTERNAL_TRANSFER
+  REVERSAL
+  WAGE_PAYMENT
+  OPENING_BALANCE
+}
+
+enum Direction {
+  DEBIT
+  CREDIT
+}
+
+enum TransactionStatus {
+  PENDING
+  POSTED
+  REVERSED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  fullName     String
+  role         Role       @default(ACCOUNTANT)
+  phone        String?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  createdTransactions Transaction[] @relation("CreatedTransactions")
+  modifiedTransactions Transaction[] @relation("ModifiedTransactions")
+  settlements         Settlement[]
+  auditLogs           AuditLog[]
+  liquidCashCreated   LiquidCashEntry[] @relation("LiquidCashCreated")
+  liquidCashRevoked   LiquidCashEntry[] @relation("LiquidCashRevoked")
+}
+
+model BankAccount {
+  id               String        @id @default(cuid())
+  bankName         String
+  accountName      String
+  accountNumber    String
+  branchName       String
+  ifscCode         String
+  accountType      AccountType   @default(CURRENT)
+  openingBalance   Float         @default(0.0)
+  currentBalance   Float         @default(0.0)
+  statementBalance Float?        @default(0.0)
+  status           AccountStatus @default(ACTIVE)
+  isDefault        Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  transactions           Transaction[]
+  sizingBills            SizingBill[]
+  powerloomTransactions  PowerloomTransaction[]
+  wageRecords            WageRecord[]
+  transportBills         TransportBill[]
+  settlements            Settlement[]
+  reconciliations        BankReconciliation[]
+  liquidCashEntries      LiquidCashEntry[]
+}
+
+model Party {
+  id                 String     @id @default(cuid())
+  code               String     @unique
+  name               String
+  partyType          PartyType  @default(CUSTOMER)
+  contactPerson      String?
+  phone              String?
+  email              String?
+  address            String?
+  gstin              String?
+  openingBalance     Float      @default(0.0)
+  currentOutstanding Float      @default(0.0)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  sizingBills           SizingBill[]
+  powerloomTransactions PowerloomTransaction[]
+  settlements           Settlement[]
+}
+
+model Worker {
+  id             String       @id @default(cuid())
+  workerCode     String       @unique
+  name           String
+  phone          String?
+  department     String?
+  dailyRate      Float        @default(0.0)
+  openingAdvance Float        @default(0.0)
+  currentAdvance Float        @default(0.0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  wageRecords WageRecord[]
+  settlements Settlement[]
+}
+
+model AccountingPeriod {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  startDate DateTime
+  endDate   DateTime
+  isClosed  Boolean   @default(false)
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Transaction {
+  id               String            @id @default(cuid())
+  referenceNo      String            @unique
+  transactionDate  DateTime          @default(now())
+  section          SectionType       @default(GENERAL)
+  type             TransactionType
+  direction        Direction         @default(DEBIT)
+  amount           Float
+  counterparty     String?
+  bankAccountId    String?
+  bankAccount      BankAccount?      @relation(fields: [bankAccountId], references: [id])
+  paymentMethod    String?           @default("BANK_TRANSFER")
+  paymentRef       String?
+  status           TransactionStatus @default(POSTED)
+  notes            String?
+  createdById      String?
+  createdBy        User?             @relation("CreatedTransactions", fields: [createdById], references: [id])
+  lastModifiedById String?
+  lastModifiedBy   User?             @relation("ModifiedTransactions", fields: [lastModifiedById], references: [id])
+  reversalOfId     String?           @unique
+  reversalOf       Transaction?      @relation("ReversalRelation", fields: [reversalOfId], references: [id])
+  reversedBy       Transaction?      @relation("ReversalRelation")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  journalEntries        JournalEntry[]
+  sizingBills           SizingBill[]
+  powerloomTransactions PowerloomTransaction[]
+  wageRecords           WageRecord[]
+  transportBills        TransportBill[]
+  settlements           Settlement[]
+}
+
+model JournalEntry {
+  id            String       @id @default(cuid())
+  entryNumber   String       @unique
+  date          DateTime     @default(now())
+  description   String
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  status        String       @default("POSTED")
+  createdAt     DateTime     @default(now())
+
+  lines JournalLine[]
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  accountCode    String
+  accountName    String
+  section        SectionType?
+  debit          Float        @default(0.0)
+  credit         Float        @default(0.0)
+}
+
+model SizingBill {
+  id                String        @id @default(cuid())
+  billNumber        String        @unique
+  billDate          DateTime      @default(now())
+  billType          String        @default("VETTI")
+  partyId           String?
+  party             Party?        @relation(fields: [partyId], references: [id])
+  description       String?
+  numberOfBeams     Float?
+  noOfBags          Float         @default(0.0)
+  bagWeightKg       Float         @default(0.0)
+  ratePerKg         Float         @default(0.0)
+  totalKg           Float         @default(0.0)
+  quantity          Float         @default(0.0)
+  rate              Float         @default(0.0)
+  totalAmount       Float
+  amountSettled     Float         @default(0.0)
+  outstandingAmount Float
+  dueDate           DateTime?
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String?       @default("BANK_TRANSFER")
+  bankAccountId     String?
+  bankAccount       BankAccount?  @relation(fields: [bankAccountId], references: [id])
+  notes             String?
+  attachmentUrl     String?
+  transactionId     String?
+  transaction       Transaction?  @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model PowerloomTransaction {
+  id                 String        @id @default(cuid())
+  transactionNumber  String        @unique
+  transactionDate    DateTime      @default(now())
+  category           String        @default("VETTI") // "VETTI" or "SAREE"
+  partyId            String?
+  party              Party?        @relation(fields: [partyId], references: [id])
+  weaverName         String?
+  weaverLocation     String?
+  loomReference      String?
+  noOfPaavu          Float         @default(0.0)
+  totalMeters        Float         @default(0.0)
+  wageRate           Float         @default(0.0)
+  grossWages         Float         @default(0.0)
+  weftBags           Float         @default(0.0)
+  weftKg             Float         @default(0.0)
+  bobbinSets         Float         @default(0.0)
+  advanceDate        DateTime?
+  advancePaid        Float         @default(0.0)
+  productionQuantity Float         @default(0.0)
+  rate               Float         @default(0.0)
+  totalAmount        Float
+  amountSettled      Float         @default(0.0)
+  outstandingAmount  Float
+  dueDate            DateTime?
+  paymentStatus      PaymentStatus @default(PENDING)
+  bankAccountId      String?
+  bankAccount        BankAccount?  @relation(fields: [bankAccountId], references: [id])
+  notes              String?
+  attachmentUrl      String?
+  transactionId      String?
+  transaction        Transaction?  @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model PowerloomWeaver {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  category    String   @default("VETTI") // "VETTI" or "SAREE"
+  phone       String?
+  loomCount   Int?     @default(1)
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WageRecord {
+  id                String        @id @default(cuid())
+  workDate          DateTime      @default(now())
+  wageType          String        @default("OTHERS") // "BABIN" or "OTHERS"
+  workerId          String?
+  worker            Worker?       @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  workDescription   String?
+  daysWorked        Float         @default(1.0)
+  dailyWage         Float         @default(0.0)
+  grossWages        Float
+  advancesApplied   Float         @default(0.0)
+  deductions        Float         @default(0.0)
+  netWagesPayable   Float
+  amountPaid        Float         @default(0.0)
+  outstandingWages  Float
+  paymentDate       DateTime?
+  paymentMethod     String?       @default("BANK_TRANSFER")
+  bankAccountId     String?
+  bankAccount       BankAccount?  @relation(fields: [bankAccountId], references: [id])
+  liquidCashEntryId String?
+  babinRuns         Float?        @default(0.0)
+  babinDistributed  Float?        @default(0.0)
+  dailyProfit       Float?
+  paymentStatus     PaymentStatus @default(PENDING)
+  notes             String?
+  transactionId     String?
+  transaction       Transaction?  @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model TransportBill {
+  id                  String        @id @default(cuid())
+  transactionNumber   String        @unique
+  transactionDate     DateTime      @default(now())
+  vehicleNumber       String?
+  transporterName     String
+  sourceLocation      String?
+  destinationLocation String?
+  description         String?
+  freightCharge       Float         @default(0.0)
+  additionalExpenses  Float         @default(0.0)
+  totalAmount         Float
+  amountSettled       Float         @default(0.0)
+  outstandingAmount   Float
+  dueDate             DateTime?
+  bankAccountId       String?
+  bankAccount         BankAccount?  @relation(fields: [bankAccountId], references: [id])
+  paymentStatus       PaymentStatus @default(PENDING)
+  notes               String?
+  attachmentUrl       String?
+  transactionId       String?
+  transaction         Transaction?  @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+model Settlement {
+  id               String       @id @default(cuid())
+  settlementNumber String       @unique
+  settlementDate   DateTime     @default(now())
+  section          SectionType
+  entityType       String
+  entityId         String
+  partyId          String?
+  party            Party?       @relation(fields: [partyId], references: [id])
+  workerId         String?
+  worker           Worker?      @relation(fields: [workerId], references: [id])
+  amount           Float
+  paymentMethod    String       @default("BANK_TRANSFER")
+  bankAccountId    String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
+  referenceNo      String?
+  notes            String?
+  transactionId    String?
+  transaction      Transaction? @relation(fields: [transactionId], references: [id])
+  createdById      String?
+  createdBy        User?        @relation(fields: [createdById], references: [id])
+  createdAt        DateTime     @default(now())
+}
+
+model BankReconciliation {
+  id               String      @id @default(cuid())
+  bankAccountId    String
+  bankAccount      BankAccount @relation(fields: [bankAccountId], references: [id])
+  statementDate    DateTime
+  statementBalance Float
+  bookBalance      Float
+  difference       Float
+  status           String      @default("MATCHED")
+  notes            String?
+  reconciledAt     DateTime    @default(now())
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  action        String
+  entityType    String
+  entityId      String
+  performedById String?
+  performedBy   User?    @relation(fields: [performedById], references: [id])
+  details       String?
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  fileName   String
+  fileUrl    String
+  fileType   String?
+  fileSize   Int?
+  entityType String
+  entityId   String
+  uploadedAt DateTime @default(now())
+}
+
+model LiquidCashAccount {
+  id             String            @id @default("society_liquid_cash")
+  accountName    String            @default("Society Liquid Cash (கையிருப்பு ரொக்கம்)")
+  currentBalance Float             @default(0.0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  entries        LiquidCashEntry[]
+}
+
+model LiquidCashEntry {
+  id               String            @id @default(cuid())
+  voucherNo        String            @unique
+  entryDate        DateTime          @default(now())
+  type             String            // "CASH_IN" | "CASH_OUT" | "ADJUSTMENT"
+  category         String            @default("GENERAL")
+  amount           Float
+  balanceBefore    Float             @default(0.0)
+  balanceAfter     Float             @default(0.0)
+  description      String
+  notes            String?
+  status           String            @default("ACTIVE") // "ACTIVE" | "REVOKED"
+  accountId        String            @default("society_liquid_cash")
+  account          LiquidCashAccount @relation(fields: [accountId], references: [id])
+  bankAccountId    String?
+  bankAccount      BankAccount?      @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  createdById      String?
+  createdBy        User?             @relation("LiquidCashCreated", fields: [createdById], references: [id])
+  revokedAt        DateTime?
+  revokedById      String?
+  revokedBy        User?             @relation("LiquidCashRevoked", fields: [revokedById], references: [id])
+  revocationReason String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model ProductionUnit {
+  id                  String                  @id @default(cuid())
+  clothType           String                  // "VEATTI" | "SAREE"
+  weaverName          String                  // Powerloom weaver / unit name
+  location            String?
+  entryDate           DateTime                @default(now())
+  machineCount        Int                     @default(1)
+  paavuCount          Int                     @default(0) // No. of paavu given
+  paavuMeters         Float                   @default(0.0) // Paavu meter given
+  paavuWeightKg       Float                   @default(0.0) // Paavu Weight in KG
+  individualRate      Float                   @default(0.0) // Individual Rate (e.g. ₹ per KG or ₹ per Meter)
+  rateUnit            String                  @default("PER_KG") // "PER_KG" | "PER_METER"
+  conversionRatio     Float                   @default(12.0) // Configurable ratio: meters per KG
+  weftMultiplier      Float                   @default(0.119) // Configurable weft factor: kg per meter (e.g. 0.119 or 0.110 for Veatti, 0.182 or 0.175 for Saree)
+  initialWeftKg       Float                   @default(0.0) // Initial Weft KG left in powerloom upon registration
+  initialAdvance      Float                   @default(0.0) // Initial Advance amount
+  babinCount          Int                     @default(0) // Babin count
+  targetMeters        Float                   @default(0.0) // Target meters
+  targetDate          DateTime?               // Target date to handover
+  totalProducedMeters Float                   @default(0.0) // Total meters produced from powerloom as of now
+  handoveredMeters    Float                   @default(0.0) // Total meters handovered to govt
+  godownMeters        Float                   @default(0.0) // Meters available in godown
+  balanceToHandover   Float                   @default(0.0) // Balance meters yet to handover
+  totalVaravuAmount   Float                   @default(0.0) // Sum of varavu
+  totalAdvancePaid    Float                   @default(0.0) // Sum of advances
+  currentBalance      Float                   @default(0.0) // totalVaravuAmount - totalAdvancePaid
+  weftStockKg         Float                   @default(0.0) // Current weft stock available in powerloom (KG)
+  remainingPaavuMeters Float                  @default(0.0) // Current remaining meters powerloom yet to produce
+  status              String                  @default("ACTIVE") // ACTIVE | COMPLETED
+  notes               String?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  paavus              PaavuRecord[]
+  handovers           GovernmentHandoverLog[]
+  dailyProductions    VeattiProductionEntry[]
+  rateHistories       VeattiRateHistory[]
+  varavuEntries       VeattiVaravu[]
+  advanceEntries      VeattiAdvance[]
+  registerEntries     VeattiRegisterEntry[]
+  auditLogs           VeattiAuditLog[]
+  babinEntries        BabinEntry[]
+  babinDeliveries     BabinSetDelivery[]
+}
+
+model PaavuRecord {
+  id                   String                  @id @default(cuid())
+  clothType            String                  // "VEATTI" | "SAREE"
+  paavuNumber          String                  // e.g. "PV-101"
+  paavuMeters          Float                   // Paavu meter given (warp length)
+  paavuWeightKg        Float                   @default(0.0) // Paavu Weight (KG)
+  dateGiven            DateTime                @default(now())
+  remainingMeters      Float?                  // Remaining meters
+  weaverName           String?                 // Weaver or unit name
+  machineNumber        String?                 // Machine / Loom No (null if unloaded)
+  status               String                  @default("UNLOADED") // "UNLOADED" | "RUNNING" | "COMPLETED"
+  loadedAt             DateTime?
+  completedAt          DateTime?
+  actualProducedMeters Float?                  // Actual meters got when completed
+  meterDifference      Float?                  // actualProducedMeters - paavuMeters
+  unitId               String?
+  unit                 ProductionUnit?         @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  notes                String?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  productionEntries    VeattiProductionEntry[]
+}
+
+model GovernmentHandoverLog {
+  id            String          @id @default(cuid())
+  clothType     String          // "VEATTI" | "SAREE"
+  challanNo     String
+  handoverDate  DateTime        @default(now())
+  meters        Float
+  unitId        String?
+  unit          ProductionUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  recipientDept String          @default("Tamil Nadu Handlooms & Textiles / Co-optex")
+  vehicleNo     String?
+  officerName   String?
+  notes         String?
+  createdAt     DateTime        @default(now())
+}
+
+model VeattiProductionEntry {
+  id              String          @id @default(cuid())
+  unitId          String
+  unit            ProductionUnit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  paavuId         String?
+  paavu           PaavuRecord?    @relation(fields: [paavuId], references: [id], onDelete: SetNull)
+  paavuRef        String?
+  productionDate  DateTime        @default(now())
+  dailyMeters     Float           @default(0.0)
+  wastageMeters   Float           @default(0.0)
+  netProduction   Float           @default(0.0)
+  remarks         String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model VeattiRateHistory {
+  id            String          @id @default(cuid())
+  unitId        String
+  unit          ProductionUnit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  rate          Float
+  rateUnit      String          @default("PER_KG") // "PER_KG" | "PER_METER"
+  effectiveDate DateTime        @default(now())
+  previousRate  Float?
+  notes         String?
+  createdAt     DateTime        @default(now())
+}
+
+model VeattiVaravu {
+  id              String          @id @default(cuid())
+  unitId          String
+  unit            ProductionUnit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  transactionDate DateTime        @default(now())
+  varavuType      String          @default("PAAVU_PRODUCTION") // "PAAVU_PRODUCTION" | "WEAVING_WAGE" | "INCENTIVE" | "ADJUSTMENT"
+  paavuKg         Float           @default(0.0)
+  rate            Float           @default(0.0)
+  rateUnit        String          @default("PER_KG")
+  amount          Float           @default(0.0) // paavuKg * rate
+  paymentMode     String          @default("CASH") // "CASH" | "BANK_TRANSFER" | "UPI"
+  referenceNo     String?
+  remarks         String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model VeattiAdvance {
+  id              String          @id @default(cuid())
+  unitId          String
+  unit            ProductionUnit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  advanceDate     DateTime        @default(now())
+  amount          Float           @default(0.0)
+  paymentMode     String          @default("CASH") // "CASH" | "BANK_TRANSFER" | "UPI"
+  referenceNo     String?
+  description     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model VeattiAuditLog {
+  id            String          @id @default(cuid())
+  unitId        String?
+  unit          ProductionUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  entityType    String          // "UNIT" | "PAAVU" | "PRODUCTION" | "VARAVU" | "ADVANCE" | "RATE"
+  entityId      String
+  action        String          // "CREATE" | "UPDATE" | "DELETE"
+  oldValues     String?         // JSON
+  newValues     String?         // JSON
+  performedById String?
+  details       String?
+  createdAt     DateTime        @default(now())
+}
+
+model VeattiRegisterEntry {
+  id                    String          @id @default(cuid())
+  unitId                String
+  unit                  ProductionUnit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  date                  DateTime        @default(now())
+  entryType             String          // "PAAVU" | "PRODUCED" | "WEFT_BAG" | "CASH" | "BABIN"
+  description           String          // e.g. "2 பாவு 9 பீம்", "240 bag", "வேட்டி உற்பத்தி", "cash", "ஊசி கோத்தது"
+  paavuGivenMeters      Float           @default(0.0) // பாவு பற்று
+  paavuProducedMeters   Float           @default(0.0) // பாவு வரவு
+  remainingPaavuMeters  Float           @default(0.0) // மீதி பாவு இருப்பு (Running meters yet to produce)
+  weftGivenKg           Float           @default(0.0) // வெப்ட் பற்று (KG)
+  weftBagsGiven         Int             @default(0)   // Bag count e.g. 240 bag
+  weftConsumedKg        Float           @default(0.0) // வெப்ட் வரவு (producedMeters * 0.119 KG)
+  weftBalanceKg         Float           @default(0.0) // வெப்ட் இருப்பு (Running weft stock in KG)
+  babinCount            Int             @default(0)   // பாபின் பற்று
+  beamCount             Int             @default(0)   // பீம் பற்று
+  wageRate              Float           @default(19.0)// கூலி வீதம் (₹ per meter, default 19)
+  wageEarned            Float           @default(0.0) // கூலி வரவு (producedMeters * wageRate)
+  cashPaid              Float           @default(0.0) // கூலி பற்று / Cash given to powerloom
+  netBalance            Float           @default(0.0) // அதிக பற்று (+ or -) running financial balance
+  notes                 String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+}
+
+model BabinEntry {
+  id               String          @id @default(cuid())
+  date             DateTime        @default(now())
+  powerloomName    String          // Powerloom unit name
+  unitId           String?
+  unit             ProductionUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  jarigaiKg        Float           // Jarigai KG of raw thread given
+  conversionFactor Float           @default(0.024) // 0.024 kg per saree
+  sareePerSet      Int             @default(200)   // 200 sarees per set
+  totalSarees      Int             // Total sarees = Math.floor(jarigaiKg / 0.024)
+  setsProduced     Int             // No of set will produce = Math.floor(totalSarees / 200)
+  remainingSarees  Int             // No of saree remaining = totalSarees % 200
+  remainingKg      Float           // Remaining saree weight = remainingSarees * 0.024
+  status           String          @default("ALLOCATED") // "ALLOCATED" | "WEAVING" | "COMPLETED"
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  deliveries       BabinSetDelivery[]
+}
+
+model BabinSetDelivery {
+  id               String          @id @default(cuid())
+  date             DateTime        @default(now())
+  powerloomName    String          // Powerloom unit name
+  unitId           String?
+  unit             ProductionUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  babinEntryId     String?
+  babinEntry       BabinEntry?     @relation(fields: [babinEntryId], references: [id], onDelete: SetNull)
+  setsGiven        Int             // Number of Babin sets delivered/given to the society
+  ratePerSet       Float           @default(450.0) // ₹450 total rate per set
+  wagePerSet       Float           @default(250.0) // ₹250 wage per set
+  profitPerSet     Float           @default(200.0) // ₹200 society profit per set
+  totalAmount      Float           // setsGiven * ratePerSet (e.g. setsGiven * 450)
+  totalWage        Float           // setsGiven * wagePerSet (e.g. setsGiven * 250)
+  totalProfit      Float           // setsGiven * profitPerSet (e.g. setsGiven * 200)
+  settledAmount    Float           @default(0.0)   // Amount settled / paid to the powerloom
+  yetToSettle      Float           @default(0.0)   // Amount yet to settle = totalAmount - settledAmount
+  paymentStatus    String          @default("PENDING") // "PENDING" | "PARTIAL" | "SETTLED"
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+

@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI Agent Workspaces & Cache
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.impeccable/
+.opencode/
+
+# Database Backups & Temporary DBs (dev.db is tracked for global read-only)
+backups/
+prisma/*.backup*
+prisma/test.db
+
+# Logs & Temp
+*.log
