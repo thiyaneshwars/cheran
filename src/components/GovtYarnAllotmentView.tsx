@@ -45,7 +45,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form State
+  // Form State (Yarn weights only: Warp, Weft, Border for Dhothi & Saree)
   const [form, setForm] = useState({
     allotmentNo: "",
     allotmentDate: new Date().toISOString().split("T")[0],
@@ -61,14 +61,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
     sareeWarpKg: "" as number | string,
     sareeWeftKg: "" as number | string,
     sareeBorderKg: "" as number | string,
-
-    // Pricing & Wages
-    yarnRatePerKg: "" as number | string,
-    bagPrice: "" as number | string,
-    dhothiGovtRate: "" as number | string,
-    sareeGovtRate: "" as number | string,
-    dhothiWeaverRate: "19",
-    sareeWeaverRate: "42",
 
     notes: "",
   });
@@ -135,12 +127,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
       sareeWarpKg: "",
       sareeWeftKg: "",
       sareeBorderKg: "",
-      yarnRatePerKg: "",
-      bagPrice: "",
-      dhothiGovtRate: "",
-      sareeGovtRate: "",
-      dhothiWeaverRate: "19",
-      sareeWeaverRate: "42",
       notes: "",
     });
     setShowModal(true);
@@ -162,12 +148,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
       sareeWarpKg: a.sareeWarpKg || "",
       sareeWeftKg: a.sareeWeftKg || "",
       sareeBorderKg: a.sareeBorderKg || "",
-      yarnRatePerKg: a.yarnRatePerKg || "",
-      bagPrice: a.bagPrice || "",
-      dhothiGovtRate: a.dhothiGovtRate || "",
-      sareeGovtRate: a.sareeGovtRate || "",
-      dhothiWeaverRate: a.dhothiWeaverRate?.toString() || "19",
-      sareeWeaverRate: a.sareeWeaverRate?.toString() || "42",
       notes: a.notes || "",
     });
     setShowModal(true);
@@ -213,12 +193,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
         sareeWarpKg: parseFloat(form.sareeWarpKg?.toString() || "0") || 0,
         sareeWeftKg: parseFloat(form.sareeWeftKg?.toString() || "0") || 0,
         sareeBorderKg: parseFloat(form.sareeBorderKg?.toString() || "0") || 0,
-        yarnRatePerKg: parseFloat(form.yarnRatePerKg?.toString() || "0") || 0,
-        bagPrice: parseFloat(form.bagPrice?.toString() || "0") || 0,
-        dhothiGovtRate: parseFloat(form.dhothiGovtRate?.toString() || "0") || 0,
-        sareeGovtRate: parseFloat(form.sareeGovtRate?.toString() || "0") || 0,
-        dhothiWeaverRate: parseFloat(form.dhothiWeaverRate?.toString() || "19") || 19,
-        sareeWeaverRate: parseFloat(form.sareeWeaverRate?.toString() || "42") || 42,
+        yarnRatePerKg: 0,
+        bagPrice: 0,
+        dhothiGovtRate: 0,
+        sareeGovtRate: 0,
+        dhothiWeaverRate: 19,
+        sareeWeaverRate: 42,
         notes: form.notes || "",
       };
 
@@ -281,11 +261,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
       "Saree Border (KG)": a.sareeBorderKg,
       "Saree Total (KG)": a.derived?.saree?.totalKg,
       "Saree Pieces (from Warp)": a.sareeWarpKg > 0 ? Math.round(a.sareeWarpKg / 0.188) : 0,
-      "Bag / Yarn Price": a.bagPrice || a.yarnRatePerKg,
-      "Dhothi Govt Rate": a.dhothiGovtRate,
-      "Saree Govt Rate": a.sareeGovtRate,
-      "Dhothi Weaver Wage": a.dhothiWeaverRate,
-      "Saree Weaver Wage": a.sareeWeaverRate,
       Notes: a.notes || "",
     }));
     exportToCSV(`Govt_Yarn_Allotments_${activeSection}`, rows);
@@ -316,11 +291,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
     const warp = Number(a.dhothiWarpKg) || 0;
     return s + (warp > 0 ? Math.round(warp / 0.122) : 0);
   }, 0);
-  const totalDhothiWages = dhothiFiltered.reduce((s, a) => {
-    const warp = Number(a.dhothiWarpKg) || 0;
-    const pcs = warp > 0 ? Math.round(warp / 0.122) : 0;
-    return s + pcs * (Number(a.dhothiWeaverRate) || 19);
-  }, 0);
 
   // Totals for Saree Ledger (Pieces strictly calculated from Warp; Weft & Border combined)
   const totalSareeWarp = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWarpKg) || 0), 0);
@@ -330,11 +300,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
   const totalSareePieces = sareeFiltered.reduce((s, a) => {
     const warp = Number(a.sareeWarpKg) || 0;
     return s + (warp > 0 ? Math.round(warp / 0.188) : 0);
-  }, 0);
-  const totalSareeWages = sareeFiltered.reduce((s, a) => {
-    const warp = Number(a.sareeWarpKg) || 0;
-    const pcs = warp > 0 ? Math.round(warp / 0.188) : 0;
-    return s + pcs * (Number(a.sareeWeaverRate) || 42);
   }, 0);
 
   return (
@@ -516,14 +481,9 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
        * ========================================================================= */}
       {(activeSection === "ALL" || activeSection === "DHOTHI") && (
         <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 shadow-2xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-emerald-950 font-black text-xs uppercase tracking-wider">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              <span>DHOTHI (வேட்டி) GOVT THREAD CONSUMPTION & WAGE FORMULAS:</span>
-            </div>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-emerald-200/80 text-emerald-900 font-mono">
-              Weaving Wage: ₹19 / Piece
-            </span>
+          <div className="flex items-center gap-2 text-emerald-950 font-black text-xs uppercase tracking-wider">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span>DHOTHI (வேட்டி) GOVT THREAD CONSUMPTION FORMULAS:</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3 text-xs text-slate-700">
@@ -553,14 +513,9 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
 
       {(activeSection === "ALL" || activeSection === "SAREE") && (
         <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200/80 shadow-2xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-purple-950 font-black text-xs uppercase tracking-wider">
-              <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
-              <span>SAREE (சேலை) GOVT THREAD CONSUMPTION & WAGE FORMULAS:</span>
-            </div>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-purple-200/80 text-purple-900 font-mono">
-              Weaving Wage: ₹42 / Piece
-            </span>
+          <div className="flex items-center gap-2 text-purple-950 font-black text-xs uppercase tracking-wider">
+            <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+            <span>SAREE (சேலை) GOVT THREAD CONSUMPTION FORMULAS:</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3 text-xs text-slate-700">
@@ -650,20 +605,20 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </p>
           </div>
 
-          {/* Dhothi Metric 4: Weaving Wage Budget */}
+          {/* Dhothi Metric 4: Total Dhothi Yarn Inward */}
           <div className="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-emerald-800 uppercase tracking-wider">
-              <span>Weaving Wages Budget</span>
+              <span>Total Dhothi Thread</span>
               <div className="p-2 rounded-xl bg-emerald-200/60 text-emerald-800">
-                <DollarSign className="h-4 w-4" />
+                <Package className="h-4 w-4" />
               </div>
             </div>
-            <div className="flex items-baseline gap-1 text-2xl sm:text-3xl font-black text-emerald-900 font-mono tracking-tight">
-              <span>₹</span>
-              <span>{totalDhothiWages.toLocaleString()}</span>
+            <div className="flex items-baseline gap-2 text-2xl sm:text-3xl font-black text-emerald-900 font-mono tracking-tight">
+              <span>{totalDhothiYarn.toFixed(2)}</span>
+              <span className="text-xs font-bold text-emerald-700">KG</span>
             </div>
-            <p className="text-[11px] text-emerald-700">
-              {totalDhothiPieces.toLocaleString()} pcs × ₹19 / Dhothi
+            <p className="text-[11px] text-emerald-700 font-mono">
+              Warp + Weft + Border combined
             </p>
           </div>
         </div>
@@ -726,20 +681,20 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </p>
           </div>
 
-          {/* Saree Metric 4: Weaving Wage Budget */}
+          {/* Saree Metric 4: Total Saree Yarn Inward */}
           <div className="p-5 rounded-2xl bg-purple-50/60 border border-purple-200 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-purple-800 uppercase tracking-wider">
-              <span>Weaving Wages Budget</span>
+              <span>Total Saree Thread</span>
               <div className="p-2 rounded-xl bg-purple-200/60 text-purple-800">
-                <DollarSign className="h-4 w-4" />
+                <Package className="h-4 w-4" />
               </div>
             </div>
-            <div className="flex items-baseline gap-1 text-2xl sm:text-3xl font-black text-purple-900 font-mono tracking-tight">
-              <span>₹</span>
-              <span>{totalSareeWages.toLocaleString()}</span>
+            <div className="flex items-baseline gap-2 text-2xl sm:text-3xl font-black text-purple-900 font-mono tracking-tight">
+              <span>{totalSareeYarn.toFixed(2)}</span>
+              <span className="text-xs font-bold text-purple-700">KG</span>
             </div>
-            <p className="text-[11px] text-purple-700">
-              {totalSareePieces.toLocaleString()} pcs × ₹42 / Saree
+            <p className="text-[11px] text-purple-700 font-mono">
+              Warp + Weft + Border combined
             </p>
           </div>
         </div>
@@ -802,17 +757,17 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
 
           <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-              <span>Weaving Wages Budget</span>
+              <span>Inward Entries</span>
               <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-                <DollarSign className="h-4 w-4" />
+                <Building2 className="h-4 w-4" />
               </div>
             </div>
-            <div className="flex items-baseline gap-1 text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-              <span>₹</span>
-              <span>{(totalDhothiWages + totalSareeWages).toLocaleString()}</span>
+            <div className="flex items-baseline gap-2 text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+              <span>{allotments.length}</span>
+              <span className="text-xs font-bold text-indigo-700">Records</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Dhothi ₹{totalDhothiWages.toLocaleString()} + Saree ₹{totalSareeWages.toLocaleString()}
+              Dhothi: {countDhothiAllotments} | Saree: {countSareeAllotments}
             </p>
           </div>
         </div>
@@ -902,16 +857,13 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                     </th>
                     <th className="py-3 px-4 font-black text-slate-800">Total Yarn</th>
                     <th className="py-3 px-4 font-black text-emerald-800">Dhothi Quota</th>
-                    <th className="py-3 px-4">Govt Piece Rate</th>
-                    <th className="py-3 px-4 text-emerald-800">Weaver Wage</th>
-                    <th className="py-3 px-4">Bag / Yarn Rate</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {dhothiFiltered.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Package className="h-8 w-8 text-emerald-300" />
                           <span className="font-bold text-sm text-slate-600">
@@ -934,8 +886,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       const border = Number(a.dhothiBorderKg) || 0;
                       const totalKg = warp + weft + border;
                       const pcs = warp > 0 ? Math.round(warp / 0.122) : 0;
-                      const wageRate = Number(a.dhothiWeaverRate) || 19;
-                      const totalWage = pcs * wageRate;
 
                       return (
                         <tr key={`dhothi-${a.id}`} className="hover:bg-emerald-50/20 transition">
@@ -986,30 +936,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                             )}
                           </td>
 
-                          {/* Govt Piece Rate */}
-                          <td className="py-3 px-4 font-mono font-semibold text-slate-800">
-                            ₹{a.dhothiGovtRate || 0} / pc
-                          </td>
-
-                          {/* Weaver Wage */}
-                          <td className="py-3 px-4 font-mono">
-                            {pcs > 0 ? (
-                              <>
-                                <div className="font-bold text-emerald-800">₹{wageRate} / pc</div>
-                                <div className="text-[10px] text-slate-400">
-                                  Total: ₹{totalWage.toLocaleString()}
-                                </div>
-                              </>
-                            ) : (
-                              <span className="text-slate-300 italic">—</span>
-                            )}
-                          </td>
-
-                          {/* Bag / Yarn Rate */}
-                          <td className="py-3 px-4 font-mono text-slate-600">
-                            {a.bagPrice ? `₹${a.bagPrice} / bag` : a.yarnRatePerKg ? `₹${a.yarnRatePerKg} / kg` : "—"}
-                          </td>
-
                           {/* Actions */}
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
@@ -1052,11 +978,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                           {totalDhothiPieces.toLocaleString()} Dhothis
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-400">—</td>
-                      <td className="py-3 px-4 text-emerald-900 font-black">
-                        ₹{totalDhothiWages.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4 text-slate-400">—</td>
                       <td className="py-3 px-4 text-right text-slate-400">—</td>
                     </tr>
                   </tfoot>
@@ -1113,16 +1034,13 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                     </th>
                     <th className="py-3 px-4 font-black text-slate-800">Total Yarn</th>
                     <th className="py-3 px-4 font-black text-purple-800">Saree Quota</th>
-                    <th className="py-3 px-4">Govt Piece Rate</th>
-                    <th className="py-3 px-4 text-purple-800">Weaver Wage</th>
-                    <th className="py-3 px-4">Bag / Yarn Rate</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {sareeFiltered.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Package className="h-8 w-8 text-purple-300" />
                           <span className="font-bold text-sm text-slate-600">
@@ -1145,8 +1063,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       const border = Number(a.sareeBorderKg) || 0;
                       const totalKg = warp + weft + border;
                       const pcs = warp > 0 ? Math.round(warp / 0.188) : 0;
-                      const wageRate = Number(a.sareeWeaverRate) || 42;
-                      const totalWage = pcs * wageRate;
 
                       return (
                         <tr key={`saree-${a.id}`} className="hover:bg-purple-50/20 transition">
@@ -1197,30 +1113,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                             )}
                           </td>
 
-                          {/* Govt Piece Rate */}
-                          <td className="py-3 px-4 font-mono font-semibold text-slate-800">
-                            ₹{a.sareeGovtRate || 0} / pc
-                          </td>
-
-                          {/* Weaver Wage */}
-                          <td className="py-3 px-4 font-mono">
-                            {pcs > 0 ? (
-                              <>
-                                <div className="font-bold text-purple-800">₹{wageRate} / pc</div>
-                                <div className="text-[10px] text-slate-400">
-                                  Total: ₹{totalWage.toLocaleString()}
-                                </div>
-                              </>
-                            ) : (
-                              <span className="text-slate-300 italic">—</span>
-                            )}
-                          </td>
-
-                          {/* Bag / Yarn Rate */}
-                          <td className="py-3 px-4 font-mono text-slate-600">
-                            {a.bagPrice ? `₹${a.bagPrice} / bag` : a.yarnRatePerKg ? `₹${a.yarnRatePerKg} / kg` : "—"}
-                          </td>
-
                           {/* Actions */}
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
@@ -1263,11 +1155,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                           {totalSareePieces.toLocaleString()} Sarees
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-400">—</td>
-                      <td className="py-3 px-4 text-purple-900 font-black">
-                        ₹{totalSareeWages.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4 text-slate-400">—</td>
                       <td className="py-3 px-4 text-right text-slate-400">—</td>
                     </tr>
                   </tfoot>
@@ -1470,37 +1357,6 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       </span>
                     </div>
                   </div>
-
-                  {/* Dhothi Specific Pricing & Wage */}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-emerald-200/60">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                        Co-optex Dhothi Piece Rate (₹)
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        placeholder="e.g. 85"
-                        value={form.dhothiGovtRate}
-                        onChange={(e) => setForm({ ...form, dhothiGovtRate: e.target.value })}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white font-mono focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                        Dhothi Weaver Wage (₹/pc)
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={form.dhothiWeaverRate}
-                        onChange={(e) => setForm({ ...form, dhothiWeaverRate: e.target.value })}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white font-mono font-bold text-emerald-800 focus:outline-none"
-                      />
-                      <span className="text-[10px] text-slate-400">Govt standard: ₹19 / pc</span>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -1569,68 +1425,21 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       </span>
                     </div>
                   </div>
-
-                  {/* Saree Specific Pricing & Wage */}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-purple-200/60">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                        Co-optex Saree Piece Rate (₹)
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        placeholder="e.g. 180"
-                        value={form.sareeGovtRate}
-                        onChange={(e) => setForm({ ...form, sareeGovtRate: e.target.value })}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white font-mono focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                        Saree Weaver Wage (₹/pc)
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={form.sareeWeaverRate}
-                        onChange={(e) => setForm({ ...form, sareeWeaverRate: e.target.value })}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white font-mono font-bold text-purple-800 focus:outline-none"
-                      />
-                      <span className="text-[10px] text-slate-400">Govt standard: ₹42 / pc</span>
-                    </div>
-                  </div>
                 </div>
               )}
 
-              {/* General Bag Price & Notes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Bag Price / Rate per Bag (₹)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="0.0"
-                    value={form.bagPrice}
-                    onChange={(e) => setForm({ ...form, bagPrice: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white font-mono focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Notes / Remarks
-                  </label>
-                  <input
-                    type="text"
-                    value={form.notes}
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    placeholder="Order ref, supplier remarks..."
-                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none"
-                  />
-                </div>
+              {/* Notes / Remarks */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Notes / Remarks
+                </label>
+                <input
+                  type="text"
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Order ref, supplier remarks, challan details..."
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
               {/* Form Actions */}
