@@ -3,8 +3,8 @@ import fs from "fs";
 import path from "path";
 import { getCurrentUser } from "@/lib/auth";
 
-const MAIN_D_BACKUP_DIR = "D:\\Backup DB";
-const DESKTOP_BACKUP_DIR = "C:\\Users\\sthiy\\Desktop\\cheran accounting software\\backups";
+const getMainBackupDir = () => path.join("D:", "Backup DB");
+const getDesktopBackupDir = () => path.join("C:", "Users", "sthiy", "Desktop", "cheran accounting software", "backups");
 
 function getActiveDbPath(): string {
   const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
@@ -42,11 +42,11 @@ export async function GET() {
     }
 
     const dDriveAvailable = fs.existsSync("D:\\");
-    let targetDir = MAIN_D_BACKUP_DIR;
+    let targetDir = getMainBackupDir();
 
-    if (!dDriveAvailable || !fs.existsSync(MAIN_D_BACKUP_DIR)) {
-      targetDir = fs.existsSync(DESKTOP_BACKUP_DIR)
-        ? DESKTOP_BACKUP_DIR
+    if (!dDriveAvailable || !fs.existsSync(getMainBackupDir())) {
+      targetDir = fs.existsSync(getDesktopBackupDir())
+        ? getDesktopBackupDir()
         : path.resolve(process.cwd(), "backups");
     }
 
@@ -121,9 +121,12 @@ export async function POST() {
       );
     }
 
+    const mainBackupDir = getMainBackupDir();
+    const desktopBackupDir = getDesktopBackupDir();
+
     // Ensure D:\Backup DB exists
-    if (!fs.existsSync(MAIN_D_BACKUP_DIR)) {
-      fs.mkdirSync(MAIN_D_BACKUP_DIR, { recursive: true });
+    if (!fs.existsSync(mainBackupDir)) {
+      fs.mkdirSync(mainBackupDir, { recursive: true });
     }
 
     const now = new Date();
@@ -134,7 +137,7 @@ export async function POST() {
       .split(".")[0];
     const baseName = path.basename(dbPath, path.extname(dbPath));
     const backupFileName = `cheran_accounting_${baseName}_${timestamp}.db`;
-    const dDriveBackupPath = path.join(MAIN_D_BACKUP_DIR, backupFileName);
+    const dDriveBackupPath = path.join(mainBackupDir, backupFileName);
 
     // 1. Copy to D:\Backup DB
     fs.copyFileSync(dbPath, dDriveBackupPath);
@@ -143,10 +146,10 @@ export async function POST() {
 
     // 2. Also copy to local Desktop backups directory for double safety
     try {
-      if (!fs.existsSync(DESKTOP_BACKUP_DIR)) {
-        fs.mkdirSync(DESKTOP_BACKUP_DIR, { recursive: true });
+      if (!fs.existsSync(desktopBackupDir)) {
+        fs.mkdirSync(desktopBackupDir, { recursive: true });
       }
-      const desktopBackupPath = path.join(DESKTOP_BACKUP_DIR, backupFileName);
+      const desktopBackupPath = path.join(desktopBackupDir, backupFileName);
       fs.copyFileSync(dbPath, desktopBackupPath);
     } catch (e) {
       console.warn("Secondary Desktop backup write warning:", e);

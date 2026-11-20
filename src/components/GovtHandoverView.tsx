@@ -131,7 +131,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
   // Dhothi Piece Tallies (Govt Quota vs Handovered)
   const govtDhothiProvidedPieces =
-    yarnSummary?.dhothi?.piecesFromWarp || Math.round(veattiTarget / 3.65) || 0;
+    yarnSummary?.dhothi?.targetTotalPieces ||
+    yarnSummary?.dhothi?.piecesFromWarp ||
+    Math.round(veattiTarget / 3.65) ||
+    0;
   const dhothiHandoveredPieces = veattiHandovers.reduce(
     (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 3.65)),
     0
@@ -144,7 +147,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
   // Saree Piece Tallies (Govt Quota vs Handovered)
   const govtSareeProvidedPieces =
-    yarnSummary?.saree?.piecesFromWarp || Math.round(sareeTarget / 5.5) || 0;
+    yarnSummary?.saree?.targetTotalPieces ||
+    yarnSummary?.saree?.piecesFromWarp ||
+    Math.round(sareeTarget / 5.5) ||
+    0;
   const sareeHandoveredPieces = sareeHandovers.reduce(
     (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 5.5)),
     0

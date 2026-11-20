@@ -39,10 +39,12 @@ export async function GET() {
     let totalDhothiWarpKg = 0;
     let totalDhothiWeftKg = 0;
     let totalDhothiBorderKg = 0;
+    let totalDhothiTargetPieces = 0;
 
     let totalSareeWarpKg = 0;
     let totalSareeWeftKg = 0;
     let totalSareeBorderKg = 0;
+    let totalSareeTargetPieces = 0;
 
     const enrichedAllotments = allotments.map((a) => {
       totalDhothiWarpKg += a.dhothiWarpKg;
@@ -57,12 +59,14 @@ export async function GET() {
       const dhothiPiecesWarp = a.dhothiWarpKg > 0 ? Math.round(a.dhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE) : 0;
       const dhothiPiecesWeft = a.dhothiWeftKg > 0 ? Math.round(a.dhothiWeftKg / YARN_CONVERSIONS.DHOTHI.WEFT_PER_PIECE) : 0;
       const dhothiPiecesBorder = a.dhothiBorderKg > 0 ? Math.round(a.dhothiBorderKg / YARN_CONVERSIONS.DHOTHI.BORDER_PER_PIECE) : 0;
-      const targetDhothiPieces = dhothiPiecesWarp || dhothiPiecesWeft || 0;
+      const targetDhothiPieces = dhothiPiecesWarp || dhothiPiecesWeft || dhothiPiecesBorder || 0;
+      totalDhothiTargetPieces += targetDhothiPieces;
 
       const sareePiecesWarp = a.sareeWarpKg > 0 ? Math.round(a.sareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE) : 0;
       const sareePiecesWeft = a.sareeWeftKg > 0 ? Math.round(a.sareeWeftKg / YARN_CONVERSIONS.SAREE.WEFT_PER_PIECE) : 0;
       const sareePiecesBorder = a.sareeBorderKg > 0 ? Math.round(a.sareeBorderKg / YARN_CONVERSIONS.SAREE.BORDER_PER_PIECE) : 0;
-      const targetSareePieces = sareePiecesWarp || sareePiecesWeft || 0;
+      const targetSareePieces = sareePiecesWarp || sareePiecesWeft || sareePiecesBorder || 0;
+      totalSareeTargetPieces += targetSareePieces;
 
       return {
         ...a,
@@ -94,7 +98,7 @@ export async function GET() {
         piecesFromWarp: Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
         piecesFromWeft: Math.round(totalDhothiWeftKg / YARN_CONVERSIONS.DHOTHI.WEFT_PER_PIECE),
         piecesFromBorder: Math.round(totalDhothiBorderKg / YARN_CONVERSIONS.DHOTHI.BORDER_PER_PIECE),
-        targetTotalPieces: Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
+        targetTotalPieces: totalDhothiTargetPieces || Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
       },
       saree: {
         totalWarpKg: +totalSareeWarpKg.toFixed(3),
@@ -104,7 +108,7 @@ export async function GET() {
         piecesFromWarp: Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
         piecesFromWeft: Math.round(totalSareeWeftKg / YARN_CONVERSIONS.SAREE.WEFT_PER_PIECE),
         piecesFromBorder: Math.round(totalSareeBorderKg / YARN_CONVERSIONS.SAREE.BORDER_PER_PIECE),
-        targetTotalPieces: Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
+        targetTotalPieces: totalSareeTargetPieces || Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
       },
     };
 

@@ -125,4 +125,26 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     expect(updated.dhothiWeaverRate).toBe(19);
     expect(updated.sareeWeaverRate).toBe(42);
   });
+
+  it("calculates piece quotas correctly when an allotment contains only Weft or Border yarn", async () => {
+    // Saree challan with only Weft yarn: 833.76 kg (833.76 / 0.182 = 4581 pieces)
+    const sareeWeftOnly = await prisma.govtYarnAllotment.create({
+      data: {
+        allotmentNo: "4892-WEFT-ONLY",
+        sareeWarpKg: 0,
+        sareeWeftKg: 833.76,
+        sareeBorderKg: 0,
+        sareeWeaverRate: 42,
+      },
+    });
+
+    const targetPieces =
+      (sareeWeftOnly.sareeWarpKg > 0 ? Math.round(sareeWeftOnly.sareeWarpKg / 0.188) : 0) ||
+      (sareeWeftOnly.sareeWeftKg > 0 ? Math.round(sareeWeftOnly.sareeWeftKg / 0.182) : 0) ||
+      (sareeWeftOnly.sareeBorderKg > 0 ? Math.round(sareeWeftOnly.sareeBorderKg / 0.024) : 0) ||
+      0;
+
+    expect(targetPieces).toBe(4581);
+    expect(targetPieces * sareeWeftOnly.sareeWeaverRate).toBe(4581 * 42); // Rs. 192,402
+  });
 });

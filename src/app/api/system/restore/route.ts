@@ -3,8 +3,8 @@ import fs from "fs";
 import path from "path";
 import { getCurrentUser } from "@/lib/auth";
 
-const MAIN_D_BACKUP_DIR = "D:\\Backup DB";
-const DESKTOP_BACKUP_DIR = "C:\\Users\\sthiy\\Desktop\\cheran accounting software\\backups";
+const getMainBackupDir = () => path.join("D:", "Backup DB");
+const getDesktopBackupDir = () => path.join("C:", "Users", "sthiy", "Desktop", "cheran accounting software", "backups");
 
 function getActiveDbPath(): string {
   const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
@@ -38,16 +38,16 @@ export async function POST(request: Request) {
     }
 
     const dDriveAvailable = fs.existsSync("D:\\");
-    let backupDir = MAIN_D_BACKUP_DIR;
+    let backupDir = getMainBackupDir();
 
-    if (!dDriveAvailable || !fs.existsSync(MAIN_D_BACKUP_DIR)) {
-      if (fs.existsSync(DESKTOP_BACKUP_DIR)) {
-        backupDir = DESKTOP_BACKUP_DIR;
+    if (!dDriveAvailable || !fs.existsSync(getMainBackupDir())) {
+      if (fs.existsSync(getDesktopBackupDir())) {
+        backupDir = getDesktopBackupDir();
       } else if (fs.existsSync(path.resolve(process.cwd(), "backups"))) {
         backupDir = path.resolve(process.cwd(), "backups");
       } else {
         return NextResponse.json(
-          { error: `No backup directory found at: ${MAIN_D_BACKUP_DIR} or local backups folder.` },
+          { error: `No backup directory found at: ${getMainBackupDir()} or local backups folder.` },
           { status: 404 }
         );
       }

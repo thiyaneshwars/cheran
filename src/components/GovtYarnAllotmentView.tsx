@@ -110,6 +110,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
   const liveDhothiWarpPcs = numDWarp > 0 ? Math.round(numDWarp / 0.122) : 0;
   const liveDhothiWeftPcs = numDWeft > 0 ? Math.round(numDWeft / 0.119) : 0;
   const liveDhothiBorderPcs = numDBorder > 0 ? Math.round(numDBorder / 0.006) : 0;
+  const liveDhothiQuota = liveDhothiWarpPcs || liveDhothiWeftPcs || liveDhothiBorderPcs;
 
   const numSWarp = parseFloat(form.sareeWarpKg.toString()) || 0;
   const numSWeft = parseFloat(form.sareeWeftKg.toString()) || 0;
@@ -118,6 +119,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
   const liveSareeWarpPcs = numSWarp > 0 ? Math.round(numSWarp / 0.188) : 0;
   const liveSareeWeftPcs = numSWeft > 0 ? Math.round(numSWeft / 0.182) : 0;
   const liveSareeBorderPcs = numSBorder > 0 ? Math.round(numSBorder / 0.024) : 0;
+  const liveSareeQuota = liveSareeWarpPcs || liveSareeWeftPcs || liveSareeBorderPcs;
 
   const handleOpenNew = (section: "DHOTHI" | "SAREE" | "BOTH") => {
     setEditingId(null);
@@ -146,8 +148,8 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
 
   const handleEdit = (a: any) => {
     setEditingId(a.id);
-    const hasDhothi = a.dhothiWarpKg > 0 || a.dhothiWeftKg > 0;
-    const hasSaree = a.sareeWarpKg > 0 || a.sareeWeftKg > 0;
+    const hasDhothi = a.dhothiWarpKg > 0 || a.dhothiWeftKg > 0 || a.dhothiBorderKg > 0;
+    const hasSaree = a.sareeWarpKg > 0 || a.sareeWeftKg > 0 || a.sareeBorderKg > 0;
     setModalSection(hasDhothi && hasSaree ? "BOTH" : hasSaree ? "SAREE" : "DHOTHI");
     setForm({
       allotmentNo: a.allotmentNo,
@@ -273,12 +275,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
       "Dhothi Weft (KG)": a.dhothiWeftKg,
       "Dhothi Border (KG)": a.dhothiBorderKg,
       "Dhothi Total (KG)": a.derived?.dhothi?.totalKg,
-      "Dhothi Pieces (Warp)": a.derived?.dhothi?.piecesFromWarp,
+      "Dhothi Pieces (Quota)": a.derived?.dhothi?.targetPieces || a.derived?.dhothi?.piecesFromWarp,
       "Saree Warp (KG)": a.sareeWarpKg,
       "Saree Weft (KG)": a.sareeWeftKg,
       "Saree Border (KG)": a.sareeBorderKg,
       "Saree Total (KG)": a.derived?.saree?.totalKg,
-      "Saree Pieces (Warp)": a.derived?.saree?.piecesFromWarp,
+      "Saree Pieces (Quota)": a.derived?.saree?.targetPieces || a.derived?.saree?.piecesFromWarp,
       "Bag / Yarn Price": a.bagPrice || a.yarnRatePerKg,
       "Dhothi Govt Rate": a.dhothiGovtRate,
       "Saree Govt Rate": a.sareeGovtRate,
@@ -310,44 +312,72 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
   const totalDhothiWeft = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiWeftKg) || 0), 0);
   const totalDhothiBorder = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiBorderKg) || 0), 0);
   const totalDhothiYarn = totalDhothiWarp + totalDhothiWeft + totalDhothiBorder;
-  const totalDhothiPieces = dhothiFiltered.reduce(
-    (s, a) =>
-      s +
-      (a.derived?.dhothi?.piecesFromWarp ||
-        (a.dhothiWarpKg > 0 ? Math.round(Number(a.dhothiWarpKg) / 0.122) : 0)),
-    0
-  );
-  const totalDhothiWages = dhothiFiltered.reduce(
-    (s, a) => {
-      const pcs =
-        a.derived?.dhothi?.piecesFromWarp ||
-        (a.dhothiWarpKg > 0 ? Math.round(Number(a.dhothiWarpKg) / 0.122) : 0);
-      return s + pcs * (Number(a.dhothiWeaverRate) || 19);
-    },
-    0
-  );
+  const totalDhothiPieces = dhothiFiltered.reduce((s, a) => {
+    const warp = Number(a.dhothiWarpKg) || 0;
+    const weft = Number(a.dhothiWeftKg) || 0;
+    const border = Number(a.dhothiBorderKg) || 0;
+    const pcs =
+      a.derived?.dhothi?.targetPieces ||
+      (warp > 0
+        ? Math.round(warp / 0.122)
+        : weft > 0
+        ? Math.round(weft / 0.119)
+        : border > 0
+        ? Math.round(border / 0.006)
+        : 0);
+    return s + pcs;
+  }, 0);
+  const totalDhothiWages = dhothiFiltered.reduce((s, a) => {
+    const warp = Number(a.dhothiWarpKg) || 0;
+    const weft = Number(a.dhothiWeftKg) || 0;
+    const border = Number(a.dhothiBorderKg) || 0;
+    const pcs =
+      a.derived?.dhothi?.targetPieces ||
+      (warp > 0
+        ? Math.round(warp / 0.122)
+        : weft > 0
+        ? Math.round(weft / 0.119)
+        : border > 0
+        ? Math.round(border / 0.006)
+        : 0);
+    return s + pcs * (Number(a.dhothiWeaverRate) || 19);
+  }, 0);
 
   // Totals for Saree Ledger
   const totalSareeWarp = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWarpKg) || 0), 0);
   const totalSareeWeft = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWeftKg) || 0), 0);
   const totalSareeBorder = sareeFiltered.reduce((s, a) => s + (Number(a.sareeBorderKg) || 0), 0);
   const totalSareeYarn = totalSareeWarp + totalSareeWeft + totalSareeBorder;
-  const totalSareePieces = sareeFiltered.reduce(
-    (s, a) =>
-      s +
-      (a.derived?.saree?.piecesFromWarp ||
-        (a.sareeWarpKg > 0 ? Math.round(Number(a.sareeWarpKg) / 0.188) : 0)),
-    0
-  );
-  const totalSareeWages = sareeFiltered.reduce(
-    (s, a) => {
-      const pcs =
-        a.derived?.saree?.piecesFromWarp ||
-        (a.sareeWarpKg > 0 ? Math.round(Number(a.sareeWarpKg) / 0.188) : 0);
-      return s + pcs * (Number(a.sareeWeaverRate) || 42);
-    },
-    0
-  );
+  const totalSareePieces = sareeFiltered.reduce((s, a) => {
+    const warp = Number(a.sareeWarpKg) || 0;
+    const weft = Number(a.sareeWeftKg) || 0;
+    const border = Number(a.sareeBorderKg) || 0;
+    const pcs =
+      a.derived?.saree?.targetPieces ||
+      (warp > 0
+        ? Math.round(warp / 0.188)
+        : weft > 0
+        ? Math.round(weft / 0.182)
+        : border > 0
+        ? Math.round(border / 0.024)
+        : 0);
+    return s + pcs;
+  }, 0);
+  const totalSareeWages = sareeFiltered.reduce((s, a) => {
+    const warp = Number(a.sareeWarpKg) || 0;
+    const weft = Number(a.sareeWeftKg) || 0;
+    const border = Number(a.sareeBorderKg) || 0;
+    const pcs =
+      a.derived?.saree?.targetPieces ||
+      (warp > 0
+        ? Math.round(warp / 0.188)
+        : weft > 0
+        ? Math.round(weft / 0.182)
+        : border > 0
+        ? Math.round(border / 0.024)
+        : 0);
+    return s + pcs * (Number(a.sareeWeaverRate) || 42);
+  }, 0);
 
   return (
     <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in font-sans">
@@ -482,7 +512,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                   : "bg-emerald-50 text-emerald-700"
               }`}
             >
-              {countDhothiAllotments} Entries • {summary?.dhothi?.piecesFromWarp || 0} Pcs
+              {countDhothiAllotments} Entries • {totalDhothiPieces.toLocaleString()} Pcs
             </span>
           </button>
 
@@ -505,7 +535,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                   : "bg-purple-50 text-purple-700"
               }`}
             >
-              {countSareeAllotments} Entries • {summary?.saree?.piecesFromWarp || 0} Pcs
+              {countSareeAllotments} Entries • {totalSareePieces.toLocaleString()} Pcs
             </span>
           </button>
         </div>
@@ -615,12 +645,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {summary?.dhothi?.piecesFromWarp?.toLocaleString() || 0}
+                {totalDhothiPieces.toLocaleString()}
               </span>
               <span className="text-xs font-bold text-emerald-700">Pieces</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              Derived from {summary?.dhothi?.totalWarpKg || 0} KG Warp (/ 0.122)
+              Total quota from {totalDhothiYarn.toFixed(1)} KG Dhothi Yarn
             </p>
           </div>
 
@@ -634,12 +664,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {summary?.dhothi?.totalWarpKg?.toLocaleString() || 0}
+                {totalDhothiWarp.toLocaleString()}
               </span>
               <span className="text-xs font-bold text-slate-600">KG</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Yield: ~{summary?.dhothi?.piecesFromWarp || 0} Dhothis
+              Yield: ~{Math.round(totalDhothiWarp / 0.122).toLocaleString()} Dhothis (/ 0.122)
             </p>
           </div>
 
@@ -653,12 +683,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {((summary?.dhothi?.totalWeftKg || 0) + (summary?.dhothi?.totalBorderKg || 0)).toLocaleString()}
+                {(totalDhothiWeft + totalDhothiBorder).toLocaleString()}
               </span>
               <span className="text-xs font-bold text-slate-600">KG</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              Weft: {summary?.dhothi?.totalWeftKg || 0}kg | Border: {summary?.dhothi?.totalBorderKg || 0}kg
+              Weft: {totalDhothiWeft}kg | Border: {totalDhothiBorder}kg
             </p>
           </div>
 
@@ -672,10 +702,10 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-1 text-2xl sm:text-3xl font-black text-emerald-900 font-mono tracking-tight">
               <span>₹</span>
-              <span>{((summary?.dhothi?.piecesFromWarp || 0) * 19).toLocaleString()}</span>
+              <span>{totalDhothiWages.toLocaleString()}</span>
             </div>
             <p className="text-[11px] text-emerald-700">
-              {summary?.dhothi?.piecesFromWarp || 0} pcs × ₹19 / Dhothi
+              {totalDhothiPieces.toLocaleString()} pcs × ₹19 / Dhothi
             </p>
           </div>
         </div>
@@ -691,12 +721,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {summary?.saree?.piecesFromWarp?.toLocaleString() || 0}
+                {totalSareePieces.toLocaleString()}
               </span>
               <span className="text-xs font-bold text-purple-700">Pieces</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              Derived from {summary?.saree?.totalWarpKg || 0} KG Warp (/ 0.188)
+              Total quota from {totalSareeYarn.toFixed(1)} KG Saree Yarn
             </p>
           </div>
 
@@ -710,12 +740,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {summary?.saree?.totalWarpKg?.toLocaleString() || 0}
+                {totalSareeWarp.toLocaleString()}
               </span>
               <span className="text-xs font-bold text-slate-600">KG</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Yield: ~{summary?.saree?.piecesFromWarp || 0} Sarees
+              Yield: ~{Math.round(totalSareeWarp / 0.188).toLocaleString()} Sarees (/ 0.188)
             </p>
           </div>
 
@@ -729,12 +759,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {((summary?.saree?.totalWeftKg || 0) + (summary?.saree?.totalBorderKg || 0)).toLocaleString()}
+                {(totalSareeWeft + totalSareeBorder).toLocaleString()}
               </span>
               <span className="text-xs font-bold text-slate-600">KG</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              Weft: {summary?.saree?.totalWeftKg || 0}kg | Border: {summary?.saree?.totalBorderKg || 0}kg
+              Weft: {totalSareeWeft}kg | Border: {totalSareeBorder}kg
             </p>
           </div>
 
@@ -748,10 +778,10 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-1 text-2xl sm:text-3xl font-black text-purple-900 font-mono tracking-tight">
               <span>₹</span>
-              <span>{((summary?.saree?.piecesFromWarp || 0) * 42).toLocaleString()}</span>
+              <span>{totalSareeWages.toLocaleString()}</span>
             </div>
             <p className="text-[11px] text-purple-700">
-              {summary?.saree?.piecesFromWarp || 0} pcs × ₹42 / Saree
+              {totalSareePieces.toLocaleString()} pcs × ₹42 / Saree
             </p>
           </div>
         </div>
@@ -767,12 +797,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {summary?.dhothi?.piecesFromWarp?.toLocaleString() || 0}
+                {totalDhothiPieces.toLocaleString()}
               </span>
               <span className="text-xs font-bold text-emerald-700">Pieces</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              {summary?.dhothi?.totalWarpKg || 0} KG Warp (/ 0.122)
+              {totalDhothiYarn.toFixed(1)} KG Yarn ({totalDhothiWarp}kg Warp)
             </p>
           </div>
 
@@ -785,12 +815,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {summary?.saree?.piecesFromWarp?.toLocaleString() || 0}
+                {totalSareePieces.toLocaleString()}
               </span>
               <span className="text-xs font-bold text-purple-700">Pieces</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              {summary?.saree?.totalWarpKg || 0} KG Warp (/ 0.188)
+              {totalSareeYarn.toFixed(1)} KG Yarn ({totalSareeWarp}kg Warp)
             </p>
           </div>
 
@@ -803,12 +833,12 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {((summary?.dhothi?.totalYarnKg || 0) + (summary?.saree?.totalYarnKg || 0)).toLocaleString()}
+                {(totalDhothiYarn + totalSareeYarn).toFixed(1)}
               </span>
               <span className="text-xs font-bold text-amber-700">KG</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Dhothi: {summary?.dhothi?.totalYarnKg || 0}kg | Saree: {summary?.saree?.totalYarnKg || 0}kg
+              Dhothi: {totalDhothiYarn.toFixed(1)}kg | Saree: {totalSareeYarn.toFixed(1)}kg
             </p>
           </div>
 
@@ -821,15 +851,10 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
             </div>
             <div className="flex items-baseline gap-1 text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
               <span>₹</span>
-              <span>
-                {(
-                  (summary?.dhothi?.piecesFromWarp || 0) * 19 +
-                  (summary?.saree?.piecesFromWarp || 0) * 42
-                ).toLocaleString()}
-              </span>
+              <span>{(totalDhothiWages + totalSareeWages).toLocaleString()}</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              ₹19 / Dhothi + ₹42 / Saree
+              Dhothi ₹{totalDhothiWages.toLocaleString()} + Saree ₹{totalSareeWages.toLocaleString()}
             </p>
           </div>
         </div>
@@ -951,8 +976,23 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       const border = Number(a.dhothiBorderKg) || 0;
                       const totalKg = warp + weft + border;
                       const pcs =
+                        a.derived?.dhothi?.targetPieces ||
                         a.derived?.dhothi?.piecesFromWarp ||
-                        (warp > 0 ? Math.round(warp / 0.122) : 0);
+                        (warp > 0
+                          ? Math.round(warp / 0.122)
+                          : weft > 0
+                          ? Math.round(weft / 0.119)
+                          : border > 0
+                          ? Math.round(border / 0.006)
+                          : 0);
+                      const pcsFormula =
+                        warp > 0
+                          ? "Warp / 0.122"
+                          : weft > 0
+                          ? "Weft / 0.119"
+                          : border > 0
+                          ? "Border / 0.006"
+                          : "";
                       const wageRate = Number(a.dhothiWeaverRate) || 19;
                       const totalWage = pcs * wageRate;
 
@@ -992,9 +1032,16 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                           {/* Pieces Quota */}
                           <td className="py-3 px-4">
                             {pcs > 0 ? (
-                              <span className="inline-flex items-center gap-1 font-black text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2.5 py-1 rounded-lg font-mono text-xs shadow-2xs">
-                                {pcs.toLocaleString()} pcs
-                              </span>
+                              <div>
+                                <span className="inline-flex items-center gap-1 font-black text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2.5 py-1 rounded-lg font-mono text-xs shadow-2xs">
+                                  {pcs.toLocaleString()} pcs
+                                </span>
+                                {pcsFormula && (
+                                  <div className="text-[10px] text-slate-400 mt-0.5">
+                                    {pcsFormula}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-slate-300 italic">—</span>
                             )}
@@ -1153,8 +1200,23 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       const border = Number(a.sareeBorderKg) || 0;
                       const totalKg = warp + weft + border;
                       const pcs =
+                        a.derived?.saree?.targetPieces ||
                         a.derived?.saree?.piecesFromWarp ||
-                        (warp > 0 ? Math.round(warp / 0.188) : 0);
+                        (warp > 0
+                          ? Math.round(warp / 0.188)
+                          : weft > 0
+                          ? Math.round(weft / 0.182)
+                          : border > 0
+                          ? Math.round(border / 0.024)
+                          : 0);
+                      const pcsFormula =
+                        warp > 0
+                          ? "Warp / 0.188"
+                          : weft > 0
+                          ? "Weft / 0.182"
+                          : border > 0
+                          ? "Border / 0.024"
+                          : "";
                       const wageRate = Number(a.sareeWeaverRate) || 42;
                       const totalWage = pcs * wageRate;
 
@@ -1194,9 +1256,16 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                           {/* Pieces Quota */}
                           <td className="py-3 px-4">
                             {pcs > 0 ? (
-                              <span className="inline-flex items-center gap-1 font-black text-purple-800 bg-purple-100/80 border border-purple-300 px-2.5 py-1 rounded-lg font-mono text-xs shadow-2xs">
-                                {pcs.toLocaleString()} pcs
-                              </span>
+                              <div>
+                                <span className="inline-flex items-center gap-1 font-black text-purple-800 bg-purple-100/80 border border-purple-300 px-2.5 py-1 rounded-lg font-mono text-xs shadow-2xs">
+                                  {pcs.toLocaleString()} pcs
+                                </span>
+                                {pcsFormula && (
+                                  <div className="text-[10px] text-slate-400 mt-0.5">
+                                    {pcsFormula}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-slate-300 italic">—</span>
                             )}
@@ -1402,7 +1471,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       <span>DHOTHI (வேட்டி) THREAD SUPPLIED (KG):</span>
                     </span>
                     <span className="text-xs font-bold text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-md font-mono">
-                      Dhothi Quota: {liveDhothiWarpPcs} Pieces
+                      Dhothi Quota: {liveDhothiQuota} Pieces
                     </span>
                   </div>
 
@@ -1501,7 +1570,7 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                       <span>SAREE (சேலை) THREAD SUPPLIED (KG):</span>
                     </span>
                     <span className="text-xs font-bold text-purple-900 bg-purple-100 px-2.5 py-0.5 rounded-md font-mono">
-                      Saree Quota: {liveSareeWarpPcs} Pieces
+                      Saree Quota: {liveSareeQuota} Pieces
                     </span>
                   </div>
 
