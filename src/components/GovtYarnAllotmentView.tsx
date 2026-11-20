@@ -1447,6 +1447,17 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
                     onChange={(e) => setForm({ ...form, allotmentNo: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono font-bold"
                   />
+                  {!editingId &&
+                    form.allotmentNo?.trim() &&
+                    allotments.some(
+                      (a) =>
+                        a.allotmentNo?.trim().toLowerCase() ===
+                        form.allotmentNo.trim().toLowerCase()
+                    ) && (
+                      <span className="text-[10px] text-amber-600 block mt-1 font-medium">
+                        Note: Challan/Allotment #{form.allotmentNo.trim()} already exists. A supplementary inward entry will be recorded.
+                      </span>
+                    )}
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">

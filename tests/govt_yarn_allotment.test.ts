@@ -147,4 +147,28 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     expect(targetPieces).toBe(4581);
     expect(targetPieces * sareeWeftOnly.sareeWeaverRate).toBe(4581 * 42); // Rs. 192,402
   });
+
+  it("allows multiple supplementary inward records with the same allotment or challan number", async () => {
+    // Dhothi allotment under Challan 4892
+    const dhothiEntry = await prisma.govtYarnAllotment.create({
+      data: {
+        allotmentNo: "4892",
+        dhothiWarpKg: 720.0,
+      },
+    });
+
+    // Saree allotment under the same Challan / Allotment Order 4892
+    const sareeEntry = await prisma.govtYarnAllotment.create({
+      data: {
+        allotmentNo: "4892",
+        sareeWarpKg: 900.0,
+        sareeWeftKg: 833.76,
+      },
+    });
+
+    expect(dhothiEntry.id).toBeDefined();
+    expect(sareeEntry.id).toBeDefined();
+    expect(dhothiEntry.allotmentNo).toBe("4892");
+    expect(sareeEntry.allotmentNo).toBe("4892");
+  });
 });

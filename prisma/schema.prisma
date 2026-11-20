@@ -542,7 +542,7 @@ model GovernmentHandoverLog {
 
 model GovtYarnAllotment {
   id               String   @id @default(cuid())
-  allotmentNo      String   @unique
+  allotmentNo      String
   allotmentDate    DateTime @default(now())
   schemeName       String   @default("Tamil Nadu Free Dhothi & Saree Scheme")
   supplierDept     String   @default("Co-optex / Dept of Handlooms & Textiles")

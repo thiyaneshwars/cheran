@@ -12,6 +12,7 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let body: any = {};
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -19,7 +20,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    body = await request.json();
 
     const allotment = await prisma.govtYarnAllotment.update({
       where: { id },
@@ -47,6 +48,12 @@ export async function PUT(
     return NextResponse.json({ success: true, allotment });
   } catch (error: any) {
     console.error("PUT /api/production/yarn-allotment/[id] error:", error);
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        { error: `An allotment with number "${body.allotmentNo}" already exists.` },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { error: error.message || "Failed to update yarn allotment" },
       { status: 500 }

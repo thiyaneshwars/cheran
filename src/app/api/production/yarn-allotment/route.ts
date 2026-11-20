@@ -137,13 +137,14 @@ function safeFloat(val: any, fallback = 0): number {
  * Create a new yarn allotment inward entry
  */
 export async function POST(request: Request) {
+  let body: any = {};
   try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    body = await request.json();
 
     const allotmentNo =
       body.allotmentNo?.trim() ||
@@ -197,6 +198,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, allotment });
   } catch (error: any) {
     console.error("POST /api/production/yarn-allotment error:", error);
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        {
+          error: `An allotment with number "${body.allotmentNo}" already exists. Please use a different number or edit the existing allotment.`,
+        },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { error: error.message || "Failed to record yarn allotment" },
       { status: 500 }
