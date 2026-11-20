@@ -38,6 +38,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
   const [handovers, setHandovers] = useState<any[]>([]);
   const [veattiUnits, setVeattiUnits] = useState<any[]>([]);
   const [sareeUnits, setSareeUnits] = useState<any[]>([]);
+  const [yarnSummary, setYarnSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -60,6 +61,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     challanNo: "",
     handoverDate: new Date().toISOString().split("T")[0],
     meters: "" as number | string,
+    pieces: "" as number | string,
     recipientDept: "Tamil Nadu Handlooms & Textiles / Co-optex",
     vehicleNo: "",
     officerName: "",
@@ -75,14 +77,15 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Fetch all handovers and units
+  // Fetch all handovers, units, and government yarn allotment summary
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [handoverRes, vUnitsRes, sUnitsRes] = await Promise.all([
+      const [handoverRes, vUnitsRes, sUnitsRes, yarnRes] = await Promise.all([
         fetch("/api/production/handover"),
         fetch("/api/production/units?clothType=VEATTI"),
         fetch("/api/production/units?clothType=SAREE"),
+        fetch("/api/production/yarn-allotment"),
       ]);
 
       if (handoverRes.ok) {
@@ -93,6 +96,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       }
       if (sUnitsRes.ok) {
         setSareeUnits(await sUnitsRes.json());
+      }
+      if (yarnRes.ok) {
+        const yData = await yarnRes.json();
+        setYarnSummary(yData.summary || null);
       }
     } catch (err) {
       console.error("Failed to load handover data:", err);
@@ -122,8 +129,35 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
   const sareeGodownStock = Math.max(0, sareeProduced - sareeHandovered);
   const sareeBalanceToHandover = Math.max(0, sareeTarget - sareeHandovered);
 
+  // Dhothi Piece Tallies (Govt Quota vs Handovered)
+  const govtDhothiProvidedPieces =
+    yarnSummary?.dhothi?.piecesFromWarp || Math.round(veattiTarget / 3.65) || 0;
+  const dhothiHandoveredPieces = veattiHandovers.reduce(
+    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 3.65)),
+    0
+  );
+  const dhothiBalancePieces = Math.max(0, govtDhothiProvidedPieces - dhothiHandoveredPieces);
+  const dhothiPercent =
+    govtDhothiProvidedPieces > 0
+      ? Math.min(100, Math.round((dhothiHandoveredPieces / govtDhothiProvidedPieces) * 100))
+      : 0;
+
+  // Saree Piece Tallies (Govt Quota vs Handovered)
+  const govtSareeProvidedPieces =
+    yarnSummary?.saree?.piecesFromWarp || Math.round(sareeTarget / 5.5) || 0;
+  const sareeHandoveredPieces = sareeHandovers.reduce(
+    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 5.5)),
+    0
+  );
+  const sareeBalancePieces = Math.max(0, govtSareeProvidedPieces - sareeHandoveredPieces);
+  const sareePercent =
+    govtSareeProvidedPieces > 0
+      ? Math.min(100, Math.round((sareeHandoveredPieces / govtSareeProvidedPieces) * 100))
+      : 0;
+
   // Consolidated
   const totalCombinedHandovered = veattiHandovered + sareeHandovered;
+  const totalCombinedPiecesHandovered = dhothiHandoveredPieces + sareeHandoveredPieces;
 
   // Filtered List
   const filteredHandovers = handovers.filter((h) => {
@@ -170,6 +204,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       challanNo: "",
       handoverDate: new Date().toISOString().split("T")[0],
       meters: "",
+      pieces: "",
       recipientDept: "Tamil Nadu Handlooms & Textiles / Co-optex",
       vehicleNo: "",
       officerName: "",
@@ -202,6 +237,9 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       return;
     }
 
+    const standardPieceLen = form.clothType === "SAREE" ? 5.5 : 3.65;
+    const numPieces = form.pieces ? parseInt(form.pieces.toString()) : Math.round(numMeters / standardPieceLen);
+
     setSubmitting(true);
     setFormError(null);
 
@@ -215,6 +253,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
           challanNo: form.challanNo.trim(),
           handoverDate: form.handoverDate,
           meters: numMeters,
+          pieces: numPieces,
           recipientDept: form.recipientDept.trim(),
           vehicleNo: form.vehicleNo.trim() || null,
           officerName: form.officerName.trim() || null,
@@ -480,6 +519,142 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             </button>
           </div>
         )}
+      </div>
+
+      {/* =========================================================================
+       * 2.5 GOVERNMENT ALLOTMENT VS HANDOVER BALANCE TALLY
+       * ========================================================================= */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl space-y-5 border border-indigo-900/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-400/30 shadow-xs">
+              <PackageCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black tracking-tight flex items-center gap-2">
+                <span>Government Scheme Target vs Handover Tally</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 uppercase font-mono tracking-wider">
+                  அரசு ஒதுக்கீடு & ஒப்படைப்பு
+                </span>
+              </h2>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Target quotas derived from govt thread (Warp, Weft, Border KG) vs actual dispatch challans
+              </p>
+            </div>
+          </div>
+          {onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate("govt-yarn")}
+              className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-white/10"
+            >
+              <span>+ Record Govt Yarn Allotment</span>
+              <span>&rarr;</span>
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Dhothi / Veatti Scheme Tally */}
+          <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-black text-sm text-white">DHOTHI (வேட்டி) ALLOTMENT TALLY</span>
+              </div>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                {dhothiPercent}% Handovered
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5 text-center">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] font-bold text-slate-300 uppercase block">Govt Provided</span>
+                <span className="text-xl font-black text-white font-mono block mt-0.5">
+                  {govtDhothiProvidedPieces.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[10px] text-slate-400 block">Dhothis</span>
+              </div>
+              <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
+                <span className="text-[10px] font-bold text-emerald-300 uppercase block">Handovered</span>
+                <span className="text-xl font-black text-emerald-300 font-mono block mt-0.5">
+                  {dhothiHandoveredPieces.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[10px] text-emerald-200 block">Dhothis</span>
+              </div>
+              <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/30">
+                <span className="text-[10px] font-bold text-rose-300 uppercase block">Balance Due</span>
+                <span className="text-xl font-black text-rose-300 font-mono block mt-0.5">
+                  {dhothiBalancePieces.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[10px] text-rose-200 block">Dhothis</span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-emerald-400 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${dhothiPercent}%` }}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-300 font-mono pt-1 border-t border-white/10">
+              <span>Govt Rule: Warp KG / 0.122 | Weft / 0.119</span>
+              <span className="text-emerald-300 font-bold">Weaving wage: ₹19 / pc</span>
+            </div>
+          </div>
+
+          {/* Saree Scheme Tally */}
+          <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-purple-400 animate-pulse" />
+                <span className="font-black text-sm text-white">SAREE (சேலை) ALLOTMENT TALLY</span>
+              </div>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                {sareePercent}% Handovered
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5 text-center">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <span className="text-[10px] font-bold text-slate-300 uppercase block">Govt Provided</span>
+                <span className="text-xl font-black text-white font-mono block mt-0.5">
+                  {govtSareeProvidedPieces.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[10px] text-slate-400 block">Sarees</span>
+              </div>
+              <div className="p-3 rounded-xl bg-purple-500/20 border border-purple-500/30">
+                <span className="text-[10px] font-bold text-purple-300 uppercase block">Handovered</span>
+                <span className="text-xl font-black text-purple-300 font-mono block mt-0.5">
+                  {sareeHandoveredPieces.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[10px] text-purple-200 block">Sarees</span>
+              </div>
+              <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/30">
+                <span className="text-[10px] font-bold text-rose-300 uppercase block">Balance Due</span>
+                <span className="text-xl font-black text-rose-300 font-mono block mt-0.5">
+                  {sareeBalancePieces.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[10px] text-rose-200 block">Sarees</span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-purple-400 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${sareePercent}%` }}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-300 font-mono pt-1 border-t border-white/10">
+              <span>Govt Rule: Warp KG / 0.188 | Weft / 0.182</span>
+              <span className="text-purple-300 font-bold">Weaving wage: ₹42 / pc</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* =========================================================================
@@ -891,10 +1066,19 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                       })}
                     </td>
 
-                    {/* Quantity Meters */}
-                    <td className="py-3 px-4 text-right font-black font-mono text-blue-600 text-sm whitespace-nowrap">
-                      {h.meters.toLocaleString("en-IN")}{" "}
-                      <span className="text-[10px] font-semibold text-slate-400">m</span>
+                    {/* Quantity Meters & Pieces */}
+                    <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
+                      <div className="font-black text-blue-600 text-sm">
+                        {h.meters.toLocaleString("en-IN")}{" "}
+                        <span className="text-[10px] font-semibold text-slate-400">m</span>
+                      </div>
+                      <div className="text-[11px] font-bold text-emerald-700">
+                        {(h.pieces && h.pieces > 0
+                          ? h.pieces
+                          : Math.round(h.meters / (isVeatti ? 3.65 : 5.5))
+                        ).toLocaleString("en-IN")}{" "}
+                        <span className="text-[10px] font-normal text-slate-400">pcs</span>
+                      </div>
                     </td>
 
                     {/* Powerloom Unit */}
@@ -1094,11 +1278,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 </div>
               </div>
 
-              {/* Row 2: Meters Handovered & Source Powerloom */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Row 2: Meters, Pieces Handovered & Source Powerloom */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Quantity Handovered (Meters) <span className="text-rose-500">*</span>
+                    Quantity (Meters) <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -1106,10 +1290,41 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     required
                     min="1"
                     value={form.meters}
-                    onChange={(e) => setForm({ ...form, meters: e.target.value })}
-                    placeholder="e.g. 1200"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const m = parseFloat(val) || 0;
+                      const p = m > 0 ? Math.round(m / (form.clothType === "SAREE" ? 5.5 : 3.65)) : "";
+                      setForm({ ...form, meters: val, pieces: p });
+                    }}
+                    placeholder="e.g. 1100"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-black text-blue-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    {form.clothType === "SAREE" ? "Standard ~5.5m/pc" : "Standard ~3.65m/pc"}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Pieces ({form.clothType === "SAREE" ? "Sarees" : "Dhothis"})
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={form.pieces}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const p = parseInt(val) || 0;
+                      const m = p > 0 ? +(p * (form.clothType === "SAREE" ? 5.5 : 3.65)).toFixed(2) : "";
+                      setForm({ ...form, pieces: val, meters: m });
+                    }}
+                    placeholder="e.g. 200"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-black text-emerald-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                  <span className="text-[10px] text-emerald-600 font-bold mt-1 block">
+                    Weaver wage: ₹{form.clothType === "SAREE" ? "42" : "19"}/pc
+                  </span>
                 </div>
 
                 <div>

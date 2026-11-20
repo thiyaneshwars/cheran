@@ -11,6 +11,7 @@ const handoverSchema = z.object({
   challanNo: z.string().min(1, "Challan / Order number is required"),
   handoverDate: z.string().optional(),
   meters: z.number().positive("Meters must be greater than zero"),
+  pieces: z.number().optional().nullable(),
   recipientDept: z.string().default("Tamil Nadu Handlooms & Textiles / Co-optex"),
   vehicleNo: z.string().optional().nullable(),
   officerName: z.string().optional().nullable(),
@@ -70,6 +71,13 @@ export async function POST(request: Request) {
     const data = parsed.data;
     const handoverDate = data.handoverDate ? new Date(data.handoverDate) : new Date();
 
+    // Default pieces calculation if not provided: Saree ~5.5m per saree, Dhothi ~3.65m per dhothi
+    let pieces = data.pieces;
+    if (!pieces || pieces <= 0) {
+      const pieceLen = data.clothType === "SAREE" ? 5.5 : 3.65;
+      pieces = Math.round(data.meters / pieceLen);
+    }
+
     const handover = await prisma.governmentHandoverLog.create({
       data: {
         clothType: data.clothType,
@@ -77,6 +85,7 @@ export async function POST(request: Request) {
         challanNo: data.challanNo.trim(),
         handoverDate,
         meters: data.meters,
+        pieces,
         recipientDept: data.recipientDept.trim(),
         vehicleNo: data.vehicleNo?.trim() || null,
         officerName: data.officerName?.trim() || null,
@@ -91,15 +100,19 @@ export async function POST(request: Request) {
       });
     }
 
-    await prisma.auditLog.create({
-      data: {
-        action: "GOVT_HANDOVER_RECORDED",
-        entityType: "GovernmentHandoverLog",
-        entityId: handover.id,
-        performedById: user.id,
-        details: `Handed over ${data.meters}m of ${data.clothType} to ${data.recipientDept} under Challan #${data.challanNo}.`,
-      },
-    });
+    try {
+      await prisma.auditLog.create({
+        data: {
+          action: "GOVT_HANDOVER_RECORDED",
+          entityType: "GovernmentHandoverLog",
+          entityId: handover.id,
+          performedById: user.id,
+          details: `Handed over ${data.meters}m (${pieces} pcs) of ${data.clothType} to ${data.recipientDept} under Challan #${data.challanNo}.`,
+        },
+      });
+    } catch (auditErr) {
+      console.warn("Handover audit log skipped in read-only environment:", auditErr);
+    }
 
     return NextResponse.json({ success: true, handover }, { status: 201 });
   } catch (error: any) {

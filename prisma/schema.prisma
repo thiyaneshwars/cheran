@@ -530,6 +530,7 @@ model GovernmentHandoverLog {
   challanNo     String
   handoverDate  DateTime        @default(now())
   meters        Float
+  pieces        Int?            @default(0)
   unitId        String?
   unit          ProductionUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
   recipientDept String          @default("Tamil Nadu Handlooms & Textiles / Co-optex")
@@ -537,6 +538,36 @@ model GovernmentHandoverLog {
   officerName   String?
   notes         String?
   createdAt     DateTime        @default(now())
+}
+
+model GovtYarnAllotment {
+  id               String   @id @default(cuid())
+  allotmentNo      String   @unique
+  allotmentDate    DateTime @default(now())
+  schemeName       String   @default("Tamil Nadu Free Dhothi & Saree Scheme")
+  supplierDept     String   @default("Co-optex / Dept of Handlooms & Textiles")
+
+  // Dhothi Yarn (KG)
+  dhothiWarpKg     Float    @default(0.0)
+  dhothiWeftKg     Float    @default(0.0)
+  dhothiBorderKg   Float    @default(0.0)
+
+  // Saree Yarn (KG)
+  sareeWarpKg      Float    @default(0.0)
+  sareeWeftKg      Float    @default(0.0)
+  sareeBorderKg    Float    @default(0.0)
+
+  // Pricing & Wages
+  yarnRatePerKg    Float    @default(0.0)
+  bagPrice         Float    @default(0.0)
+  dhothiGovtRate   Float    @default(0.0)
+  sareeGovtRate    Float    @default(0.0)
+  dhothiWeaverRate Float    @default(19.0)
+  sareeWeaverRate  Float    @default(42.0)
+
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model VeattiProductionEntry {

@@ -22,6 +22,7 @@ import {
   Send,
   Disc,
   HardDrive,
+  Package,
 } from "lucide-react";
 
 export type NavItemKey =
@@ -37,8 +38,9 @@ export type NavItemKey =
   | "settings"
   | "veatti"
   | "saree"
-  | "govt-handover"
   | "babin"
+  | "govt-yarn"
+  | "govt-handover"
   | "backup";
 
 interface SidebarProps {
@@ -101,6 +103,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       key: "babin" as NavItemKey,
       label: "Babin Allocation",
       icon: Disc,
+    },
+    {
+      key: "govt-yarn" as NavItemKey,
+      label: "Govt Yarn Allotment",
+      icon: Package,
     },
     {
       key: "govt-handover" as NavItemKey,

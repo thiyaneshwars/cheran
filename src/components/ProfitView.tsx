@@ -244,6 +244,156 @@ export const ProfitView: React.FC = () => {
         </div>
       </div>
 
+      {/* =========================================================================
+       * GOVT FREE DHOTHI & SAREE SCHEME PROFIT TALLY
+       * ========================================================================= */}
+      {profitData.govtSchemeProfit && (
+        <div className="rounded-3xl border border-indigo-200/90 bg-linear-to-br from-indigo-50/70 via-white to-blue-50/50 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-100 pb-4">
+            <div>
+              <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs uppercase tracking-wider mb-1">
+                <Layers className="h-4 w-4" />
+                <span>Tamil Nadu Free Dhothi & Saree Scheme</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>Co-optex Govt Scheme Profit Tally</span>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200 font-mono">
+                  அரசு திட்ட லாப கணக்கு
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Profit Formula: <strong>Co-optex Piece Rate − Weaver Wages (₹19 Dhothi / ₹42 Saree) = Society Net Profit</strong>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-mono shadow-2xs">
+                Dhothi Wage: ₹19 / pc
+              </span>
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-mono shadow-2xs">
+                Saree Wage: ₹42 / pc
+              </span>
+            </div>
+          </div>
+
+          {/* Scheme Top Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-indigo-100 shadow-2xs space-y-1">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Total Co-optex Revenue
+              </span>
+              <div className="text-2xl font-black text-slate-900 font-mono">
+                {formatINR(profitData.govtSchemeProfit.totalSchemeRevenue)}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {(profitData.govtSchemeProfit.dhothi.handoverPieces + profitData.govtSchemeProfit.saree.handoverPieces).toLocaleString()} pcs delivered
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-rose-100 shadow-2xs space-y-1">
+              <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">
+                Total Weaver Wages
+              </span>
+              <div className="text-2xl font-black text-rose-600 font-mono">
+                {formatINR(profitData.govtSchemeProfit.totalSchemeWeaverWages)}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                ₹19/Dhothi & ₹42/Saree to powerloom weavers
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 shadow-2xs space-y-1">
+              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
+                Society Scheme Profit
+              </span>
+              <div className="text-2xl font-black text-emerald-800 font-mono">
+                {formatINR(profitData.govtSchemeProfit.totalSchemeProfit)}
+              </div>
+              <p className="text-[11px] text-emerald-700">
+                Net society margin after weaver disbursements
+              </p>
+            </div>
+          </div>
+
+          {/* Detailed Tally Table */}
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th className="py-3 px-4">Scheme Product</th>
+                  <th className="py-3 px-4 text-center">Handovered (Pcs)</th>
+                  <th className="py-3 px-4 text-right">Govt Piece Rate</th>
+                  <th className="py-3 px-4 text-right">Weaver Wage / Pc</th>
+                  <th className="py-3 px-4 text-right">Society Margin / Pc</th>
+                  <th className="py-3 px-4 text-right">Total Govt Revenue</th>
+                  <th className="py-3 px-4 text-right">Total Weaver Wages</th>
+                  <th className="py-3 px-4 text-right font-black">Net Society Profit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                {/* Dhothi Row */}
+                <tr className="hover:bg-slate-50/80">
+                  <td className="py-3 px-4 font-sans font-bold text-slate-900 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>Dhothi (வேட்டி) Scheme</span>
+                  </td>
+                  <td className="py-3 px-4 text-center font-bold text-slate-800">
+                    {profitData.govtSchemeProfit.dhothi.handoverPieces.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    ₹{profitData.govtSchemeProfit.dhothi.govtRate}
+                  </td>
+                  <td className="py-3 px-4 text-right text-rose-600 font-bold">
+                    ₹{profitData.govtSchemeProfit.dhothi.weaverRate}
+                  </td>
+                  <td className="py-3 px-4 text-right text-emerald-700 font-bold">
+                    ₹{profitData.govtSchemeProfit.dhothi.profitPerPiece}
+                  </td>
+                  <td className="py-3 px-4 text-right text-slate-900 font-bold">
+                    {formatINR(profitData.govtSchemeProfit.dhothi.totalRevenue)}
+                  </td>
+                  <td className="py-3 px-4 text-right text-rose-600">
+                    {formatINR(profitData.govtSchemeProfit.dhothi.totalWeaverExpense)}
+                  </td>
+                  <td className="py-3 px-4 text-right font-bold text-emerald-700">
+                    {formatINR(profitData.govtSchemeProfit.dhothi.netProfit)}
+                  </td>
+                </tr>
+
+                {/* Saree Row */}
+                <tr className="hover:bg-slate-50/80">
+                  <td className="py-3 px-4 font-sans font-bold text-slate-900 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-purple-500" />
+                    <span>Saree (சேலை) Scheme</span>
+                  </td>
+                  <td className="py-3 px-4 text-center font-bold text-slate-800">
+                    {profitData.govtSchemeProfit.saree.handoverPieces.toLocaleString()}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    ₹{profitData.govtSchemeProfit.saree.govtRate}
+                  </td>
+                  <td className="py-3 px-4 text-right text-rose-600 font-bold">
+                    ₹{profitData.govtSchemeProfit.saree.weaverRate}
+                  </td>
+                  <td className="py-3 px-4 text-right text-emerald-700 font-bold">
+                    ₹{profitData.govtSchemeProfit.saree.profitPerPiece}
+                  </td>
+                  <td className="py-3 px-4 text-right text-slate-900 font-bold">
+                    {formatINR(profitData.govtSchemeProfit.saree.totalRevenue)}
+                  </td>
+                  <td className="py-3 px-4 text-right text-rose-600">
+                    {formatINR(profitData.govtSchemeProfit.saree.totalWeaverExpense)}
+                  </td>
+                  <td className="py-3 px-4 text-right font-bold text-emerald-700">
+                    {formatINR(profitData.govtSchemeProfit.saree.netProfit)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Formal Statement of Profit & Loss Table */}
       <div className="rounded-2xl border border-[#E5E9E3] bg-white shadow-xs overflow-hidden printable-area">
         <div className="border-b border-[#E5E9E3] bg-[#F7F8F5] px-7 py-5 flex justify-between items-center">

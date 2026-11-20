@@ -19,6 +19,7 @@ import { VeattiProductionView } from "@/components/VeattiProductionView";
 import { SareeProductionView } from "@/components/SareeProductionView";
 import { GovtHandoverView } from "@/components/GovtHandoverView";
 import { BabinView } from "@/components/BabinView";
+import { GovtYarnAllotmentView } from "@/components/GovtYarnAllotmentView";
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -166,6 +167,8 @@ export default function Home() {
         return "System Settings & Display Preferences";
       case "backup":
         return "Database Vault & D: Drive Disaster Recovery";
+      case "govt-yarn":
+        return "Government Yarn Inward Allotment & Quotas";
       default:
         return "Cheran Co-operative Society Accounting System";
     }
@@ -200,6 +203,10 @@ export default function Home() {
           {currentTab === "saree" && <SareeProductionView />}
 
           {currentTab === "babin" && <BabinView />}
+
+          {currentTab === "govt-yarn" && (
+            <GovtYarnAllotmentView onNavigate={(tab) => setCurrentTab(tab as NavItemKey)} />
+          )}
 
           {currentTab === "govt-handover" && (
             <GovtHandoverView onNavigate={(tab) => setCurrentTab(tab as NavItemKey)} />
