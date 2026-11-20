@@ -122,6 +122,12 @@ export async function GET() {
   }
 }
 
+function safeFloat(val: any, fallback = 0): number {
+  if (val === undefined || val === null || val === "") return fallback;
+  const num = typeof val === "number" ? val : parseFloat(val);
+  return isNaN(num) ? fallback : num;
+}
+
 /**
  * POST /api/production/yarn-allotment
  * Create a new yarn allotment inward entry
@@ -139,27 +145,27 @@ export async function POST(request: Request) {
       body.allotmentNo?.trim() ||
       `ALLOT-${Date.now().toString().slice(-6)}`;
 
-    const dhothiWarpKg = Math.max(0, parseFloat(body.dhothiWarpKg) || 0);
-    const dhothiWeftKg = Math.max(0, parseFloat(body.dhothiWeftKg) || 0);
-    const dhothiBorderKg = Math.max(0, parseFloat(body.dhothiBorderKg) || 0);
+    const dhothiWarpKg = Math.max(0, safeFloat(body.dhothiWarpKg, 0));
+    const dhothiWeftKg = Math.max(0, safeFloat(body.dhothiWeftKg, 0));
+    const dhothiBorderKg = Math.max(0, safeFloat(body.dhothiBorderKg, 0));
 
-    const sareeWarpKg = Math.max(0, parseFloat(body.sareeWarpKg) || 0);
-    const sareeWeftKg = Math.max(0, parseFloat(body.sareeWeftKg) || 0);
-    const sareeBorderKg = Math.max(0, parseFloat(body.sareeBorderKg) || 0);
+    const sareeWarpKg = Math.max(0, safeFloat(body.sareeWarpKg, 0));
+    const sareeWeftKg = Math.max(0, safeFloat(body.sareeWeftKg, 0));
+    const sareeBorderKg = Math.max(0, safeFloat(body.sareeBorderKg, 0));
 
-    const yarnRatePerKg = Math.max(0, parseFloat(body.yarnRatePerKg) || 0);
-    const bagPrice = Math.max(0, parseFloat(body.bagPrice) || 0);
-    const dhothiGovtRate = Math.max(0, parseFloat(body.dhothiGovtRate) || 0);
-    const sareeGovtRate = Math.max(0, parseFloat(body.sareeGovtRate) || 0);
+    const yarnRatePerKg = Math.max(0, safeFloat(body.yarnRatePerKg, 0));
+    const bagPrice = Math.max(0, safeFloat(body.bagPrice, 0));
+    const dhothiGovtRate = Math.max(0, safeFloat(body.dhothiGovtRate, 0));
+    const sareeGovtRate = Math.max(0, safeFloat(body.sareeGovtRate, 0));
 
     const dhothiWeaverRate =
-      parseFloat(body.dhothiWeaverRate) > 0
-        ? parseFloat(body.dhothiWeaverRate)
+      safeFloat(body.dhothiWeaverRate, 0) > 0
+        ? safeFloat(body.dhothiWeaverRate, 19)
         : YARN_CONVERSIONS.DHOTHI.DEFAULT_WEAVER_RATE; // 19
 
     const sareeWeaverRate =
-      parseFloat(body.sareeWeaverRate) > 0
-        ? parseFloat(body.sareeWeaverRate)
+      safeFloat(body.sareeWeaverRate, 0) > 0
+        ? safeFloat(body.sareeWeaverRate, 42)
         : YARN_CONVERSIONS.SAREE.DEFAULT_WEAVER_RATE; // 42
 
     const allotment = await prisma.govtYarnAllotment.create({

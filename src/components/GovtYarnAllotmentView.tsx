@@ -200,10 +200,30 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
         ? `/api/production/yarn-allotment/${editingId}`
         : "/api/production/yarn-allotment";
 
+      const payload = {
+        allotmentNo: form.allotmentNo?.trim() || `TN-GOVT-${Date.now().toString().slice(-6)}`,
+        allotmentDate: form.allotmentDate,
+        schemeName: form.schemeName,
+        supplierDept: form.supplierDept,
+        dhothiWarpKg: parseFloat(form.dhothiWarpKg?.toString() || "0") || 0,
+        dhothiWeftKg: parseFloat(form.dhothiWeftKg?.toString() || "0") || 0,
+        dhothiBorderKg: parseFloat(form.dhothiBorderKg?.toString() || "0") || 0,
+        sareeWarpKg: parseFloat(form.sareeWarpKg?.toString() || "0") || 0,
+        sareeWeftKg: parseFloat(form.sareeWeftKg?.toString() || "0") || 0,
+        sareeBorderKg: parseFloat(form.sareeBorderKg?.toString() || "0") || 0,
+        yarnRatePerKg: parseFloat(form.yarnRatePerKg?.toString() || "0") || 0,
+        bagPrice: parseFloat(form.bagPrice?.toString() || "0") || 0,
+        dhothiGovtRate: parseFloat(form.dhothiGovtRate?.toString() || "0") || 0,
+        sareeGovtRate: parseFloat(form.sareeGovtRate?.toString() || "0") || 0,
+        dhothiWeaverRate: parseFloat(form.dhothiWeaverRate?.toString() || "19") || 19,
+        sareeWeaverRate: parseFloat(form.sareeWeaverRate?.toString() || "42") || 42,
+        notes: form.notes || "",
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();

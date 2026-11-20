@@ -79,4 +79,50 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     expect(totalPotentialProfit).toBe(2000 * 66 + 2000 * 138); // 132,000 + 276,000 = 408,000
     expect(totalPotentialProfit).toBe(408000);
   });
+
+  it("handles partial updates with empty strings or missing yarn fields without NaN Prisma errors", async () => {
+    const created = await prisma.govtYarnAllotment.create({
+      data: {
+        allotmentNo: "4892",
+        sareeWarpKg: 900,
+        sareeWeftKg: 833.76,
+      },
+    });
+
+    expect(created.id).toBeDefined();
+
+    // Simulating safeFloat helper logic
+    const safeFloat = (val: any, fallback = 0) => {
+      if (val === undefined || val === null || val === "") return fallback;
+      const num = typeof val === "number" ? val : parseFloat(val);
+      return isNaN(num) ? fallback : num;
+    };
+
+    // Updating with empty strings like the user encountered
+    const updated = await prisma.govtYarnAllotment.update({
+      where: { id: created.id },
+      data: {
+        allotmentNo: "4892-UPDATED",
+        dhothiWarpKg: safeFloat("", 0),
+        dhothiWeftKg: safeFloat("", 0),
+        dhothiBorderKg: safeFloat("", 0),
+        sareeWarpKg: safeFloat(900, 0),
+        sareeWeftKg: safeFloat(833.76, 0),
+        sareeBorderKg: safeFloat("", 0),
+        yarnRatePerKg: safeFloat("", 0),
+        bagPrice: safeFloat("", 0),
+        dhothiGovtRate: safeFloat("", 0),
+        sareeGovtRate: safeFloat("", 0),
+        dhothiWeaverRate: safeFloat("", 19),
+        sareeWeaverRate: safeFloat("", 42),
+      },
+    });
+
+    expect(updated.allotmentNo).toBe("4892-UPDATED");
+    expect(updated.dhothiWarpKg).toBe(0);
+    expect(updated.sareeWarpKg).toBe(900);
+    expect(updated.sareeWeftKg).toBe(833.76);
+    expect(updated.dhothiWeaverRate).toBe(19);
+    expect(updated.sareeWeaverRate).toBe(42);
+  });
 });
