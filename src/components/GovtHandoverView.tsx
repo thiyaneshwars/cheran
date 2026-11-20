@@ -195,6 +195,22 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     return true;
   });
 
+  // Separated filtered subsets for dedicated ledgers
+  const veattiHandoversFiltered = filteredHandovers.filter((h) => h.clothType === "VEATTI");
+  const sareeHandoversFiltered = filteredHandovers.filter((h) => h.clothType === "SAREE");
+
+  const veattiHandoversMeters = veattiHandoversFiltered.reduce((s, h) => s + (h.meters || 0), 0);
+  const veattiHandoversPieces = veattiHandoversFiltered.reduce(
+    (s, h) => s + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 3.65)),
+    0
+  );
+
+  const sareeHandoversMeters = sareeHandoversFiltered.reduce((s, h) => s + (h.meters || 0), 0);
+  const sareeHandoversPieces = sareeHandoversFiltered.reduce(
+    (s, h) => s + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 5.5)),
+    0
+  );
+
   // Open Handover Entry Modal specifically for a cloth type
   const handleOpenCreateModal = (type: "VEATTI" | "SAREE") => {
     setModalClothType(type);
@@ -996,153 +1012,380 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       </div>
 
       {/* =========================================================================
-       * 5. HANDOVER DISPATCH TABLE
+       * 5. SEPARATE HANDOVER DISPATCH LEDGERS (DHOTHI/VEATTI & SAREE)
        * ========================================================================= */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-            <tr>
-              <th className="py-3.5 px-4">Section</th>
-              <th className="py-3.5 px-4">Challan / Gate Pass #</th>
-              <th className="py-3.5 px-4">Handover Date</th>
-              <th className="py-3.5 px-4 text-right">Quantity (Mtr)</th>
-              <th className="py-3.5 px-4">Source Powerloom</th>
-              <th className="py-3.5 px-4">Recipient Dept</th>
-              <th className="py-3.5 px-4">Vehicle No</th>
-              <th className="py-3.5 px-4">Inspection Officer</th>
-              <th className="py-3.5 px-4">Notes</th>
-              <th className="py-3.5 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 font-medium">
-            {filteredHandovers.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="py-12 text-center text-slate-400">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <PackageCheck className="h-8 w-8 text-slate-300" />
-                    <span className="font-bold text-sm text-slate-600">
-                      No government handover records found.
+      <div className="space-y-8">
+        {/* =====================================================================
+         * 1. DHOTHI / VEATTI (வேட்டி) GOVERNMENT HANDOVER LEDGER
+         * ===================================================================== */}
+        {(activeSection === "ALL" || activeSection === "VEATTI") && (
+          <div className="rounded-3xl border border-emerald-200/90 bg-white shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/50">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Dhothi / Veatti (வேட்டி) Handover Ledger</span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      {veattiHandoversFiltered.length} Challans
                     </span>
-                    <span className="text-xs text-slate-400">
-                      Use "+ Record Veatti Handover" or "+ Record Saree Handover" to record official dispatches.
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              filteredHandovers.map((h) => {
-                const isVeatti = h.clothType === "VEATTI";
-                return (
-                  <tr key={h.id} className="hover:bg-slate-50 transition group">
-                    {/* Cloth Type Badge */}
-                    <td className="py-3 px-4">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          isVeatti
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-purple-100 text-purple-800 border border-purple-200"
-                        }`}
-                      >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            isVeatti ? "bg-emerald-500" : "bg-purple-500"
-                          }`}
-                        />
-                        {isVeatti ? "Veatti" : "Saree"}
-                      </span>
-                    </td>
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Official Veatti dispatches to Co-optex • {veattiHandoversMeters.toLocaleString("en-IN")} Meters ({veattiHandoversPieces.toLocaleString("en-IN")} pcs)
+                </p>
+              </div>
 
-                    {/* Challan No */}
-                    <td className="py-3 px-4 font-black font-mono text-slate-900 text-sm">
-                      {h.challanNo}
-                    </td>
+              <button
+                type="button"
+                onClick={() => handleOpenCreateModal("VEATTI")}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Record Veatti Handover</span>
+              </button>
+            </div>
 
-                    {/* Date */}
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                      {new Date(h.handoverDate).toLocaleDateString("en-IN", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </td>
-
-                    {/* Quantity Meters & Pieces */}
-                    <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
-                      <div className="font-black text-blue-600 text-sm">
-                        {h.meters.toLocaleString("en-IN")}{" "}
-                        <span className="text-[10px] font-semibold text-slate-400">m</span>
-                      </div>
-                      <div className="text-[11px] font-bold text-emerald-700">
-                        {(h.pieces && h.pieces > 0
-                          ? h.pieces
-                          : Math.round(h.meters / (isVeatti ? 3.65 : 5.5))
-                        ).toLocaleString("en-IN")}{" "}
-                        <span className="text-[10px] font-normal text-slate-400">pcs</span>
-                      </div>
-                    </td>
-
-                    {/* Powerloom Unit */}
-                    <td className="py-3 px-4 font-bold text-slate-800">
-                      {h.unit?.weaverName ? (
-                        <div className="flex items-center gap-1">
-                          <Factory className="h-3.5 w-3.5 text-slate-400" />
-                          <span>{h.unit.weaverName}</span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 italic">Society General Stock</span>
-                      )}
-                    </td>
-
-                    {/* Recipient Dept */}
-                    <td className="py-3 px-4 text-slate-800 font-medium">
-                      {h.recipientDept}
-                    </td>
-
-                    {/* Vehicle No */}
-                    <td className="py-3 px-4 text-slate-600 font-mono text-xs">
-                      {h.vehicleNo || "—"}
-                    </td>
-
-                    {/* Officer */}
-                    <td className="py-3 px-4 text-slate-600">
-                      {h.officerName || "—"}
-                    </td>
-
-                    {/* Notes */}
-                    <td className="py-3 px-4 text-slate-400 text-[11px] max-w-xs truncate">
-                      {h.notes || "—"}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {/* Print Voucher */}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenPrintModal(h)}
-                          title="Print Official Handover Voucher / Gate Pass"
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
-                        >
-                          <Printer className="h-4 w-4" />
-                        </button>
-
-                        {/* Delete */}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteHandover(h)}
-                          title="Delete Handover & Restore Stock"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-emerald-50/30 text-slate-500 font-bold border-b border-emerald-100 uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3 px-4">Challan / Gate Pass #</th>
+                    <th className="py-3 px-4">Handover Date</th>
+                    <th className="py-3 px-4 text-right">Quantity (Mtr)</th>
+                    <th className="py-3 px-4 text-right">Pieces (வேட்டி)</th>
+                    <th className="py-3 px-4">Source Powerloom</th>
+                    <th className="py-3 px-4">Recipient Dept</th>
+                    <th className="py-3 px-4">Vehicle No</th>
+                    <th className="py-3 px-4">Inspection Officer</th>
+                    <th className="py-3 px-4">Notes</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {veattiHandoversFiltered.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <PackageCheck className="h-8 w-8 text-emerald-300" />
+                          <span className="font-bold text-sm text-slate-600">
+                            No Veatti government handover records found.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCreateModal("VEATTI")}
+                            className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+                          >
+                            + Record First Veatti Handover
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    veattiHandoversFiltered.map((h) => {
+                      const pcs =
+                        h.pieces && h.pieces > 0
+                          ? h.pieces
+                          : Math.round(h.meters / 3.65);
+
+                      return (
+                        <tr key={h.id} className="hover:bg-emerald-50/20 transition group">
+                          {/* Challan No */}
+                          <td className="py-3 px-4 font-black font-mono text-slate-900 text-sm">
+                            {h.challanNo}
+                          </td>
+
+                          {/* Date */}
+                          <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                            {new Date(h.handoverDate).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </td>
+
+                          {/* Quantity Meters */}
+                          <td className="py-3 px-4 text-right font-mono font-black text-slate-900 whitespace-nowrap">
+                            {h.meters.toLocaleString("en-IN")}{" "}
+                            <span className="text-[10px] font-semibold text-slate-400">m</span>
+                          </td>
+
+                          {/* Pieces */}
+                          <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
+                            <span className="font-black text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2 py-0.5 rounded-lg text-xs">
+                              {pcs.toLocaleString("en-IN")} pcs
+                            </span>
+                          </td>
+
+                          {/* Powerloom Unit */}
+                          <td className="py-3 px-4 font-bold text-slate-800">
+                            {h.unit?.weaverName ? (
+                              <div className="flex items-center gap-1">
+                                <Factory className="h-3.5 w-3.5 text-slate-400" />
+                                <span>{h.unit.weaverName}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">Society General Stock</span>
+                            )}
+                          </td>
+
+                          {/* Recipient Dept */}
+                          <td className="py-3 px-4 text-slate-800 font-medium">
+                            {h.recipientDept}
+                          </td>
+
+                          {/* Vehicle No */}
+                          <td className="py-3 px-4 text-slate-600 font-mono text-xs">
+                            {h.vehicleNo || "—"}
+                          </td>
+
+                          {/* Officer */}
+                          <td className="py-3 px-4 text-slate-600">
+                            {h.officerName || "—"}
+                          </td>
+
+                          {/* Notes */}
+                          <td className="py-3 px-4 text-slate-400 text-[11px] max-w-xs truncate">
+                            {h.notes || "—"}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenPrintModal(h)}
+                                title="Print Official Handover Voucher / Gate Pass"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                              >
+                                <Printer className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteHandover(h)}
+                                title="Delete Handover & Restore Stock"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+                {veattiHandoversFiltered.length > 0 && (
+                  <tfoot className="bg-emerald-50/60 font-mono font-bold text-slate-800 border-t-2 border-emerald-200 text-xs">
+                    <tr>
+                      <td className="py-3 px-4">
+                        <span className="font-sans font-black text-emerald-950 uppercase text-[10px]">
+                          Veatti Totals ({veattiHandoversFiltered.length})
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">—</td>
+                      <td className="py-3 px-4 text-right font-black text-slate-900">
+                        {veattiHandoversMeters.toLocaleString("en-IN")} m
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="font-black text-emerald-900 bg-emerald-200/80 px-2 py-0.5 rounded-md text-xs">
+                          {veattiHandoversPieces.toLocaleString("en-IN")} pcs
+                        </span>
+                      </td>
+                      <td colSpan={6} className="py-3 px-4 text-slate-400">—</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================================
+         * 2. SAREE (சேலை) GOVERNMENT HANDOVER LEDGER
+         * ===================================================================== */}
+        {(activeSection === "ALL" || activeSection === "SAREE") && (
+          <div className="rounded-3xl border border-purple-200/90 bg-white shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-50/50">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-purple-500 animate-pulse" />
+                  <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Saree (சேலை) Handover Ledger</span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                      {sareeHandoversFiltered.length} Challans
+                    </span>
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Official Saree dispatches to Co-optex • {sareeHandoversMeters.toLocaleString("en-IN")} Meters ({sareeHandoversPieces.toLocaleString("en-IN")} pcs)
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleOpenCreateModal("SAREE")}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Record Saree Handover</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-purple-50/30 text-slate-500 font-bold border-b border-purple-100 uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3 px-4">Challan / Gate Pass #</th>
+                    <th className="py-3 px-4">Handover Date</th>
+                    <th className="py-3 px-4 text-right">Quantity (Mtr)</th>
+                    <th className="py-3 px-4 text-right">Pieces (சேலை)</th>
+                    <th className="py-3 px-4">Source Powerloom</th>
+                    <th className="py-3 px-4">Recipient Dept</th>
+                    <th className="py-3 px-4">Vehicle No</th>
+                    <th className="py-3 px-4">Inspection Officer</th>
+                    <th className="py-3 px-4">Notes</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {sareeHandoversFiltered.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <PackageCheck className="h-8 w-8 text-purple-300" />
+                          <span className="font-bold text-sm text-slate-600">
+                            No Saree government handover records found.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCreateModal("SAREE")}
+                            className="text-xs font-bold text-purple-700 hover:underline cursor-pointer"
+                          >
+                            + Record First Saree Handover
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    sareeHandoversFiltered.map((h) => {
+                      const pcs =
+                        h.pieces && h.pieces > 0
+                          ? h.pieces
+                          : Math.round(h.meters / 5.5);
+
+                      return (
+                        <tr key={h.id} className="hover:bg-purple-50/20 transition group">
+                          {/* Challan No */}
+                          <td className="py-3 px-4 font-black font-mono text-slate-900 text-sm">
+                            {h.challanNo}
+                          </td>
+
+                          {/* Date */}
+                          <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                            {new Date(h.handoverDate).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </td>
+
+                          {/* Quantity Meters */}
+                          <td className="py-3 px-4 text-right font-mono font-black text-slate-900 whitespace-nowrap">
+                            {h.meters.toLocaleString("en-IN")}{" "}
+                            <span className="text-[10px] font-semibold text-slate-400">m</span>
+                          </td>
+
+                          {/* Pieces */}
+                          <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
+                            <span className="font-black text-purple-800 bg-purple-100/80 border border-purple-300 px-2 py-0.5 rounded-lg text-xs">
+                              {pcs.toLocaleString("en-IN")} pcs
+                            </span>
+                          </td>
+
+                          {/* Powerloom Unit */}
+                          <td className="py-3 px-4 font-bold text-slate-800">
+                            {h.unit?.weaverName ? (
+                              <div className="flex items-center gap-1">
+                                <Factory className="h-3.5 w-3.5 text-slate-400" />
+                                <span>{h.unit.weaverName}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">Society General Stock</span>
+                            )}
+                          </td>
+
+                          {/* Recipient Dept */}
+                          <td className="py-3 px-4 text-slate-800 font-medium">
+                            {h.recipientDept}
+                          </td>
+
+                          {/* Vehicle No */}
+                          <td className="py-3 px-4 text-slate-600 font-mono text-xs">
+                            {h.vehicleNo || "—"}
+                          </td>
+
+                          {/* Officer */}
+                          <td className="py-3 px-4 text-slate-600">
+                            {h.officerName || "—"}
+                          </td>
+
+                          {/* Notes */}
+                          <td className="py-3 px-4 text-slate-400 text-[11px] max-w-xs truncate">
+                            {h.notes || "—"}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenPrintModal(h)}
+                                title="Print Official Handover Voucher / Gate Pass"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                              >
+                                <Printer className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteHandover(h)}
+                                title="Delete Handover & Restore Stock"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+                {sareeHandoversFiltered.length > 0 && (
+                  <tfoot className="bg-purple-50/60 font-mono font-bold text-slate-800 border-t-2 border-purple-200 text-xs">
+                    <tr>
+                      <td className="py-3 px-4">
+                        <span className="font-sans font-black text-purple-950 uppercase text-[10px]">
+                          Saree Totals ({sareeHandoversFiltered.length})
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">—</td>
+                      <td className="py-3 px-4 text-right font-black text-slate-900">
+                        {sareeHandoversMeters.toLocaleString("en-IN")} m
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="font-black text-purple-900 bg-purple-200/80 px-2 py-0.5 rounded-md text-xs">
+                          {sareeHandoversPieces.toLocaleString("en-IN")} pcs
+                        </span>
+                      </td>
+                      <td colSpan={6} className="py-3 px-4 text-slate-400">—</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* =========================================================================

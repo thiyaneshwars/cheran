@@ -277,6 +277,58 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
     (a) => a.sareeWarpKg > 0 || a.sareeWeftKg > 0 || a.sareeBorderKg > 0
   ).length;
 
+  // Separated filtered subsets for dedicated ledgers
+  const dhothiFiltered = filtered.filter(
+    (a) => (a.dhothiWarpKg || 0) > 0 || (a.dhothiWeftKg || 0) > 0 || (a.dhothiBorderKg || 0) > 0
+  );
+  const sareeFiltered = filtered.filter(
+    (a) => (a.sareeWarpKg || 0) > 0 || (a.sareeWeftKg || 0) > 0 || (a.sareeBorderKg || 0) > 0
+  );
+
+  // Totals for Dhothi Ledger
+  const totalDhothiWarp = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiWarpKg) || 0), 0);
+  const totalDhothiWeft = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiWeftKg) || 0), 0);
+  const totalDhothiBorder = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiBorderKg) || 0), 0);
+  const totalDhothiYarn = totalDhothiWarp + totalDhothiWeft + totalDhothiBorder;
+  const totalDhothiPieces = dhothiFiltered.reduce(
+    (s, a) =>
+      s +
+      (a.derived?.dhothi?.piecesFromWarp ||
+        (a.dhothiWarpKg > 0 ? Math.round(Number(a.dhothiWarpKg) / 0.122) : 0)),
+    0
+  );
+  const totalDhothiWages = dhothiFiltered.reduce(
+    (s, a) => {
+      const pcs =
+        a.derived?.dhothi?.piecesFromWarp ||
+        (a.dhothiWarpKg > 0 ? Math.round(Number(a.dhothiWarpKg) / 0.122) : 0);
+      return s + pcs * (Number(a.dhothiWeaverRate) || 19);
+    },
+    0
+  );
+
+  // Totals for Saree Ledger
+  const totalSareeWarp = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWarpKg) || 0), 0);
+  const totalSareeWeft = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWeftKg) || 0), 0);
+  const totalSareeBorder = sareeFiltered.reduce((s, a) => s + (Number(a.sareeBorderKg) || 0), 0);
+  const totalSareeYarn = totalSareeWarp + totalSareeWeft + totalSareeBorder;
+  const totalSareePieces = sareeFiltered.reduce(
+    (s, a) =>
+      s +
+      (a.derived?.saree?.piecesFromWarp ||
+        (a.sareeWarpKg > 0 ? Math.round(Number(a.sareeWarpKg) / 0.188) : 0)),
+    0
+  );
+  const totalSareeWages = sareeFiltered.reduce(
+    (s, a) => {
+      const pcs =
+        a.derived?.saree?.piecesFromWarp ||
+        (a.sareeWarpKg > 0 ? Math.round(Number(a.sareeWarpKg) / 0.188) : 0);
+      return s + pcs * (Number(a.sareeWeaverRate) || 42);
+    },
+    0
+  );
+
   return (
     <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in font-sans">
       {/* Toast Notification */}
@@ -797,180 +849,412 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
       </div>
 
       {/* =========================================================================
-       * ALLOTMENTS HISTORY TABLE (ADAPTIVE TO ACTIVE SECTION)
+       * SEPARATE LEDGERS: DHOTHI & SAREE LEDGERS (NO CONSOLIDATED MIXED TABLE)
        * ========================================================================= */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
-          <div>
-            <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>
-                {activeSection === "DHOTHI"
-                  ? "Dhothi (வேட்டி) Yarn Inward Ledger"
-                  : activeSection === "SAREE"
-                  ? "Saree (சேலை) Yarn Inward Ledger"
-                  : "Consolidated Government Yarn Inward Ledger"}
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-700">
-                {filtered.length} Records
-              </span>
-            </h2>
-            <p className="text-xs text-slate-500">
-              {activeSection === "DHOTHI"
-                ? "Thread allocation and piece conversions for Dhothi scheme"
-                : activeSection === "SAREE"
-                ? "Thread allocation and piece conversions for Saree scheme"
-                : "Combined Dhothi & Saree yarn receipts from Tamil Nadu Government"}
-            </p>
-          </div>
-        </div>
+      <div className="space-y-8">
+        {/* =====================================================================
+         * 1. DHOTHI (வேட்டி) YARN INWARD LEDGER
+         * ===================================================================== */}
+        {(activeSection === "ALL" || activeSection === "DHOTHI") && (
+          <div className="bg-white rounded-3xl border border-emerald-200/90 shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/50">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Dhothi (வேட்டி) Yarn Inward Ledger</span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      {dhothiFiltered.length} Allotments
+                    </span>
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tamil Nadu Free Dhothi Scheme • Yarn inward (Warp / 0.122, Weft / 0.119, Border / 0.006) and ₹19 / pc weaving wage
+                </p>
+              </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4">Allotment No & Date</th>
-                {activeSection !== "SAREE" && (
-                  <>
-                    <th className="py-3 px-4">Dhothi Yarn (KG)</th>
-                    <th className="py-3 px-4">Dhothi Pcs</th>
-                  </>
-                )}
-                {activeSection !== "DHOTHI" && (
-                  <>
-                    <th className="py-3 px-4">Saree Yarn (KG)</th>
-                    <th className="py-3 px-4">Saree Pcs</th>
-                  </>
-                )}
-                <th className="py-3 px-4">Govt Piece Rate</th>
-                <th className="py-3 px-4">Weaver Wage</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={activeSection === "ALL" ? 8 : 6} className="py-12 text-center text-slate-400">
-                    No {activeSection !== "ALL" ? activeSection.toLowerCase() : ""} yarn allotment records found.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((a) => (
-                  <tr key={a.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3.5 px-4">
-                      <span className="font-mono font-bold text-slate-900 block">{a.allotmentNo}</span>
-                      <span className="text-[11px] text-slate-400">
-                        {new Date(a.allotmentDate).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </td>
+              <button
+                type="button"
+                onClick={() => handleOpenNew("DHOTHI")}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Record Dhothi Yarn Inward</span>
+              </button>
+            </div>
 
-                    {/* Dhothi Columns */}
-                    {activeSection !== "SAREE" && (
-                      <>
-                        <td className="py-3.5 px-4 font-mono text-[11px]">
-                          {a.dhothiWarpKg > 0 || a.dhothiWeftKg > 0 ? (
-                            <>
-                              <div>Warp: <span className="font-bold text-slate-900">{a.dhothiWarpKg} kg</span></div>
-                              <div className="text-slate-400">Weft: {a.dhothiWeftKg}kg | Bdr: {a.dhothiBorderKg}kg</div>
-                            </>
-                          ) : (
-                            <span className="text-slate-300 italic">—</span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          {a.derived?.dhothi?.piecesFromWarp > 0 ? (
-                            <span className="font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg font-mono text-xs">
-                              {a.derived.dhothi.piecesFromWarp} pcs
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 italic">—</span>
-                          )}
-                        </td>
-                      </>
-                    )}
-
-                    {/* Saree Columns */}
-                    {activeSection !== "DHOTHI" && (
-                      <>
-                        <td className="py-3.5 px-4 font-mono text-[11px]">
-                          {a.sareeWarpKg > 0 || a.sareeWeftKg > 0 ? (
-                            <>
-                              <div>Warp: <span className="font-bold text-slate-900">{a.sareeWarpKg} kg</span></div>
-                              <div className="text-slate-400">Weft: {a.sareeWeftKg}kg | Bdr: {a.sareeBorderKg}kg</div>
-                            </>
-                          ) : (
-                            <span className="text-slate-300 italic">—</span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          {a.derived?.saree?.piecesFromWarp > 0 ? (
-                            <span className="font-black text-purple-800 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-lg font-mono text-xs">
-                              {a.derived.saree.piecesFromWarp} pcs
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 italic">—</span>
-                          )}
-                        </td>
-                      </>
-                    )}
-
-                    {/* Govt Piece Rate */}
-                    <td className="py-3.5 px-4 text-[11px] font-mono">
-                      {activeSection === "DHOTHI" ? (
-                        <div className="font-bold text-slate-900">₹{a.dhothiGovtRate || 0}</div>
-                      ) : activeSection === "SAREE" ? (
-                        <div className="font-bold text-slate-900">₹{a.sareeGovtRate || 0}</div>
-                      ) : (
-                        <>
-                          <div>Dhothi: <span className="font-bold text-slate-800">₹{a.dhothiGovtRate || 0}</span></div>
-                          <div>Saree: <span className="font-bold text-slate-800">₹{a.sareeGovtRate || 0}</span></div>
-                        </>
-                      )}
-                    </td>
-
-                    {/* Weaver Wage */}
-                    <td className="py-3.5 px-4 text-[11px] font-mono text-emerald-800">
-                      {activeSection === "DHOTHI" ? (
-                        <div className="font-bold">₹{a.dhothiWeaverRate || 19} / pc</div>
-                      ) : activeSection === "SAREE" ? (
-                        <div className="font-bold">₹{a.sareeWeaverRate || 42} / pc</div>
-                      ) : (
-                        <>
-                          <div>Dhothi: <span className="font-bold">₹{a.dhothiWeaverRate || 19}</span></div>
-                          <div>Saree: <span className="font-bold">₹{a.sareeWeaverRate || 42}</span></div>
-                        </>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(a)}
-                          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(a.id, a.allotmentNo)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
-                          title="Delete Allotment"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-700">
+                <thead className="bg-emerald-50/30 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-emerald-100">
+                  <tr>
+                    <th className="py-3 px-4">Allotment No & Date</th>
+                    <th className="py-3 px-4">
+                      Warp KG <span className="text-[9px] text-emerald-600 font-mono normal-case">(/0.122)</span>
+                    </th>
+                    <th className="py-3 px-4">
+                      Weft KG <span className="text-[9px] text-emerald-600 font-mono normal-case">(/0.119)</span>
+                    </th>
+                    <th className="py-3 px-4">
+                      Border KG <span className="text-[9px] text-emerald-600 font-mono normal-case">(/0.006)</span>
+                    </th>
+                    <th className="py-3 px-4 font-black text-slate-800">Total Yarn</th>
+                    <th className="py-3 px-4 font-black text-emerald-800">Dhothi Quota</th>
+                    <th className="py-3 px-4">Govt Piece Rate</th>
+                    <th className="py-3 px-4 text-emerald-800">Weaver Wage</th>
+                    <th className="py-3 px-4">Bag / Yarn Rate</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {dhothiFiltered.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Package className="h-8 w-8 text-emerald-300" />
+                          <span className="font-bold text-sm text-slate-600">
+                            No Dhothi yarn inward records found.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenNew("DHOTHI")}
+                            className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+                          >
+                            + Record First Dhothi Yarn Inward
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    dhothiFiltered.map((a) => {
+                      const warp = Number(a.dhothiWarpKg) || 0;
+                      const weft = Number(a.dhothiWeftKg) || 0;
+                      const border = Number(a.dhothiBorderKg) || 0;
+                      const totalKg = warp + weft + border;
+                      const pcs =
+                        a.derived?.dhothi?.piecesFromWarp ||
+                        (warp > 0 ? Math.round(warp / 0.122) : 0);
+                      const wageRate = Number(a.dhothiWeaverRate) || 19;
+                      const totalWage = pcs * wageRate;
+
+                      return (
+                        <tr key={`dhothi-${a.id}`} className="hover:bg-emerald-50/20 transition">
+                          <td className="py-3 px-4">
+                            <span className="font-mono font-bold text-slate-900 block">{a.allotmentNo}</span>
+                            <span className="text-[11px] text-slate-400">
+                              {new Date(a.allotmentDate).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </td>
+
+                          {/* Warp */}
+                          <td className="py-3 px-4 font-mono font-bold text-emerald-700">
+                            {warp > 0 ? `${warp} kg` : "—"}
+                          </td>
+
+                          {/* Weft */}
+                          <td className="py-3 px-4 font-mono text-slate-700">
+                            {weft > 0 ? `${weft} kg` : "—"}
+                          </td>
+
+                          {/* Border */}
+                          <td className="py-3 px-4 font-mono text-slate-700">
+                            {border > 0 ? `${border} kg` : "—"}
+                          </td>
+
+                          {/* Total Yarn */}
+                          <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                            {totalKg > 0 ? `${totalKg.toFixed(2)} kg` : "—"}
+                          </td>
+
+                          {/* Pieces Quota */}
+                          <td className="py-3 px-4">
+                            {pcs > 0 ? (
+                              <span className="inline-flex items-center gap-1 font-black text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2.5 py-1 rounded-lg font-mono text-xs shadow-2xs">
+                                {pcs.toLocaleString()} pcs
+                              </span>
+                            ) : (
+                              <span className="text-slate-300 italic">—</span>
+                            )}
+                          </td>
+
+                          {/* Govt Piece Rate */}
+                          <td className="py-3 px-4 font-mono font-semibold text-slate-800">
+                            ₹{a.dhothiGovtRate || 0} / pc
+                          </td>
+
+                          {/* Weaver Wage */}
+                          <td className="py-3 px-4 font-mono">
+                            <div className="font-bold text-emerald-800">₹{wageRate} / pc</div>
+                            <div className="text-[10px] text-slate-400">
+                              Total: ₹{totalWage.toLocaleString()}
+                            </div>
+                          </td>
+
+                          {/* Bag / Yarn Rate */}
+                          <td className="py-3 px-4 font-mono text-slate-600">
+                            {a.bagPrice ? `₹${a.bagPrice} / bag` : a.yarnRatePerKg ? `₹${a.yarnRatePerKg} / kg` : "—"}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleEdit(a)}
+                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition cursor-pointer"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(a.id, a.allotmentNo)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                title="Delete Allotment"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+                {dhothiFiltered.length > 0 && (
+                  <tfoot className="bg-emerald-50/60 font-mono font-bold text-slate-800 border-t-2 border-emerald-200 text-xs">
+                    <tr>
+                      <td className="py-3 px-4">
+                        <span className="font-sans font-black text-emerald-950 uppercase text-[10px]">
+                          Dhothi Totals ({dhothiFiltered.length})
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-emerald-700">{totalDhothiWarp.toFixed(2)} kg</td>
+                      <td className="py-3 px-4 text-slate-700">{totalDhothiWeft.toFixed(2)} kg</td>
+                      <td className="py-3 px-4 text-slate-700">{totalDhothiBorder.toFixed(2)} kg</td>
+                      <td className="py-3 px-4 font-black text-slate-900">{totalDhothiYarn.toFixed(2)} kg</td>
+                      <td className="py-3 px-4">
+                        <span className="font-black text-emerald-900 bg-emerald-200/80 px-2.5 py-1 rounded-md text-xs">
+                          {totalDhothiPieces.toLocaleString()} Dhothis
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">—</td>
+                      <td className="py-3 px-4 text-emerald-900 font-black">
+                        ₹{totalDhothiWages.toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">—</td>
+                      <td className="py-3 px-4 text-right text-slate-400">—</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================================
+         * 2. SAREE (சேலை) YARN INWARD LEDGER
+         * ===================================================================== */}
+        {(activeSection === "ALL" || activeSection === "SAREE") && (
+          <div className="bg-white rounded-3xl border border-purple-200/90 shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-50/50">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-purple-500 animate-pulse" />
+                  <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Saree (சேலை) Yarn Inward Ledger</span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                      {sareeFiltered.length} Allotments
+                    </span>
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tamil Nadu Free Saree Scheme • Yarn inward (Warp / 0.188, Weft / 0.182, Border / 0.024) and ₹42 / pc weaving wage
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleOpenNew("SAREE")}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Record Saree Yarn Inward</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-700">
+                <thead className="bg-purple-50/30 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-purple-100">
+                  <tr>
+                    <th className="py-3 px-4">Allotment No & Date</th>
+                    <th className="py-3 px-4">
+                      Warp KG <span className="text-[9px] text-purple-600 font-mono normal-case">(/0.188)</span>
+                    </th>
+                    <th className="py-3 px-4">
+                      Weft KG <span className="text-[9px] text-purple-600 font-mono normal-case">(/0.182)</span>
+                    </th>
+                    <th className="py-3 px-4">
+                      Border KG <span className="text-[9px] text-purple-600 font-mono normal-case">(/0.024)</span>
+                    </th>
+                    <th className="py-3 px-4 font-black text-slate-800">Total Yarn</th>
+                    <th className="py-3 px-4 font-black text-purple-800">Saree Quota</th>
+                    <th className="py-3 px-4">Govt Piece Rate</th>
+                    <th className="py-3 px-4 text-purple-800">Weaver Wage</th>
+                    <th className="py-3 px-4">Bag / Yarn Rate</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sareeFiltered.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Package className="h-8 w-8 text-purple-300" />
+                          <span className="font-bold text-sm text-slate-600">
+                            No Saree yarn inward records found.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenNew("SAREE")}
+                            className="text-xs font-bold text-purple-700 hover:underline cursor-pointer"
+                          >
+                            + Record First Saree Yarn Inward
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    sareeFiltered.map((a) => {
+                      const warp = Number(a.sareeWarpKg) || 0;
+                      const weft = Number(a.sareeWeftKg) || 0;
+                      const border = Number(a.sareeBorderKg) || 0;
+                      const totalKg = warp + weft + border;
+                      const pcs =
+                        a.derived?.saree?.piecesFromWarp ||
+                        (warp > 0 ? Math.round(warp / 0.188) : 0);
+                      const wageRate = Number(a.sareeWeaverRate) || 42;
+                      const totalWage = pcs * wageRate;
+
+                      return (
+                        <tr key={`saree-${a.id}`} className="hover:bg-purple-50/20 transition">
+                          <td className="py-3 px-4">
+                            <span className="font-mono font-bold text-slate-900 block">{a.allotmentNo}</span>
+                            <span className="text-[11px] text-slate-400">
+                              {new Date(a.allotmentDate).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </td>
+
+                          {/* Warp */}
+                          <td className="py-3 px-4 font-mono font-bold text-purple-700">
+                            {warp > 0 ? `${warp} kg` : "—"}
+                          </td>
+
+                          {/* Weft */}
+                          <td className="py-3 px-4 font-mono text-slate-700">
+                            {weft > 0 ? `${weft} kg` : "—"}
+                          </td>
+
+                          {/* Border */}
+                          <td className="py-3 px-4 font-mono text-slate-700">
+                            {border > 0 ? `${border} kg` : "—"}
+                          </td>
+
+                          {/* Total Yarn */}
+                          <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                            {totalKg > 0 ? `${totalKg.toFixed(2)} kg` : "—"}
+                          </td>
+
+                          {/* Pieces Quota */}
+                          <td className="py-3 px-4">
+                            {pcs > 0 ? (
+                              <span className="inline-flex items-center gap-1 font-black text-purple-800 bg-purple-100/80 border border-purple-300 px-2.5 py-1 rounded-lg font-mono text-xs shadow-2xs">
+                                {pcs.toLocaleString()} pcs
+                              </span>
+                            ) : (
+                              <span className="text-slate-300 italic">—</span>
+                            )}
+                          </td>
+
+                          {/* Govt Piece Rate */}
+                          <td className="py-3 px-4 font-mono font-semibold text-slate-800">
+                            ₹{a.sareeGovtRate || 0} / pc
+                          </td>
+
+                          {/* Weaver Wage */}
+                          <td className="py-3 px-4 font-mono">
+                            <div className="font-bold text-purple-800">₹{wageRate} / pc</div>
+                            <div className="text-[10px] text-slate-400">
+                              Total: ₹{totalWage.toLocaleString()}
+                            </div>
+                          </td>
+
+                          {/* Bag / Yarn Rate */}
+                          <td className="py-3 px-4 font-mono text-slate-600">
+                            {a.bagPrice ? `₹${a.bagPrice} / bag` : a.yarnRatePerKg ? `₹${a.yarnRatePerKg} / kg` : "—"}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleEdit(a)}
+                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition cursor-pointer"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(a.id, a.allotmentNo)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                title="Delete Allotment"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+                {sareeFiltered.length > 0 && (
+                  <tfoot className="bg-purple-50/60 font-mono font-bold text-slate-800 border-t-2 border-purple-200 text-xs">
+                    <tr>
+                      <td className="py-3 px-4">
+                        <span className="font-sans font-black text-purple-950 uppercase text-[10px]">
+                          Saree Totals ({sareeFiltered.length})
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-purple-700">{totalSareeWarp.toFixed(2)} kg</td>
+                      <td className="py-3 px-4 text-slate-700">{totalSareeWeft.toFixed(2)} kg</td>
+                      <td className="py-3 px-4 text-slate-700">{totalSareeBorder.toFixed(2)} kg</td>
+                      <td className="py-3 px-4 font-black text-slate-900">{totalSareeYarn.toFixed(2)} kg</td>
+                      <td className="py-3 px-4">
+                        <span className="font-black text-purple-900 bg-purple-200/80 px-2.5 py-1 rounded-md text-xs">
+                          {totalSareePieces.toLocaleString()} Sarees
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">—</td>
+                      <td className="py-3 px-4 text-purple-900 font-black">
+                        ₹{totalSareeWages.toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">—</td>
+                      <td className="py-3 px-4 text-right text-slate-400">—</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* =========================================================================
