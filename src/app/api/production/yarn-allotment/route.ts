@@ -55,17 +55,13 @@ export async function GET() {
       totalSareeWeftKg += a.sareeWeftKg;
       totalSareeBorderKg += a.sareeBorderKg;
 
-      // Pieces derived for this allotment
+      // Pieces derived strictly from Warp (Weft and Border are combined as thread stock)
       const dhothiPiecesWarp = a.dhothiWarpKg > 0 ? Math.round(a.dhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE) : 0;
-      const dhothiPiecesWeft = a.dhothiWeftKg > 0 ? Math.round(a.dhothiWeftKg / YARN_CONVERSIONS.DHOTHI.WEFT_PER_PIECE) : 0;
-      const dhothiPiecesBorder = a.dhothiBorderKg > 0 ? Math.round(a.dhothiBorderKg / YARN_CONVERSIONS.DHOTHI.BORDER_PER_PIECE) : 0;
-      const targetDhothiPieces = dhothiPiecesWarp || dhothiPiecesWeft || dhothiPiecesBorder || 0;
+      const targetDhothiPieces = dhothiPiecesWarp;
       totalDhothiTargetPieces += targetDhothiPieces;
 
       const sareePiecesWarp = a.sareeWarpKg > 0 ? Math.round(a.sareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE) : 0;
-      const sareePiecesWeft = a.sareeWeftKg > 0 ? Math.round(a.sareeWeftKg / YARN_CONVERSIONS.SAREE.WEFT_PER_PIECE) : 0;
-      const sareePiecesBorder = a.sareeBorderKg > 0 ? Math.round(a.sareeBorderKg / YARN_CONVERSIONS.SAREE.BORDER_PER_PIECE) : 0;
-      const targetSareePieces = sareePiecesWarp || sareePiecesWeft || sareePiecesBorder || 0;
+      const targetSareePieces = sareePiecesWarp;
       totalSareeTargetPieces += targetSareePieces;
 
       return {
@@ -73,15 +69,11 @@ export async function GET() {
         derived: {
           dhothi: {
             piecesFromWarp: dhothiPiecesWarp,
-            piecesFromWeft: dhothiPiecesWeft,
-            piecesFromBorder: dhothiPiecesBorder,
             targetPieces: targetDhothiPieces,
             totalKg: +(a.dhothiWarpKg + a.dhothiWeftKg + a.dhothiBorderKg).toFixed(3),
           },
           saree: {
             piecesFromWarp: sareePiecesWarp,
-            piecesFromWeft: sareePiecesWeft,
-            piecesFromBorder: sareePiecesBorder,
             targetPieces: targetSareePieces,
             totalKg: +(a.sareeWarpKg + a.sareeWeftKg + a.sareeBorderKg).toFixed(3),
           },
@@ -96,9 +88,7 @@ export async function GET() {
         totalBorderKg: +totalDhothiBorderKg.toFixed(3),
         totalYarnKg: +(totalDhothiWarpKg + totalDhothiWeftKg + totalDhothiBorderKg).toFixed(3),
         piecesFromWarp: Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
-        piecesFromWeft: Math.round(totalDhothiWeftKg / YARN_CONVERSIONS.DHOTHI.WEFT_PER_PIECE),
-        piecesFromBorder: Math.round(totalDhothiBorderKg / YARN_CONVERSIONS.DHOTHI.BORDER_PER_PIECE),
-        targetTotalPieces: totalDhothiTargetPieces || Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
+        targetTotalPieces: Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
       },
       saree: {
         totalWarpKg: +totalSareeWarpKg.toFixed(3),
@@ -106,9 +96,7 @@ export async function GET() {
         totalBorderKg: +totalSareeBorderKg.toFixed(3),
         totalYarnKg: +(totalSareeWarpKg + totalSareeWeftKg + totalSareeBorderKg).toFixed(3),
         piecesFromWarp: Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
-        piecesFromWeft: Math.round(totalSareeWeftKg / YARN_CONVERSIONS.SAREE.WEFT_PER_PIECE),
-        piecesFromBorder: Math.round(totalSareeBorderKg / YARN_CONVERSIONS.SAREE.BORDER_PER_PIECE),
-        targetTotalPieces: totalSareeTargetPieces || Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
+        targetTotalPieces: Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
       },
     };
 

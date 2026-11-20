@@ -126,26 +126,37 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     expect(updated.sareeWeaverRate).toBe(42);
   });
 
-  it("calculates piece quotas correctly when an allotment contains only Weft or Border yarn", async () => {
-    // Saree challan with only Weft yarn: 833.76 kg (833.76 / 0.182 = 4581 pieces)
-    const sareeWeftOnly = await prisma.govtYarnAllotment.create({
+  it("calculates piece quotas strictly based on Warp for Dhothi and Saree, while Weft and Border are combined into total yarn", async () => {
+    // Saree allotment combining Warp (900 kg), Weft (833.76 kg), and Border (40.7 kg)
+    const sareeAllotment = await prisma.govtYarnAllotment.create({
       data: {
-        allotmentNo: "4892-WEFT-ONLY",
-        sareeWarpKg: 0,
+        allotmentNo: "4892-COMBINED",
+        sareeWarpKg: 900.0,
         sareeWeftKg: 833.76,
-        sareeBorderKg: 0,
+        sareeBorderKg: 40.7,
         sareeWeaverRate: 42,
       },
     });
 
-    const targetPieces =
-      (sareeWeftOnly.sareeWarpKg > 0 ? Math.round(sareeWeftOnly.sareeWarpKg / 0.188) : 0) ||
-      (sareeWeftOnly.sareeWeftKg > 0 ? Math.round(sareeWeftOnly.sareeWeftKg / 0.182) : 0) ||
-      (sareeWeftOnly.sareeBorderKg > 0 ? Math.round(sareeWeftOnly.sareeBorderKg / 0.024) : 0) ||
-      0;
+    // Pieces are determined strictly from Warp: 900 / 0.188 = 4787 sarees
+    const targetPieces = sareeAllotment.sareeWarpKg > 0 ? Math.round(sareeAllotment.sareeWarpKg / 0.188) : 0;
+    const totalYarnKg = sareeAllotment.sareeWarpKg + sareeAllotment.sareeWeftKg + sareeAllotment.sareeBorderKg;
 
-    expect(targetPieces).toBe(4581);
-    expect(targetPieces * sareeWeftOnly.sareeWeaverRate).toBe(4581 * 42); // Rs. 192,402
+    expect(targetPieces).toBe(4787);
+    expect(totalYarnKg).toBeCloseTo(1774.46, 2);
+    expect(targetPieces * sareeAllotment.sareeWeaverRate).toBe(4787 * 42); // Rs. 201,054
+
+    // Supplementary inward with only Weft (no Warp): pieces = 0, yarn is combined into stock
+    const weftOnly = await prisma.govtYarnAllotment.create({
+      data: {
+        allotmentNo: "6951-WEFT-SUPPLY",
+        sareeWarpKg: 0,
+        sareeWeftKg: 1500.0,
+      },
+    });
+    const weftOnlyPieces = weftOnly.sareeWarpKg > 0 ? Math.round(weftOnly.sareeWarpKg / 0.188) : 0;
+    expect(weftOnlyPieces).toBe(0);
+    expect(weftOnly.sareeWeftKg).toBe(1500.0);
   });
 
   it("allows multiple supplementary inward records with the same allotment or challan number", async () => {
