@@ -13,9 +13,9 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     const weftKg = 119.0;
     const borderKg = 6.0;
 
-    const dhothiPiecesWarp = Math.round(warpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE);
-    const dhothiPiecesWeft = Math.round(weftKg / YARN_CONVERSIONS.DHOTHI.WEFT_PER_PIECE);
-    const dhothiPiecesBorder = Math.round(borderKg / YARN_CONVERSIONS.DHOTHI.BORDER_PER_PIECE);
+    const dhothiPiecesWarp = Math.floor(warpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE);
+    const dhothiPiecesWeft = Math.floor(weftKg / YARN_CONVERSIONS.DHOTHI.WEFT_PER_PIECE);
+    const dhothiPiecesBorder = Math.floor(borderKg / YARN_CONVERSIONS.DHOTHI.BORDER_PER_PIECE);
 
     expect(dhothiPiecesWarp).toBe(1000);
     expect(dhothiPiecesWeft).toBe(1000);
@@ -29,9 +29,9 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     const weftKg = 182.0;
     const borderKg = 24.0;
 
-    const sareePiecesWarp = Math.round(warpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE);
-    const sareePiecesWeft = Math.round(weftKg / YARN_CONVERSIONS.SAREE.WEFT_PER_PIECE);
-    const sareePiecesBorder = Math.round(borderKg / YARN_CONVERSIONS.SAREE.BORDER_PER_PIECE);
+    const sareePiecesWarp = Math.floor(warpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE);
+    const sareePiecesWeft = Math.floor(weftKg / YARN_CONVERSIONS.SAREE.WEFT_PER_PIECE);
+    const sareePiecesBorder = Math.floor(borderKg / YARN_CONVERSIONS.SAREE.BORDER_PER_PIECE);
 
     expect(sareePiecesWarp).toBe(1000);
     expect(sareePiecesWeft).toBe(1000);
@@ -57,8 +57,8 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     });
 
     expect(allotment.id).toBeDefined();
-    const expectedDhothis = Math.round(allotment.dhothiWarpKg / 0.122);
-    const expectedSarees = Math.round(allotment.sareeWarpKg / 0.188);
+    const expectedDhothis = Math.floor(allotment.dhothiWarpKg / 0.122);
+    const expectedSarees = Math.floor(allotment.sareeWarpKg / 0.188);
 
     expect(expectedDhothis).toBe(2000);
     expect(expectedSarees).toBe(2000);
@@ -138,8 +138,8 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
       },
     });
 
-    // Pieces are determined strictly from Warp: 900 / 0.188 = 4787 sarees
-    const targetPieces = sareeAllotment.sareeWarpKg > 0 ? Math.round(sareeAllotment.sareeWarpKg / 0.188) : 0;
+    // Pieces are determined strictly from Warp without decimals: 900 / 0.188 = 4787.234 -> 4787 sarees
+    const targetPieces = sareeAllotment.sareeWarpKg > 0 ? Math.floor(sareeAllotment.sareeWarpKg / 0.188) : 0;
     const totalYarnKg = sareeAllotment.sareeWarpKg + sareeAllotment.sareeWeftKg + sareeAllotment.sareeBorderKg;
 
     expect(targetPieces).toBe(4787);
@@ -154,7 +154,7 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
         sareeWeftKg: 1500.0,
       },
     });
-    const weftOnlyPieces = weftOnly.sareeWarpKg > 0 ? Math.round(weftOnly.sareeWarpKg / 0.188) : 0;
+    const weftOnlyPieces = weftOnly.sareeWarpKg > 0 ? Math.floor(weftOnly.sareeWarpKg / 0.188) : 0;
     expect(weftOnlyPieces).toBe(0);
     expect(weftOnly.sareeWeftKg).toBe(1500.0);
   });
@@ -181,5 +181,19 @@ describe("Government Yarn Allotment & Scheme Profit Tally", () => {
     expect(sareeEntry.id).toBeDefined();
     expect(dhothiEntry.allotmentNo).toBe("4892");
     expect(sareeEntry.allotmentNo).toBe("4892");
+  });
+
+  it("truncates decimal values when calculating Dhothi and Saree piece counts (taking only integer before decimal)", () => {
+    // 100 KG Warp for Dhothi: 100 / 0.122 = 819.6721...
+    // Without decimal consideration, it must be 819 (not rounded to 820)
+    const dhothiWarpKg = 100.0;
+    const dhothiPieces = Math.floor(dhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE);
+    expect(dhothiPieces).toBe(819);
+
+    // 100 KG Warp for Saree: 100 / 0.188 = 531.9148...
+    // Without decimal consideration, it must be 531 (not rounded to 532)
+    const sareeWarpKg = 100.0;
+    const sareePieces = Math.floor(sareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE);
+    expect(sareePieces).toBe(531);
   });
 });

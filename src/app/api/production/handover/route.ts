@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     let pieces = data.pieces;
     if (!pieces || pieces <= 0) {
       const pieceLen = data.clothType === "SAREE" ? 5.5 : 3.65;
-      pieces = Math.round(data.meters / pieceLen);
+      pieces = Math.floor(data.meters / pieceLen);
     }
 
     const handover = await prisma.governmentHandoverLog.create({

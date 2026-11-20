@@ -55,12 +55,12 @@ export async function GET() {
       totalSareeWeftKg += a.sareeWeftKg;
       totalSareeBorderKg += a.sareeBorderKg;
 
-      // Pieces derived strictly from Warp (Weft and Border are combined as thread stock)
-      const dhothiPiecesWarp = a.dhothiWarpKg > 0 ? Math.round(a.dhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE) : 0;
+      // Pieces derived strictly from Warp (truncate decimal to only consider whole pieces before decimal)
+      const dhothiPiecesWarp = a.dhothiWarpKg > 0 ? Math.floor(a.dhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE) : 0;
       const targetDhothiPieces = dhothiPiecesWarp;
       totalDhothiTargetPieces += targetDhothiPieces;
 
-      const sareePiecesWarp = a.sareeWarpKg > 0 ? Math.round(a.sareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE) : 0;
+      const sareePiecesWarp = a.sareeWarpKg > 0 ? Math.floor(a.sareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE) : 0;
       const targetSareePieces = sareePiecesWarp;
       totalSareeTargetPieces += targetSareePieces;
 
@@ -87,16 +87,16 @@ export async function GET() {
         totalWeftKg: +totalDhothiWeftKg.toFixed(3),
         totalBorderKg: +totalDhothiBorderKg.toFixed(3),
         totalYarnKg: +(totalDhothiWarpKg + totalDhothiWeftKg + totalDhothiBorderKg).toFixed(3),
-        piecesFromWarp: Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
-        targetTotalPieces: Math.round(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
+        piecesFromWarp: Math.floor(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
+        targetTotalPieces: Math.floor(totalDhothiWarpKg / YARN_CONVERSIONS.DHOTHI.WARP_PER_PIECE),
       },
       saree: {
         totalWarpKg: +totalSareeWarpKg.toFixed(3),
         totalWeftKg: +totalSareeWeftKg.toFixed(3),
         totalBorderKg: +totalSareeBorderKg.toFixed(3),
         totalYarnKg: +(totalSareeWarpKg + totalSareeWeftKg + totalSareeBorderKg).toFixed(3),
-        piecesFromWarp: Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
-        targetTotalPieces: Math.round(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
+        piecesFromWarp: Math.floor(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
+        targetTotalPieces: Math.floor(totalSareeWarpKg / YARN_CONVERSIONS.SAREE.WARP_PER_PIECE),
       },
     };
 

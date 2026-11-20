@@ -49,7 +49,7 @@ export async function GET(request: Request) {
       const p =
         h.pieces && h.pieces > 0
           ? h.pieces
-          : Math.round(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65));
+          : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65));
       if (h.clothType === "VEATTI") totalDhothiHandoverPieces += p;
       if (h.clothType === "SAREE") totalSareeHandoverPieces += p;
     }

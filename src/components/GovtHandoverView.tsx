@@ -133,32 +133,32 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
   const govtDhothiProvidedPieces =
     yarnSummary?.dhothi?.targetTotalPieces ||
     yarnSummary?.dhothi?.piecesFromWarp ||
-    Math.round(veattiTarget / 3.65) ||
+    Math.floor(veattiTarget / 3.65) ||
     0;
   const dhothiHandoveredPieces = veattiHandovers.reduce(
-    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 3.65)),
+    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 3.65)),
     0
   );
   const dhothiBalancePieces = Math.max(0, govtDhothiProvidedPieces - dhothiHandoveredPieces);
   const dhothiPercent =
     govtDhothiProvidedPieces > 0
-      ? Math.min(100, Math.round((dhothiHandoveredPieces / govtDhothiProvidedPieces) * 100))
+      ? Math.min(100, Math.floor((dhothiHandoveredPieces / govtDhothiProvidedPieces) * 100))
       : 0;
 
   // Saree Piece Tallies (Govt Quota vs Handovered)
   const govtSareeProvidedPieces =
     yarnSummary?.saree?.targetTotalPieces ||
     yarnSummary?.saree?.piecesFromWarp ||
-    Math.round(sareeTarget / 5.5) ||
+    Math.floor(sareeTarget / 5.5) ||
     0;
   const sareeHandoveredPieces = sareeHandovers.reduce(
-    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 5.5)),
+    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 5.5)),
     0
   );
   const sareeBalancePieces = Math.max(0, govtSareeProvidedPieces - sareeHandoveredPieces);
   const sareePercent =
     govtSareeProvidedPieces > 0
-      ? Math.min(100, Math.round((sareeHandoveredPieces / govtSareeProvidedPieces) * 100))
+      ? Math.min(100, Math.floor((sareeHandoveredPieces / govtSareeProvidedPieces) * 100))
       : 0;
 
   // Consolidated
@@ -207,13 +207,13 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
   const veattiHandoversMeters = veattiHandoversFiltered.reduce((s, h) => s + (h.meters || 0), 0);
   const veattiHandoversPieces = veattiHandoversFiltered.reduce(
-    (s, h) => s + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 3.65)),
+    (s, h) => s + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 3.65)),
     0
   );
 
   const sareeHandoversMeters = sareeHandoversFiltered.reduce((s, h) => s + (h.meters || 0), 0);
   const sareeHandoversPieces = sareeHandoversFiltered.reduce(
-    (s, h) => s + (h.pieces && h.pieces > 0 ? h.pieces : Math.round(h.meters / 5.5)),
+    (s, h) => s + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 5.5)),
     0
   );
 
@@ -260,7 +260,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     }
 
     const standardPieceLen = form.clothType === "SAREE" ? 5.5 : 3.65;
-    const numPieces = form.pieces ? parseInt(form.pieces.toString()) : Math.round(numMeters / standardPieceLen);
+    const numPieces = form.pieces ? parseInt(form.pieces.toString()) : Math.floor(numMeters / standardPieceLen);
 
     setSubmitting(true);
     setFormError(null);
@@ -1092,7 +1092,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                       const pcs =
                         h.pieces && h.pieces > 0
                           ? h.pieces
-                          : Math.round(h.meters / 3.65);
+                          : Math.floor(h.meters / 3.65);
 
                       return (
                         <tr key={h.id} className="hover:bg-emerald-50/20 transition group">
@@ -1278,7 +1278,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                       const pcs =
                         h.pieces && h.pieces > 0
                           ? h.pieces
-                          : Math.round(h.meters / 5.5);
+                          : Math.floor(h.meters / 5.5);
 
                       return (
                         <tr key={h.id} className="hover:bg-purple-50/20 transition group">
@@ -1542,7 +1542,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     onChange={(e) => {
                       const val = e.target.value;
                       const m = parseFloat(val) || 0;
-                      const p = m > 0 ? Math.round(m / (form.clothType === "SAREE" ? 5.5 : 3.65)) : "";
+                      const p = m > 0 ? Math.floor(m / (form.clothType === "SAREE" ? 5.5 : 3.65)) : "";
                       setForm({ ...form, meters: val, pieces: p });
                     }}
                     placeholder="e.g. 1100"
