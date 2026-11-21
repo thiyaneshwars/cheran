@@ -39,6 +39,7 @@ interface WeftSuggestionViewProps {
   weftInventory?: any;
   onRefresh: () => void;
   onOpenWeftModal?: (unit: any, suggestedBags: number, suggestedKg: number) => void;
+  onOpenBabinModal?: (unit: any, suggestedSets: number) => void;
 }
 
 export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
@@ -47,6 +48,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
   weftInventory,
   onRefresh,
   onOpenWeftModal,
+  onOpenBabinModal,
 }) => {
   const isSaree = clothType === "SAREE";
   const itemLabel = isSaree ? "Saree" : "Dhothi";
@@ -103,6 +105,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
         remainingPaavuPieces: defaultPieces,
         customPiecesToRun: piecesToRun,
         currentLoomStockKg: currentLoomStock,
+        currentLoomBabinStock: u.babinCount ?? 0,
         godownStockKg,
         customKgPerPiece: kgPerPiece,
         customKgPerBag: kgPerBag,
@@ -154,6 +157,9 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
     let totalShortfallKg = 0;
     let totalSuggestedBags = 0;
     let totalSuggestedKg = 0;
+    let totalBabinSetsRequired = 0;
+    let totalCurrentBabinStock = 0;
+    let totalSuggestedBabinSets = 0;
 
     for (const r of unitSuggestions) {
       totalPieces += r.piecesToRun;
@@ -161,6 +167,9 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
       totalShortfallKg += r.suggestion.shortfallKg;
       totalSuggestedBags += r.suggestion.suggestedBags;
       totalSuggestedKg += r.suggestion.suggestedKg;
+      totalBabinSetsRequired += r.suggestion.babinSetsRequired;
+      totalCurrentBabinStock += r.suggestion.currentLoomBabinStock;
+      totalSuggestedBabinSets += r.suggestion.suggestedBabinSets;
     }
 
     const netSurplusBags = godownStockBags - totalSuggestedBags;
@@ -173,6 +182,9 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
       totalSuggestedKg: round2(totalSuggestedKg),
       netSurplusBags: +netSurplusBags.toFixed(1),
       isSocietyCovered: godownStockBags >= totalSuggestedBags,
+      totalBabinSetsRequired: round2(totalBabinSetsRequired),
+      totalCurrentBabinStock: round2(totalCurrentBabinStock),
+      totalSuggestedBabinSets,
     };
   }, [unitSuggestions, godownStockBags]);
 
@@ -193,6 +205,10 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
       "Suggested Dispatch (Bags)",
       "Suggested Dispatch (KG)",
       "Godown Availability Status",
+      "Current Loom Babins (Sets)",
+      "Babin Sets Required",
+      "Babin Sets Shortfall",
+      "Suggested Babin Dispatch (Sets)",
     ];
 
     const rows = unitSuggestions.map((r) => [
@@ -210,6 +226,10 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
       r.suggestion.suggestedBags,
       r.suggestion.suggestedKg,
       r.suggestion.status,
+      r.suggestion.currentLoomBabinStock,
+      r.suggestion.babinSetsRequired,
+      r.suggestion.babinShortfall,
+      r.suggestion.suggestedBabinSets,
     ]);
 
     const csvContent =
@@ -348,15 +368,18 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
               </div>
               <div className="text-slate-300 font-medium">
                 To run all <span className="font-bold text-white font-mono">{societyTotals.totalPieces.toLocaleString()} pending {itemsLabel}</span> across all looms requires{" "}
-                <span className="font-bold text-sky-300 font-mono">{societyTotals.totalWeftRequiredKg.toLocaleString()} KG</span> weft.
-                Net dispatch needed: <span className="font-bold text-amber-300 font-mono">{societyTotals.totalSuggestedBags} Bags ({societyTotals.totalSuggestedKg} KG)</span>.
+                <span className="font-bold text-sky-300 font-mono">{societyTotals.totalWeftRequiredKg.toLocaleString()} KG</span> weft (net dispatch: <span className="font-bold text-amber-300 font-mono">{societyTotals.totalSuggestedBags} Bags</span>) &{" "}
+                <span className="font-bold text-purple-300 font-mono">{societyTotals.totalBabinSetsRequired} Babin Sets</span> (net dispatch: <span className="font-bold text-purple-300 font-mono">{societyTotals.totalSuggestedBabinSets} Sets</span>).
               </div>
             </div>
           </div>
 
-          <div className="text-right flex-shrink-0">
+          <div className="text-right flex-shrink-0 flex items-center gap-2">
             <span className={`px-3 py-1.5 rounded-xl font-bold font-mono text-xs ${societyTotals.isSocietyCovered ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-rose-500/20 text-rose-300 border border-rose-500/30"}`}>
               Godown Surplus: {societyTotals.netSurplusBags >= 0 ? `+${societyTotals.netSurplusBags} Bags` : `${societyTotals.netSurplusBags} Bags Short`}
+            </span>
+            <span className="px-3 py-1.5 rounded-xl font-bold font-mono text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              Babins Needed: {societyTotals.totalSuggestedBabinSets} Sets
             </span>
           </div>
         </div>
@@ -456,6 +479,21 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                   Ready on loom floor for weaving
                 </div>
               </div>
+
+              {/* Available Babin Sets at Loom */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">
+                <div className="text-[11px] font-bold text-slate-500 flex justify-between">
+                  <span>Available Babin Sets at Loom</span>
+                  <Layers className="h-3.5 w-3.5 text-purple-600" />
+                </div>
+                <div className="text-xl font-black text-purple-950 font-mono tabular-nums">
+                  {selectedUnitItem.suggestion.currentLoomBabinStock}{" "}
+                  <span className="text-xs font-bold text-purple-700 font-sans">Sets</span>
+                </div>
+                <div className="text-[11px] text-slate-500 font-mono">
+                  Standard: 1 Babin Set = {selectedUnitItem.suggestion.piecesPerBabinSet} {itemsLabel}
+                </div>
+              </div>
             </div>
 
             {/* Col 2: Interactive Simulator (4 cols) */}
@@ -553,7 +591,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                 </div>
               </div>
 
-              {/* Formula Breakdown */}
+              {/* Weft Formula Breakdown */}
               <div className="bg-white p-3 rounded-xl border border-sky-100 text-xs space-y-1.5">
                 <div className="font-bold text-slate-700 flex justify-between">
                   <span>Weft Required Formula:</span>
@@ -573,6 +611,30 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                   <span>Net Weft Shortfall:</span>
                   <span className={selectedUnitItem.suggestion.shortfallKg > 0 ? "text-amber-700 font-black" : "text-emerald-700"}>
                     {selectedUnitItem.suggestion.shortfallKg} KG
+                  </span>
+                </div>
+              </div>
+
+              {/* Babin Sets Formula Breakdown */}
+              <div className="bg-white p-3 rounded-xl border border-purple-100 text-xs space-y-1.5">
+                <div className="font-bold text-slate-700 flex justify-between">
+                  <span>Babin Sets Formula:</span>
+                  <span className="font-mono text-purple-800">
+                    {selectedUnitItem.piecesToRun} ÷ {selectedUnitItem.suggestion.piecesPerBabinSet} {itemsLabel}/set
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-600 font-mono text-[11px]">
+                  <span>Total Babin Sets Needed:</span>
+                  <span className="font-bold text-slate-900">{selectedUnitItem.suggestion.babinSetsRequired} Sets</span>
+                </div>
+                <div className="flex justify-between text-slate-600 font-mono text-[11px]">
+                  <span>Minus Loom Babins:</span>
+                  <span className="font-bold text-emerald-700">- {selectedUnitItem.suggestion.currentLoomBabinStock} Sets</span>
+                </div>
+                <div className="pt-1.5 border-t border-slate-100 flex justify-between font-mono font-bold text-xs text-purple-950">
+                  <span>Net Babin Shortfall:</span>
+                  <span className={selectedUnitItem.suggestion.babinShortfall > 0 ? "text-amber-700 font-black" : "text-emerald-700"}>
+                    {selectedUnitItem.suggestion.babinShortfall} Sets
                   </span>
                 </div>
               </div>
@@ -596,16 +658,16 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                   <div className="p-4 rounded-xl bg-emerald-100/80 border border-emerald-300 text-emerald-950 space-y-1">
                     <div className="text-sm font-black flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-700" />
-                      <span>Loom Stock Sufficient</span>
+                      <span>Loom Weft Sufficient</span>
                     </div>
                     <p className="text-xs text-emerald-800 font-medium">
                       Loom already has {selectedUnitItem.currentLoomStock} KG, which is enough to run all{" "}
-                      {selectedUnitItem.piecesToRun} {itemsLabel}. No godown dispatch needed.
+                      {selectedUnitItem.piecesToRun} {itemsLabel}. No godown weft dispatch needed.
                     </p>
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl bg-white border-2 border-emerald-500 shadow-sm space-y-2">
-                    <div className="text-xs font-bold text-slate-500 uppercase">Suggested Godown Dispatch:</div>
+                    <div className="text-xs font-bold text-slate-500 uppercase">Suggested Godown Weft Dispatch:</div>
                     <div className="text-3xl font-black font-mono text-emerald-900 tabular-nums">
                       {selectedUnitItem.suggestion.suggestedBags}{" "}
                       <span className="text-lg font-bold text-emerald-700 font-sans">
@@ -621,10 +683,50 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                   </div>
                 )}
 
+                {/* Babin Dispatch Card */}
+                {selectedUnitItem.suggestion.suggestedBabinSets > 0 ? (
+                  <div className="p-3.5 rounded-xl bg-white border-2 border-purple-400 shadow-sm space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-purple-950 uppercase">
+                      <div className="flex items-center gap-1.5">
+                        <Layers className="h-4 w-4 text-purple-600" />
+                        <span>Suggested Babin Sets Dispatch:</span>
+                      </div>
+                      <span className="text-base font-black font-mono text-purple-900">
+                        {selectedUnitItem.suggestion.suggestedBabinSets} Sets
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-600 font-mono">
+                      Calculation: ⌈{selectedUnitItem.suggestion.babinShortfall} sets⌉ = {selectedUnitItem.suggestion.suggestedBabinSets} Sets needed
+                    </div>
+                    {onOpenBabinModal && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenBabinModal(
+                            selectedUnitItem.unit,
+                            selectedUnitItem.suggestion.suggestedBabinSets
+                          )
+                        }
+                        className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+                      >
+                        <Layers className="h-3.5 w-3.5" />
+                        <span>⚡ Issue {selectedUnitItem.suggestion.suggestedBabinSets} Babin Sets to {selectedUnitItem.unit.weaverName}</span>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-xl bg-purple-50/80 border border-purple-200 text-purple-900 text-xs flex items-center justify-between">
+                    <span className="font-semibold flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-purple-600" />
+                      Babin Sets Sufficient ({selectedUnitItem.suggestion.currentLoomBabinStock} Sets on loom)
+                    </span>
+                  </div>
+                )}
+
                 {/* Godown Availability Check */}
                 <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
                   <div className="font-bold text-slate-700 flex items-center justify-between">
-                    <span>Central Godown Stock:</span>
+                    <span>Central Godown Weft Stock:</span>
                     <span className="font-mono text-slate-900">{godownStockBags} Bags ({godownStockKg.toLocaleString()} KG)</span>
                   </div>
                   {selectedUnitItem.suggestion.isGodownSufficient ? (
@@ -745,6 +847,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                 <th className="py-3 px-3.5 text-center bg-emerald-50/80 border-x border-emerald-100">
                   Suggested Dispatch
                 </th>
+                <th className="py-3 px-3 text-center">Babin Sets</th>
                 <th className="py-3 px-3 text-center">Godown Status</th>
                 <th className="py-3 px-3 text-center">Action</th>
               </tr>
@@ -752,7 +855,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
             <tbody className="divide-y divide-slate-100 font-medium">
               {displayedRows.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-8 text-center text-slate-400">
+                  <td colSpan={12} className="py-8 text-center text-slate-400">
                     No powerloom units found matching search.
                   </td>
                 </tr>
@@ -855,6 +958,20 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                           <span className="text-emerald-700 font-bold text-[11px]">
                             ✓ Stocked
                           </span>
+                        )}
+                      </td>
+
+                      {/* Babin Sets */}
+                      <td className="py-3 px-3 text-center font-mono">
+                        <div className="text-[11px] font-bold text-slate-700">
+                          {r.suggestion.currentLoomBabinStock} / {r.suggestion.babinSetsRequired} sets
+                        </div>
+                        {r.suggestion.suggestedBabinSets > 0 ? (
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-black">
+                            +{r.suggestion.suggestedBabinSets} Sets
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-emerald-700 font-semibold">✓ OK</span>
                         )}
                       </td>
 

@@ -649,6 +649,9 @@ export const VeattiProductionView: React.FC = () => {
           onOpenWeftModal={(u, bags, kg) => {
             setActiveTab("register");
           }}
+          onOpenBabinModal={(u, sets) => {
+            setActiveTab("register");
+          }}
         />
       )}
 

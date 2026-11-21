@@ -267,6 +267,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
     presets?: {
       weftBagsGiven?: number | string;
       weftGivenKg?: number | string;
+      babinCount?: number | string;
       description?: string;
       notes?: string;
     }
@@ -292,7 +293,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
       veattiCount: "",
       weftGivenKg: presets?.weftGivenKg !== undefined ? presets.weftGivenKg : "",
       weftBagsGiven: presets?.weftBagsGiven !== undefined ? presets.weftBagsGiven : "",
-      babinCount: "",
+      babinCount: presets?.babinCount !== undefined ? presets.babinCount : "",
       beamCount: "",
       wageRate: selectedUnit?.individualRate || (clothType === "SAREE" ? 45 : TRADITIONAL_DEFAULT_WAGE_RATE),
       cashPaid: "",
@@ -1018,6 +1019,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
           : defaultPendingPieces;
 
         const activeLoomStock = summary?.weftStock ?? (selectedUnit?.weftStockKg || 0);
+        const activeBabinCount = summary?.remainingBabin ?? summary?.totalBabin ?? (selectedUnit?.babinCount || 0);
         const inv = isSaree ? weftInventory?.saree : weftInventory?.veatti;
         const godownStockKg = inv?.godownStockKg ?? 0;
         const godownStockBags = inv?.godownStockBags ?? (godownStockKg > 0 ? +(godownStockKg / kgPerBag).toFixed(1) : 0);
@@ -1027,6 +1029,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
           remainingPaavuPieces: defaultPendingPieces,
           customPiecesToRun: activePiecesToRun,
           currentLoomStockKg: activeLoomStock,
+          currentLoomBabinStock: activeBabinCount,
           godownStockKg,
           customKgPerPiece: kgPerPiece,
           customKgPerBag: kgPerBag,
@@ -1047,13 +1050,13 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
-                    <span>Weft Requirement & Godown Suggester</span>
+                    <span>Weft & Babin Requirement Suggester</span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 font-bold font-mono">
                       {selectedUnit.weaverName}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Calculates exact weft KG needed for {activePiecesToRun} {itemsLabel} based on loom-side stock & godown inventory
+                    Calculates exact weft KG & Babin sets needed for {activePiecesToRun} {itemsLabel} based on loom-side stock & godown inventory
                   </p>
                 </div>
               </div>
@@ -1095,6 +1098,12 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     <span className="text-slate-500">Stored at Loom:</span>
                     <span className="font-mono font-black text-sky-900">
                       {activeLoomStock} KG ({(activeLoomStock / kgPerBag).toFixed(1)} Bags)
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Available Babins:</span>
+                    <span className="font-mono font-bold text-purple-900">
+                      {activeBabinCount} Sets
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1">
@@ -1172,10 +1181,28 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                       <span className="font-bold text-emerald-700">- {activeLoomStock} KG</span>
                     </div>
                     <div className="flex justify-between font-bold text-slate-900 pt-0.5 border-t border-slate-100">
-                      <span>Net Shortfall:</span>
+                      <span>Net Weft Shortfall:</span>
                       <span className={suggestion.shortfallKg > 0 ? "text-amber-700" : "text-emerald-700"}>
                         {suggestion.shortfallKg} KG
                       </span>
+                    </div>
+
+                    {/* Babin sets formula */}
+                    <div className="pt-2 border-t border-slate-200/80 mt-1.5 space-y-0.5">
+                      <div className="flex justify-between text-purple-900">
+                        <span>Babin Sets Needed ({activePiecesToRun} ÷ {suggestion.piecesPerBabinSet}):</span>
+                        <span className="font-bold">{suggestion.babinSetsRequired} Sets</span>
+                      </div>
+                      <div className="flex justify-between text-purple-700">
+                        <span>Available at Loom:</span>
+                        <span className="font-bold">- {activeBabinCount} Sets</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-slate-900 pt-0.5 border-t border-purple-100">
+                        <span>Babin Shortfall:</span>
+                        <span className={suggestion.babinShortfall > 0 ? "text-purple-800 font-extrabold" : "text-emerald-700"}>
+                          {suggestion.babinShortfall > 0 ? `${suggestion.babinShortfall} Sets (${suggestion.suggestedBabinSets} needed)` : "✅ Sufficient"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1216,6 +1243,22 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     </div>
                   )}
 
+                  {/* Babin suggestion info card */}
+                  <div className="p-2.5 rounded-xl bg-purple-50/90 border border-purple-200 text-xs space-y-1">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-purple-900 flex items-center justify-between">
+                      <span>Babin Set Requirement</span>
+                      <Layers className="h-3.5 w-3.5 text-purple-600" />
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-bold font-mono text-purple-950 text-sm">
+                        {suggestion.suggestedBabinSets > 0 ? `${suggestion.suggestedBabinSets} Sets Needed` : "✅ Sufficient Sets at Loom"}
+                      </span>
+                      <span className="text-[10px] text-purple-700 font-mono">
+                        ({suggestion.babinSetsRequired} req • {activeBabinCount} avail)
+                      </span>
+                    </div>
+                  </div>
+
                   {/* Godown status */}
                   <div className="text-[11px] flex items-center justify-between text-slate-700">
                     <span>Godown Availability:</span>
@@ -1231,23 +1274,40 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   </div>
                 </div>
 
-                {/* 1-Click Dispatch Action */}
-                {suggestion.suggestedBags > 0 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleOpenAddModal("WEFT_BAG", {
-                        weftBagsGiven: suggestion.suggestedBags,
-                        weftGivenKg: suggestion.suggestedKg,
-                        notes: `Suggested dispatch based on ${activePiecesToRun} ${itemsLabel} to run.`,
-                      })
-                    }
-                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    <span>⚡ Issue Suggested {suggestion.suggestedBags} Bags ({suggestion.suggestedKg} KG)</span>
-                  </button>
-                )}
+                {/* 1-Click Dispatch Actions */}
+                <div className="space-y-1.5 pt-1">
+                  {suggestion.suggestedBags > 0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleOpenAddModal("WEFT_BAG", {
+                          weftBagsGiven: suggestion.suggestedBags,
+                          weftGivenKg: suggestion.suggestedKg,
+                          notes: `Suggested dispatch based on ${activePiecesToRun} ${itemsLabel} to run.`,
+                        })
+                      }
+                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      <span>⚡ Issue Suggested {suggestion.suggestedBags} Bags ({suggestion.suggestedKg} KG)</span>
+                    </button>
+                  )}
+                  {suggestion.suggestedBabinSets > 0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleOpenAddModal("BABIN", {
+                          babinCount: suggestion.suggestedBabinSets,
+                          description: `Babin Sets Issued for ${activePiecesToRun} ${itemsLabel}`,
+                        })
+                      }
+                      className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Layers className="h-3.5 w-3.5" />
+                      <span>⚡ Issue Suggested {suggestion.suggestedBabinSets} Babin Sets</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

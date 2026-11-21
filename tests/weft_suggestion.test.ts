@@ -4,6 +4,7 @@ import {
   calculateSareePieces,
   calculatePiecesFromMeters,
   calculateWeftRequirementSuggestion,
+  calculateBabinRequirementSuggestion,
   GOVT_DHOTHI_LENGTH_METERS,
   GOVT_DHOTHI_WEFT_KG_PER_PIECE,
   GOVT_DHOTHI_KG_PER_BAG,
@@ -142,5 +143,77 @@ describe("Government Free Dhothi & Saree Scheme Weft Calculations", () => {
     expect(suggestion.shortfallKg).toBe(25.7);
     expect(suggestion.suggestedBags).toBe(1);
     expect(suggestion.suggestedKg).toBe(60.0);
+  });
+
+  it("should suggest correct Babin Sets for Dhothi (500 Dhothis per set)", () => {
+    // 1000 Dhothis pending / 500 = 2.0 sets required
+    // Loom has 1.5 sets available -> shortfall = 0.5 sets -> Math.ceil(0.5) = 1 set suggested
+    const babin = calculateBabinRequirementSuggestion({
+      clothType: "VEATTI",
+      remainingPaavuPieces: 1000,
+      currentLoomBabinStock: 1.5,
+    });
+
+    expect(babin.clothType).toBe("VEATTI");
+    expect(babin.piecesPerBabinSet).toBe(500);
+    expect(babin.piecesToRun).toBe(1000);
+    expect(babin.babinSetsRequired).toBe(2);
+    expect(babin.currentLoomBabinStock).toBe(1.5);
+    expect(babin.babinShortfall).toBe(0.5);
+    expect(babin.suggestedBabinSets).toBe(1);
+    expect(babin.status).toBe("ISSUE_NEEDED");
+  });
+
+  it("should suggest correct Babin Sets for Saree (200 Sarees per set)", () => {
+    // Madheshwar Tex case: 1,787 Sarees pending
+    // 1787 / 200 = 8.94 sets required
+    // Loom currently has 8.49 sets
+    // Shortfall = 8.94 - 8.49 = 0.45 sets -> Math.ceil(0.45) = 1 set suggested
+    const babin = calculateBabinRequirementSuggestion({
+      clothType: "SAREE",
+      remainingPaavuPieces: 1787,
+      currentLoomBabinStock: 8.49,
+    });
+
+    expect(babin.clothType).toBe("SAREE");
+    expect(babin.piecesPerBabinSet).toBe(200);
+    expect(babin.piecesToRun).toBe(1787);
+    expect(babin.babinSetsRequired).toBe(8.94);
+    expect(babin.currentLoomBabinStock).toBe(8.49);
+    expect(babin.babinShortfall).toBe(0.45);
+    expect(babin.suggestedBabinSets).toBe(1);
+    expect(babin.status).toBe("ISSUE_NEEDED");
+  });
+
+  it("should detect when Babin Sets are already sufficient at loom", () => {
+    // Amman Tex case: 1,411 Sarees pending
+    // 1411 / 200 = 7.055 -> round2 = 7.06 sets required
+    // Loom has 7.79 sets available -> shortfall = 0 -> 0 sets suggested
+    const babin = calculateBabinRequirementSuggestion({
+      clothType: "SAREE",
+      remainingPaavuPieces: 1411,
+      currentLoomBabinStock: 7.79,
+    });
+
+    expect(babin.babinSetsRequired).toBe(7.06);
+    expect(babin.babinShortfall).toBe(0);
+    expect(babin.suggestedBabinSets).toBe(0);
+    expect(babin.status).toBe("ENOUGH_AT_LOOM");
+  });
+
+  it("should include Babin suggestions inside calculateWeftRequirementSuggestion", () => {
+    const suggestion = calculateWeftRequirementSuggestion({
+      clothType: "SAREE",
+      remainingPaavuPieces: 1787,
+      currentLoomStockKg: 351.48,
+      currentLoomBabinStock: 8.49,
+    });
+
+    expect(suggestion.piecesPerBabinSet).toBe(200);
+    expect(suggestion.babinSetsRequired).toBe(8.94);
+    expect(suggestion.currentLoomBabinStock).toBe(8.49);
+    expect(suggestion.babinShortfall).toBe(0.45);
+    expect(suggestion.suggestedBabinSets).toBe(1);
+    expect(suggestion.babinStatus).toBe("ISSUE_NEEDED");
   });
 });

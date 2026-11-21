@@ -268,6 +268,54 @@ export function calculatePiecesFromMeters(meters: number | string, clothType: st
   return clothType === "SAREE" ? calculateSareePieces(meters) : calculateDhothiPieces(meters);
 }
 
+export interface BabinSuggestionResult {
+  clothType: "VEATTI" | "SAREE";
+  piecesPerBabinSet: number; // 500 for VEATTI, 200 for SAREE
+  piecesToRun: number;
+  babinSetsRequired: number; // e.g. 1787 / 200 = 8.94 sets
+  currentLoomBabinStock: number; // e.g. 8.49 sets
+  babinShortfall: number; // max(0, round2(babinSetsRequired - currentLoomBabinStock))
+  suggestedBabinSets: number; // Math.ceil(babinShortfall)
+  status: "ENOUGH_AT_LOOM" | "ISSUE_NEEDED";
+}
+
+/**
+ * Suggest Babin Sets needed to complete a powerloom assignment
+ * - Dhothi (Veatti): 1 Babin Set per 500 Dhothis
+ * - Saree: 1 Babin Set per 200 Sarees
+ */
+export function calculateBabinRequirementSuggestion(params: {
+  clothType: "VEATTI" | "SAREE";
+  remainingPaavuPieces?: number;
+  remainingPaavuMeters?: number;
+  customPiecesToRun?: number;
+  currentLoomBabinStock?: number;
+}): BabinSuggestionResult {
+  const isSaree = params.clothType === "SAREE";
+  const piecesPerSet = isSaree ? SAREE_SAREES_PER_BABIN_SET : VEATTI_VEATTIS_PER_BABIN_SET; // 200 vs 500
+  const rawPieces =
+    params.customPiecesToRun !== undefined
+      ? params.customPiecesToRun
+      : (params.remainingPaavuPieces !== undefined ? params.remainingPaavuPieces : params.remainingPaavuMeters);
+  const piecesToRun = Math.max(0, Math.floor(Number(rawPieces) || 0));
+  const currentStock = Math.max(0, round2(params.currentLoomBabinStock || 0));
+
+  const babinSetsRequired = piecesToRun > 0 ? round2(piecesToRun / piecesPerSet) : 0;
+  const babinShortfall = Math.max(0, round2(babinSetsRequired - currentStock));
+  const suggestedBabinSets = babinShortfall > 0 ? Math.ceil(babinShortfall) : 0;
+
+  return {
+    clothType: params.clothType,
+    piecesPerBabinSet: piecesPerSet,
+    piecesToRun,
+    babinSetsRequired,
+    currentLoomBabinStock: currentStock,
+    babinShortfall,
+    suggestedBabinSets,
+    status: babinShortfall > 0 ? "ISSUE_NEEDED" : "ENOUGH_AT_LOOM",
+  };
+}
+
 export interface WeftSuggestionResult {
   clothType: "VEATTI" | "SAREE";
   lengthPerPiece: number;
@@ -285,6 +333,13 @@ export interface WeftSuggestionResult {
   godownStockBags?: number;
   isGodownSufficient: boolean;
   status: "ENOUGH_AT_LOOM" | "DISPATCH_NEEDED" | "GODOWN_LOW_STOCK";
+  // Babin Set suggestions to complete the assignment
+  piecesPerBabinSet: number;
+  babinSetsRequired: number;
+  currentLoomBabinStock: number;
+  babinShortfall: number;
+  suggestedBabinSets: number;
+  babinStatus: "ENOUGH_AT_LOOM" | "ISSUE_NEEDED";
 }
 
 /**
@@ -297,6 +352,7 @@ export function calculateWeftRequirementSuggestion(params: {
   remainingPaavuMeters?: number;
   customPiecesToRun?: number;
   currentLoomStockKg: number;
+  currentLoomBabinStock?: number;
   godownStockKg?: number;
   customKgPerPiece?: number;
   customKgPerBag?: number;
@@ -336,6 +392,14 @@ export function calculateWeftRequirementSuggestion(params: {
     status = isGodownSufficient ? "DISPATCH_NEEDED" : "GODOWN_LOW_STOCK";
   }
 
+  // Babin Set Calculation
+  const piecesPerBabinSet = isSaree ? SAREE_SAREES_PER_BABIN_SET : VEATTI_VEATTIS_PER_BABIN_SET;
+  const currentLoomBabinStock = Math.max(0, round2(params.currentLoomBabinStock || 0));
+  const babinSetsRequired = piecesToRun > 0 ? round2(piecesToRun / piecesPerBabinSet) : 0;
+  const babinShortfall = Math.max(0, round2(babinSetsRequired - currentLoomBabinStock));
+  const suggestedBabinSets = babinShortfall > 0 ? Math.ceil(babinShortfall) : 0;
+  const babinStatus: "ENOUGH_AT_LOOM" | "ISSUE_NEEDED" = babinShortfall > 0 ? "ISSUE_NEEDED" : "ENOUGH_AT_LOOM";
+
   return {
     clothType: params.clothType,
     lengthPerPiece,
@@ -353,6 +417,12 @@ export function calculateWeftRequirementSuggestion(params: {
     godownStockBags,
     isGodownSufficient,
     status,
+    piecesPerBabinSet,
+    babinSetsRequired,
+    currentLoomBabinStock,
+    babinShortfall,
+    suggestedBabinSets,
+    babinStatus,
   };
 }
 
