@@ -253,14 +253,15 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       setFormError("Please enter a Challan / Order number.");
       return;
     }
-    const numMeters = Number(form.meters);
-    if (!numMeters || numMeters <= 0) {
-      setFormError("Please enter a valid meter quantity greater than 0.");
+    const numPieces = form.pieces ? parseInt(form.pieces.toString()) : 0;
+    const standardPieceLen = form.clothType === "SAREE" ? 5.5 : 3.65;
+    const numMeters = Number(form.meters) || (numPieces > 0 ? +(numPieces * standardPieceLen).toFixed(2) : 0);
+    if ((!numPieces || numPieces <= 0) && (!numMeters || numMeters <= 0)) {
+      setFormError("Please enter pieces or meters quantity greater than 0.");
       return;
     }
-
-    const standardPieceLen = form.clothType === "SAREE" ? 5.5 : 3.65;
-    const numPieces = form.pieces ? parseInt(form.pieces.toString()) : Math.floor(numMeters / standardPieceLen);
+    const finalPieces = numPieces > 0 ? numPieces : Math.floor(numMeters / standardPieceLen);
+    const finalMeters = numMeters > 0 ? numMeters : +(finalPieces * standardPieceLen).toFixed(2);
 
     setSubmitting(true);
     setFormError(null);
@@ -274,8 +275,8 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
           unitId: form.unitId || null,
           challanNo: form.challanNo.trim(),
           handoverDate: form.handoverDate,
-          meters: numMeters,
-          pieces: numPieces,
+          meters: finalMeters,
+          pieces: finalPieces,
           recipientDept: form.recipientDept.trim(),
           vehicleNo: form.vehicleNo.trim() || null,
           officerName: form.officerName.trim() || null,
@@ -694,31 +695,31 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             </div>
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
-                {totalCombinedHandovered.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-blue-700 font-sans">Mtr</span>
+                {totalCombinedPiecesHandovered.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-blue-700 font-sans">Pieces</span>
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-500">
-              Combined Veatti + Saree delivered to Co-optex
+            <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
+              {totalCombinedHandovered.toLocaleString("en-IN")} Mtr • Combined Dhothi + Saree
             </p>
           </div>
 
           {/* Card 2: Veatti Handovered */}
           <div className="rounded-2xl border border-emerald-200/80 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-              <span className="uppercase tracking-wider">Veatti Handovered</span>
+              <span className="uppercase tracking-wider">Dhothi Handovered</span>
               <span className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
                 <Layers className="h-4 w-4" />
               </span>
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
-                {veattiHandovered.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-emerald-700 font-sans">Mtr</span>
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-emerald-800">
+                {dhothiHandoveredPieces.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-emerald-700 font-sans">Dhothis</span>
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-500">
-              {veattiHandovers.length} Challans • Godown: {veattiGodownStock.toLocaleString("en-IN")}m
+            <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
+              {veattiHandovers.length} Challans • {veattiHandovered.toLocaleString("en-IN")} Mtr
             </p>
           </div>
 
@@ -731,13 +732,13 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
-                {sareeHandovered.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-purple-700 font-sans">Mtr</span>
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-purple-800">
+                {sareeHandoveredPieces.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-purple-700 font-sans">Sarees</span>
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-500">
-              {sareeHandovers.length} Challans • Godown: {sareeGodownStock.toLocaleString("en-IN")}m
+            <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
+              {sareeHandovers.length} Challans • {sareeHandovered.toLocaleString("en-IN")} Mtr
             </p>
           </div>
 
@@ -812,13 +813,13 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl sm:text-3xl font-black text-blue-600">
-                {veattiHandovered.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-blue-600">Mtr</span>
+              <span className="text-2xl sm:text-3xl font-black text-emerald-800">
+                {dhothiHandoveredPieces.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-emerald-700">Dhothis</span>
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-500">
-              Total {veattiHandovers.length} delivery challans issued
+            <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
+              {veattiHandovers.length} Challans • {veattiHandovered.toLocaleString("en-IN")} Mtr
             </p>
           </div>
 
@@ -893,13 +894,13 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl sm:text-3xl font-black text-blue-600">
-                {sareeHandovered.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-blue-600">Mtr</span>
+              <span className="text-2xl sm:text-3xl font-black text-purple-800">
+                {sareeHandoveredPieces.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-purple-700">Sarees</span>
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-500">
-              Total {sareeHandovers.length} delivery challans issued
+            <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
+              {sareeHandovers.length} Challans • {sareeHandovered.toLocaleString("en-IN")} Mtr
             </p>
           </div>
 
@@ -1527,40 +1528,17 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 </div>
               </div>
 
-              {/* Row 2: Meters, Pieces Handovered & Source Powerloom */}
+              {/* Row 2: Pieces, Meters Handovered & Source Powerloom */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Quantity (Meters) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    min="1"
-                    value={form.meters}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const m = parseFloat(val) || 0;
-                      const p = m > 0 ? Math.floor(m / (form.clothType === "SAREE" ? 5.5 : 3.65)) : "";
-                      setForm({ ...form, meters: val, pieces: p });
-                    }}
-                    placeholder="e.g. 1100"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-black text-blue-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  />
-                  <span className="text-[10px] text-slate-400 mt-1 block">
-                    {form.clothType === "SAREE" ? "Standard ~5.5m/pc" : "Standard ~3.65m/pc"}
-                  </span>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Pieces ({form.clothType === "SAREE" ? "Sarees" : "Dhothis"})
+                    Delivered Pieces ({form.clothType === "SAREE" ? "Sarees" : "Dhothis"}) <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="number"
                     step="1"
                     min="1"
+                    required
                     value={form.pieces}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1568,11 +1546,33 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                       const m = p > 0 ? +(p * (form.clothType === "SAREE" ? 5.5 : 3.65)).toFixed(2) : "";
                       setForm({ ...form, pieces: val, meters: m });
                     }}
-                    placeholder="e.g. 200"
+                    placeholder={form.clothType === "SAREE" ? "e.g. 800" : "e.g. 6263"}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-black text-emerald-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
                   <span className="text-[10px] text-emerald-600 font-bold mt-1 block">
                     Weaver wage: ₹{form.clothType === "SAREE" ? "42" : "19"}/pc
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Equivalent Meters (Mtr) <span className="text-slate-400 font-normal">(@ {form.clothType === "SAREE" ? "5.5m" : "3.65m"})</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={form.meters}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const m = parseFloat(val) || 0;
+                      const p = m > 0 ? Math.floor(m / (form.clothType === "SAREE" ? 5.5 : 3.65)) : "";
+                      setForm({ ...form, meters: val, pieces: p });
+                    }}
+                    placeholder="e.g. 22860"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-black text-blue-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    {form.clothType === "SAREE" ? "Standard ~5.5m/pc" : "Standard ~3.65m/pc"}
                   </span>
                 </div>
 

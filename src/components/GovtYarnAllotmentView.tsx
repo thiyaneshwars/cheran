@@ -287,20 +287,14 @@ export const GovtYarnAllotmentView: React.FC<GovtYarnAllotmentViewProps> = ({ on
   const totalDhothiWeft = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiWeftKg) || 0), 0);
   const totalDhothiBorder = dhothiFiltered.reduce((s, a) => s + (Number(a.dhothiBorderKg) || 0), 0);
   const totalDhothiYarn = totalDhothiWarp + totalDhothiWeft + totalDhothiBorder;
-  const totalDhothiPieces = dhothiFiltered.reduce((s, a) => {
-    const warp = Number(a.dhothiWarpKg) || 0;
-    return s + (warp > 0 ? Math.floor(warp / 0.122) : 0);
-  }, 0);
+  const totalDhothiPieces = totalDhothiWarp > 0 ? Math.floor(totalDhothiWarp / 0.122) : 0;
 
   // Totals for Saree Ledger (Pieces strictly calculated from Warp; Weft & Border combined)
   const totalSareeWarp = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWarpKg) || 0), 0);
   const totalSareeWeft = sareeFiltered.reduce((s, a) => s + (Number(a.sareeWeftKg) || 0), 0);
   const totalSareeBorder = sareeFiltered.reduce((s, a) => s + (Number(a.sareeBorderKg) || 0), 0);
   const totalSareeYarn = totalSareeWarp + totalSareeWeft + totalSareeBorder;
-  const totalSareePieces = sareeFiltered.reduce((s, a) => {
-    const warp = Number(a.sareeWarpKg) || 0;
-    return s + (warp > 0 ? Math.floor(warp / 0.188) : 0);
-  }, 0);
+  const totalSareePieces = totalSareeWarp > 0 ? Math.floor(totalSareeWarp / 0.188) : 0;
 
   return (
     <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in font-sans">
