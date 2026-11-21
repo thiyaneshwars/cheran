@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       0
     );
     const veattiTotalHandovered = veattiHandovers.reduce(
-      (acc, h) => acc + (h.meters || 0),
+      (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor((h.meters || 0) / 3.65)),
       0
     );
     const veattiTotalPaavuMeters = veattiUnits.reduce(
@@ -113,7 +113,7 @@ export async function GET(request: Request) {
       0
     );
     const sareeTotalHandovered = sareeHandovers.reduce(
-      (acc, h) => acc + (h.meters || 0),
+      (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor((h.meters || 0) / 5.5)),
       0
     );
     const sareeTotalPaavuMeters = sareeUnits.reduce(

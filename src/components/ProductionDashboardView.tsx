@@ -137,7 +137,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
             <div className="mt-3">
               <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
                 {totalConsolidated.totalProducedMeters.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-semibold text-emerald-600">Mtr</span>
+                <span className="text-sm font-semibold text-emerald-600">Pcs</span>
               </span>
             </div>
             <p className="mt-1 text-xs text-slate-500">
@@ -156,7 +156,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
             <div className="mt-3">
               <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
                 {totalConsolidated.godownAvailableMeters.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-semibold text-amber-600">Mtr</span>
+                <span className="text-sm font-semibold text-amber-600">Pcs</span>
               </span>
             </div>
             <p className="mt-1 text-xs text-slate-500">
@@ -178,7 +178,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
             <div className="mt-3">
               <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
                 {totalConsolidated.totalHandoveredMeters.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-semibold text-blue-600">Mtr</span>
+                <span className="text-sm font-semibold text-blue-600">Pcs</span>
               </span>
             </div>
             <p className="mt-1 text-xs text-blue-600 font-semibold flex items-center gap-1">
@@ -197,7 +197,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
             <div className="mt-3">
               <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
                 {totalConsolidated.balanceToHandoverMeters.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-semibold text-rose-600">Mtr</span>
+                <span className="text-sm font-semibold text-rose-600">Pcs</span>
               </span>
             </div>
             <p className="mt-1 text-xs text-slate-500">
@@ -249,7 +249,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     {veatti.totalProducedMeters.toLocaleString("en-IN")}
                   </span>
                   <span className="text-[11px] text-emerald-600 font-semibold">
-                    Total Meters (m)
+                    Total Produced (Pcs)
                   </span>
                 </div>
 
@@ -262,7 +262,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     {veatti.godownAvailableMeters.toLocaleString("en-IN")}
                   </span>
                   <span className="text-[11px] text-amber-600 font-semibold">
-                    Available in Godown (m)
+                    Available in Godown (Pcs)
                   </span>
                 </div>
 
@@ -275,7 +275,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     {veatti.totalHandoveredMeters.toLocaleString("en-IN")}
                   </span>
                   <span className="text-[11px] text-blue-600 font-semibold">
-                    Delivered to Govt (m)
+                    Delivered to Govt (Pcs)
                   </span>
                 </div>
               </div>
@@ -287,7 +287,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     Handover Progress ({veatti.targetMeters > 0 ? Math.round((veatti.totalHandoveredMeters / veatti.targetMeters) * 100) : 0}%)
                   </span>
                   <span className="text-slate-900 font-bold">
-                    Target: {veatti.targetMeters.toLocaleString("en-IN")} m
+                    Target: {veatti.targetMeters.toLocaleString("en-IN")} Pcs
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
@@ -301,7 +301,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                 <div className="flex justify-between items-center text-xs text-slate-500 pt-1 border-t border-slate-200/60">
                   <span>Yet to Handover:</span>
                   <span className="font-extrabold text-rose-600">
-                    {veatti.balanceToHandoverMeters.toLocaleString("en-IN")} Meters
+                    {veatti.balanceToHandoverMeters.toLocaleString("en-IN")} Pcs
                   </span>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     {saree.totalProducedMeters.toLocaleString("en-IN")}
                   </span>
                   <span className="text-[11px] text-emerald-600 font-semibold">
-                    Total Meters (m)
+                    Total Produced (Pcs)
                   </span>
                 </div>
 
@@ -395,7 +395,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     {saree.godownAvailableMeters.toLocaleString("en-IN")}
                   </span>
                   <span className="text-[11px] text-amber-600 font-semibold">
-                    Available in Godown (m)
+                    Available in Godown (Pcs)
                   </span>
                 </div>
 
@@ -408,7 +408,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     {saree.totalHandoveredMeters.toLocaleString("en-IN")}
                   </span>
                   <span className="text-[11px] text-blue-600 font-semibold">
-                    Delivered to Govt (m)
+                    Delivered to Govt (Pcs)
                   </span>
                 </div>
               </div>
@@ -420,7 +420,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                     Handover Progress ({saree.targetMeters > 0 ? Math.round((saree.totalHandoveredMeters / saree.targetMeters) * 100) : 0}%)
                   </span>
                   <span className="text-slate-900 font-bold">
-                    Target: {saree.targetMeters.toLocaleString("en-IN")} m
+                    Target: {saree.targetMeters.toLocaleString("en-IN")} Pcs
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
@@ -434,7 +434,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                 <div className="flex justify-between items-center text-xs text-slate-500 pt-1 border-t border-slate-200/60">
                   <span>Yet to Handover:</span>
                   <span className="font-extrabold text-rose-600">
-                    {saree.balanceToHandoverMeters.toLocaleString("en-IN")} Meters
+                    {saree.balanceToHandoverMeters.toLocaleString("en-IN")} Pcs
                   </span>
                 </div>
               </div>

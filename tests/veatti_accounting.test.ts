@@ -837,6 +837,17 @@ describe("Veatti Production, Paavu Accounting, Advance & Automatic Balance Manag
     });
 
     // 2. Add Register Entries matching user's exact notebook:
+    // Initial Paavu Given: 3,170m on 2026-09-25
+    await prisma.veattiRegisterEntry.create({
+      data: {
+        unitId: unit.id,
+        date: new Date("2026-09-25"),
+        entryType: "PAAVU",
+        description: "Initial Warp Issued / Paavu Given",
+        paavuGivenMeters: 3170,
+      },
+    });
+
     // Paavu Given 1: 8,430m on 2026-10-03
     await prisma.veattiRegisterEntry.create({
       data: {

@@ -161,7 +161,10 @@ export const SareeProductionView: React.FC = () => {
 
   // Aggregated KPIs
   const totalProduced = units.reduce((acc, u) => acc + (u.totalProducedMeters || 0), 0);
-  const totalHandovered = handovers.reduce((acc, h) => acc + (h.meters || 0), 0);
+  const totalHandovered = handovers.reduce(
+    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor((h.meters || 0) / 5.5)),
+    0
+  );
   const totalPaavuMeters = units.reduce(
     (acc, u) => acc + (u.paavuMeters || 0),
     0

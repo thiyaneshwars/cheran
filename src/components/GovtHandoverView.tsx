@@ -115,46 +115,49 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
   // Compute Veatti Statistics
   const veattiProduced = veattiUnits.reduce((acc, u) => acc + (u.totalProducedMeters || 0), 0);
-  const veattiTarget = veattiUnits.reduce((acc, u) => acc + (u.targetMeters || 0), 0);
   const veattiHandovers = handovers.filter((h) => h.clothType === "VEATTI");
-  const veattiHandovered = veattiHandovers.reduce((acc, h) => acc + (h.meters || 0), 0);
-  const veattiGodownStock = Math.max(0, veattiProduced - veattiHandovered);
-  const veattiBalanceToHandover = Math.max(0, veattiTarget - veattiHandovered);
-
-  // Compute Saree Statistics
-  const sareeProduced = sareeUnits.reduce((acc, u) => acc + (u.totalProducedMeters || 0), 0);
-  const sareeTarget = sareeUnits.reduce((acc, u) => acc + (u.targetMeters || 0), 0);
-  const sareeHandovers = handovers.filter((h) => h.clothType === "SAREE");
-  const sareeHandovered = sareeHandovers.reduce((acc, h) => acc + (h.meters || 0), 0);
-  const sareeGodownStock = Math.max(0, sareeProduced - sareeHandovered);
-  const sareeBalanceToHandover = Math.max(0, sareeTarget - sareeHandovered);
-
-  // Dhothi Piece Tallies (Govt Quota vs Handovered)
-  const govtDhothiProvidedPieces =
-    yarnSummary?.dhothi?.targetTotalPieces ||
-    yarnSummary?.dhothi?.piecesFromWarp ||
-    Math.floor(veattiTarget / 3.65) ||
-    0;
+  const veattiHandoveredMeters = veattiHandovers.reduce((acc, h) => acc + (h.meters || 0), 0);
   const dhothiHandoveredPieces = veattiHandovers.reduce(
     (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 3.65)),
     0
   );
+  const govtDhothiProvidedPieces =
+    yarnSummary?.dhothi?.targetTotalPieces ||
+    yarnSummary?.dhothi?.piecesFromWarp ||
+    (veattiUnits.reduce((acc, u) => acc + (u.targetMeters || 0), 0) > 0
+      ? veattiUnits.reduce((acc, u) => acc + (u.targetMeters || 0), 0)
+      : Math.floor(veattiUnits.reduce((acc, u) => acc + (u.paavuMeters || 0), 0) / 3.65) || veattiProduced);
+  const veattiTarget = govtDhothiProvidedPieces;
+  const veattiHandovered = dhothiHandoveredPieces;
+  const veattiGodownStock = Math.max(0, veattiProduced - dhothiHandoveredPieces);
+  const veattiBalanceToHandover = Math.max(0, veattiTarget - dhothiHandoveredPieces);
+
+  // Compute Saree Statistics
+  const sareeProduced = sareeUnits.reduce((acc, u) => acc + (u.totalProducedMeters || 0), 0);
+  const sareeHandovers = handovers.filter((h) => h.clothType === "SAREE");
+  const sareeHandoveredMeters = sareeHandovers.reduce((acc, h) => acc + (h.meters || 0), 0);
+  const sareeHandoveredPieces = sareeHandovers.reduce(
+    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 5.5)),
+    0
+  );
+  const govtSareeProvidedPieces =
+    yarnSummary?.saree?.targetTotalPieces ||
+    yarnSummary?.saree?.piecesFromWarp ||
+    (sareeUnits.reduce((acc, u) => acc + (u.targetMeters || 0), 0) > 0
+      ? sareeUnits.reduce((acc, u) => acc + (u.targetMeters || 0), 0)
+      : Math.floor(sareeUnits.reduce((acc, u) => acc + (u.paavuMeters || 0), 0) / 5.5) || sareeProduced);
+  const sareeTarget = govtSareeProvidedPieces;
+  const sareeHandovered = sareeHandoveredPieces;
+  const sareeGodownStock = Math.max(0, sareeProduced - sareeHandoveredPieces);
+  const sareeBalanceToHandover = Math.max(0, sareeTarget - sareeHandoveredPieces);
+
+  // Dhothi & Saree Quota Percentages
   const dhothiBalancePieces = Math.max(0, govtDhothiProvidedPieces - dhothiHandoveredPieces);
   const dhothiPercent =
     govtDhothiProvidedPieces > 0
       ? Math.min(100, Math.floor((dhothiHandoveredPieces / govtDhothiProvidedPieces) * 100))
       : 0;
 
-  // Saree Piece Tallies (Govt Quota vs Handovered)
-  const govtSareeProvidedPieces =
-    yarnSummary?.saree?.targetTotalPieces ||
-    yarnSummary?.saree?.piecesFromWarp ||
-    Math.floor(sareeTarget / 5.5) ||
-    0;
-  const sareeHandoveredPieces = sareeHandovers.reduce(
-    (acc, h) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / 5.5)),
-    0
-  );
   const sareeBalancePieces = Math.max(0, govtSareeProvidedPieces - sareeHandoveredPieces);
   const sareePercent =
     govtSareeProvidedPieces > 0
@@ -777,7 +780,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900">
                 {veattiProduced.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-emerald-600">Mtr</span>
+                <span className="text-sm font-bold text-emerald-600">Dhothis</span>
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-emerald-700">
@@ -796,7 +799,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black text-amber-600">
                 {veattiGodownStock.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-amber-600">Mtr</span>
+                <span className="text-sm font-bold text-amber-600">Dhothis</span>
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500">
@@ -819,7 +822,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {veattiHandovers.length} Challans • {veattiHandovered.toLocaleString("en-IN")} Mtr
+              {veattiHandovers.length} Challans • {veattiHandoveredMeters.toLocaleString("en-IN")} Mtr
             </p>
           </div>
 
@@ -834,11 +837,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black text-rose-600">
                 {veattiBalanceToHandover.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-rose-600">Mtr</span>
+                <span className="text-sm font-bold text-rose-600">Dhothis</span>
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-rose-600">
-              Remaining quota against target ({veattiTarget.toLocaleString("en-IN")}m)
+              Remaining quota against target ({veattiTarget.toLocaleString("en-IN")} pcs)
             </p>
           </div>
         </div>
@@ -858,7 +861,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-900">
                 {sareeProduced.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-purple-600">Mtr</span>
+                <span className="text-sm font-bold text-purple-600">Sarees</span>
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-purple-700">
@@ -877,7 +880,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black text-amber-600">
                 {sareeGodownStock.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-amber-600">Mtr</span>
+                <span className="text-sm font-bold text-amber-600">Sarees</span>
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500">
@@ -900,7 +903,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {sareeHandovers.length} Challans • {sareeHandovered.toLocaleString("en-IN")} Mtr
+              {sareeHandovers.length} Challans • {sareeHandoveredMeters.toLocaleString("en-IN")} Mtr
             </p>
           </div>
 
@@ -915,11 +918,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             <div className="mt-2.5">
               <span className="text-2xl sm:text-3xl font-black text-rose-600">
                 {sareeBalanceToHandover.toLocaleString("en-IN")}{" "}
-                <span className="text-sm font-bold text-rose-600">Mtr</span>
+                <span className="text-sm font-bold text-rose-600">Sarees</span>
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-rose-600">
-              Remaining quota against target ({sareeTarget.toLocaleString("en-IN")}m)
+              Remaining quota against target ({sareeTarget.toLocaleString("en-IN")} pcs)
             </p>
           </div>
         </div>

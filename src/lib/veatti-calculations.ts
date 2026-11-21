@@ -660,9 +660,17 @@ export function calculateUnitEffectiveTotals(unit: any) {
     ? registerProduction
     : (dailyProduction > 0 ? dailyProduction : (unit.totalProducedMeters || 0));
 
-  // 2. Total Handover
+  // 2. Total Handover (using pieces)
   const totalHandover = (unit.handovers || []).reduce(
-    (acc: number, h: any) => add(acc, h.meters || 0),
+    (acc: number, h: any) =>
+      add(
+        acc,
+        h.pieces && h.pieces > 0
+          ? h.pieces
+          : unit.clothType === "SAREE"
+          ? Math.floor((h.meters || 0) / 5.5)
+          : Math.floor((h.meters || 0) / 3.65)
+      ),
     0
   );
 
@@ -679,10 +687,6 @@ export function calculateUnitEffectiveTotals(unit: any) {
     0
   );
   const basePaavuMeters = unit.paavuMeters || 0;
-  // If opening paavu is already recorded in one of the register entries, do not double-count it
-  const hasInitialInRegister = (unit.registerEntries || []).some(
-    (r: any) => Math.abs((r.paavuGivenMeters || 0) - basePaavuMeters) < 0.01 && (r.paavuGivenMeters || 0) > 0
-  );
 
   const hasAnyActivity =
     (unit.registerEntries || []).length > 0 ||
@@ -695,13 +699,8 @@ export function calculateUnitEffectiveTotals(unit: any) {
 
   let effectivePaavuTotal = 0;
   if (registerPaavuGiven > 0) {
-    if (hasInitialInRegister) {
-      effectivePaavuTotal = registerPaavuGiven;
-    } else if (basePaavuMeters >= registerPaavuGiven) {
-      effectivePaavuTotal = basePaavuMeters;
-    } else {
-      effectivePaavuTotal = add(basePaavuMeters, registerPaavuGiven);
-    }
+    // Register entries are the single source of truth for paavu given
+    effectivePaavuTotal = registerPaavuGiven;
   } else if (!hasAnyActivity && (unit.paavuCount || 0) === 0) {
     // Fresh unit with zero activity & zero paavu count has NO dummy paavu
     effectivePaavuTotal = 0;

@@ -660,9 +660,18 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
             filteredUnits.map((u) => {
               const isSelected = u.id === selectedUnitId;
               const isVeatti = u.clothType === "VEATTI";
-              const netBal = u.currentBalance ?? 0;
+              const netBal = isSelected && summary?.netBalance !== undefined ? summary.netBalance : (u.currentBalance ?? 0);
               const isPayable = netBal > 0;
               const isExcess = netBal < 0;
+              const currentRemaining = isSelected && summary?.remainingPaavu !== undefined
+                ? summary.remainingPaavu
+                : (u.remainingPaavuMeters ?? (u.paavuMeters - (u.totalProducedMeters || 0)));
+              const currentWeft = isSelected && summary?.weftStock !== undefined
+                ? summary.weftStock
+                : (u.weftStockKg || 0);
+              const currentBabin = isSelected && (summary?.remainingBabin !== undefined || summary?.totalBabin !== undefined)
+                ? (summary.remainingBabin ?? summary.totalBabin)
+                : (u.babinCount || 0);
 
               return (
                 <button
@@ -697,7 +706,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     <span>•</span>
                     <span>{u.machineCount || 1} Looms</span>
                     <span>•</span>
-                    <span className="text-purple-700 font-semibold">{u.babinCount || 0} Babins</span>
+                    <span className="text-purple-700 font-semibold">{currentBabin} Babins</span>
                     <span>•</span>
                     <span className="text-sky-700 font-bold font-mono text-[11px] bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
                       {u.weftMultiplier || (isVeatti ? 0.119 : 0.182)} kg/pc
@@ -715,8 +724,8 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 space-y-0.5">
                       <div className="text-slate-500 font-semibold text-[10px] truncate">Remaining</div>
                       <div className="font-black font-mono tabular-nums text-slate-900 truncate">
-                        {(u.remainingPaavuMeters ?? (u.paavuMeters - (u.totalProducedMeters || 0))).toLocaleString()}{" "}
-                        <span className="text-[10px] font-normal text-slate-400">{isVeatti ? "pcs" : "pcs"}</span>
+                        {currentRemaining.toLocaleString()}{" "}
+                        <span className="text-[10px] font-normal text-slate-400">pcs</span>
                       </div>
                     </div>
 
@@ -724,7 +733,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 space-y-0.5">
                       <div className="text-slate-500 font-semibold text-[10px] truncate">Weft Stock</div>
                       <div className="font-black font-mono tabular-nums text-slate-900 truncate">
-                        {u.weftStockKg || 0} <span className="text-[10px] font-normal text-slate-400">kg</span>
+                        {currentWeft} <span className="text-[10px] font-normal text-slate-400">kg</span>
                       </div>
                     </div>
 
