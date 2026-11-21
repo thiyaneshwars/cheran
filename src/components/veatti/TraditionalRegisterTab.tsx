@@ -26,6 +26,9 @@ import {
   ArrowRight,
   Check,
   Download,
+  Warehouse,
+  AlertTriangle,
+  Send,
 } from "lucide-react";
 import {
   calculateWeftConsumed,
@@ -50,8 +53,19 @@ import {
   VEATTI_KG_PER_BAG,
   SAREE_KG_PER_BAG,
   getKgPerBag,
+  calculateDhothiPieces,
+  calculateSareePieces,
+  calculatePiecesFromMeters,
+  calculateWeftRequirementSuggestion,
+  GOVT_DHOTHI_LENGTH_METERS,
+  GOVT_DHOTHI_WEFT_KG_PER_PIECE,
+  GOVT_DHOTHI_KG_PER_BAG,
+  GOVT_SAREE_LENGTH_METERS,
+  GOVT_SAREE_WEFT_KG_PER_PIECE,
+  GOVT_SAREE_KG_PER_BAG,
 } from "@/lib/veatti-calculations";
 import { formatINR, round2 } from "@/lib/decimal";
+import { WeftSuggestionView } from "./WeftSuggestionView";
 
 interface TraditionalRegisterTabProps {
   units: any[];
@@ -62,7 +76,9 @@ interface TraditionalRegisterTabProps {
   onOpenDailyProdModal?: (unit?: any) => void;
   onOpenVaravuModal?: (unit?: any) => void;
   onOpenAdvanceModal?: (unit?: any) => void;
+  onOpenWeftModal?: (unit?: any, suggestedBags?: number, suggestedKg?: number) => void;
   clothType?: "VEATTI" | "SAREE";
+  weftInventory?: any;
 }
 
 export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
@@ -74,10 +90,14 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
   onOpenDailyProdModal,
   onOpenVaravuModal,
   onOpenAdvanceModal,
+  onOpenWeftModal,
   clothType = "VEATTI",
+  weftInventory,
 }) => {
   // Selected Powerloom in Scroll Selector
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
+  const [simulatedPieces, setSimulatedPieces] = useState<string>("");
+  const [showSocietyMatrix, setShowSocietyMatrix] = useState<boolean>(false);
   const [filterType, setFilterType] = useState<"ALL" | "VEATTI" | "SAREE">(clothType || "VEATTI");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -255,32 +275,41 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
   };
 
   // Open Add Modal
-  const handleOpenAddModal = (type: "PAAVU" | "PRODUCED" | "WEFT_BAG" | "CASH" | "BABIN" = "PRODUCED") => {
+  const handleOpenAddModal = (
+    type: "PAAVU" | "PRODUCED" | "WEFT_BAG" | "CASH" | "BABIN" = "PRODUCED",
+    presets?: {
+      weftBagsGiven?: number | string;
+      weftGivenKg?: number | string;
+      description?: string;
+      notes?: string;
+    }
+  ) => {
     setEditingEntry(null);
     setEntryForm({
       date: new Date().toISOString().split("T")[0],
       entryType: type,
       description:
-        type === "PAAVU"
+        presets?.description ||
+        (type === "PAAVU"
           ? "Warp Issued / Paavu Given"
           : type === "PRODUCED"
           ? (clothType === "SAREE" ? "Saree Production" : "Veatti Production")
           : type === "WEFT_BAG"
-          ? "Weft Yarn Issued"
+          ? "Weft Yarn Issued from Godown"
           : type === "CASH"
           ? "Wage Cash Paid"
-          : "Babin Issued",
+          : "Babin Issued"),
       paavuGivenMeters: "",
       paavuProducedMeters: "",
       sareeCount: "",
       veattiCount: "",
-      weftGivenKg: "",
-      weftBagsGiven: "",
+      weftGivenKg: presets?.weftGivenKg !== undefined ? presets.weftGivenKg : "",
+      weftBagsGiven: presets?.weftBagsGiven !== undefined ? presets.weftBagsGiven : "",
       babinCount: "",
       beamCount: "",
       wageRate: selectedUnit?.individualRate || (clothType === "SAREE" ? 45 : TRADITIONAL_DEFAULT_WAGE_RATE),
       cashPaid: "",
-      notes: "",
+      notes: presets?.notes || "",
     });
     setErrorMsg(null);
     setShowEntryModal(true);
@@ -973,6 +1002,284 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
           </div>
         </div>
       )}
+
+      {/* =========================================================================
+       * SECTION 2.5: SMART WEFT REQUIREMENT & GODOWN DISPATCH ADVISOR
+       * ========================================================================= */}
+      {selectedUnit && (() => {
+        const isSaree = clothType === "SAREE";
+        const itemLabel = isSaree ? "Saree" : "Dhothi";
+        const itemsLabel = isSaree ? "Sarees" : "Dhothis";
+        const pieceLength = isSaree ? GOVT_SAREE_LENGTH_METERS : GOVT_DHOTHI_LENGTH_METERS;
+        const kgPerPiece = isSaree ? GOVT_SAREE_WEFT_KG_PER_PIECE : GOVT_DHOTHI_WEFT_KG_PER_PIECE;
+        const kgPerBag = isSaree ? GOVT_SAREE_KG_PER_BAG : GOVT_DHOTHI_KG_PER_BAG;
+
+        const activePaavuRemaining = summary?.remainingPaavu ?? (selectedUnit?.remainingPaavuMeters || 0);
+        const defaultPendingPieces = isSaree
+          ? calculateSareePieces(activePaavuRemaining)
+          : calculateDhothiPieces(activePaavuRemaining);
+
+        const parsedCustomPieces = simulatedPieces !== "" ? parseInt(simulatedPieces, 10) : undefined;
+        const activePiecesToRun = parsedCustomPieces !== undefined && !isNaN(parsedCustomPieces)
+          ? parsedCustomPieces
+          : defaultPendingPieces;
+
+        const activeLoomStock = summary?.weftStock ?? (selectedUnit?.weftStockKg || 0);
+        const inv = isSaree ? weftInventory?.saree : weftInventory?.veatti;
+        const godownStockKg = inv?.godownStockKg ?? 0;
+        const godownStockBags = inv?.godownStockBags ?? (godownStockKg > 0 ? +(godownStockKg / kgPerBag).toFixed(1) : 0);
+
+        const suggestion = calculateWeftRequirementSuggestion({
+          clothType: clothType || "VEATTI",
+          remainingPaavuMeters: activePaavuRemaining,
+          customPiecesToRun: activePiecesToRun,
+          currentLoomStockKg: activeLoomStock,
+          godownStockKg,
+          customKgPerPiece: selectedUnit?.weftMultiplier ? round2(selectedUnit.weftMultiplier * pieceLength) : kgPerPiece,
+          customKgPerBag: kgPerBag,
+        });
+
+        const initialWeft = selectedUnit?.initialWeftKg || 0;
+        const regWeftGiven = (entries || []).reduce((s: number, r: any) => s + (r.weftGivenKg || 0), 0);
+        const totalGivenKg = round2(initialWeft + regWeftGiven);
+        const totalGivenBags = +(totalGivenKg / kgPerBag).toFixed(1);
+
+        return (
+          <div className="bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 rounded-3xl border-2 border-sky-300 shadow-sm p-5 sm:p-6 space-y-4 no-print">
+            {/* Header & Toggle */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sky-200/70 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-sky-600 text-white shadow-xs">
+                  <Scale className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
+                    <span>Weft Requirement & Godown Suggester</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 font-bold font-mono">
+                      {selectedUnit.weaverName}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Calculates exact weft KG needed for {activePiecesToRun} {itemsLabel} based on loom-side stock & godown inventory
+                  </p>
+                </div>
+              </div>
+
+              {/* Society Matrix Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowSocietyMatrix((prev) => !prev)}
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-300 shadow-2xs transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+              >
+                <Warehouse className="h-3.5 w-3.5 text-sky-600" />
+                <span>{showSocietyMatrix ? "Hide Society Matrix" : "View All Powerlooms Matrix"}</span>
+              </button>
+            </div>
+
+            {/* 3 Key Panels: Loom Stock | Interactive Simulator | Dispatch Recommendation */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Panel 1: Loom Stock Snapshot (4 cols) */}
+              <div className="lg:col-span-4 bg-white/90 p-4 rounded-2xl border border-sky-200/80 space-y-2.5">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                  <span>Loom Stock & Paavu Status</span>
+                  <Factory className="h-3.5 w-3.5 text-emerald-600" />
+                </div>
+
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Remaining Paavu:</span>
+                    <span className="font-mono font-bold text-slate-900">
+                      {activePaavuRemaining.toLocaleString()}m ({defaultPendingPieces} {itemsLabel})
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Total Weft Given:</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {totalGivenBags} Bags ({totalGivenKg} KG)
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Stored at Loom:</span>
+                    <span className="font-mono font-black text-sky-900">
+                      {activeLoomStock} KG ({(activeLoomStock / kgPerBag).toFixed(1)} Bags)
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-slate-500">Central Godown:</span>
+                    <span className="font-mono font-bold text-slate-700">
+                      {godownStockBags} Bags ({godownStockKg.toLocaleString()} KG)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel 2: Interactive Simulator (4 cols) */}
+              <div className="lg:col-span-4 bg-white/90 p-4 rounded-2xl border border-sky-200/80 space-y-2.5">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-sky-900 flex items-center justify-between">
+                  <span>Paavu {itemsLabel} To Run</span>
+                  <Sparkles className="h-3.5 w-3.5 text-sky-600" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={simulatedPieces !== "" ? simulatedPieces : defaultPendingPieces}
+                      onChange={(e) => setSimulatedPieces(e.target.value)}
+                      placeholder={`e.g. ${defaultPendingPieces}`}
+                      className="w-full px-3 py-1.5 rounded-xl border-2 border-sky-300 font-mono font-black text-lg text-slate-900 focus:outline-none focus:border-sky-600 bg-white shadow-2xs"
+                    />
+                    <span className="absolute right-3 top-2 text-[11px] font-bold text-sky-700 uppercase">
+                      {itemsLabel}
+                    </span>
+                  </div>
+
+                  {/* Preset chips */}
+                  <div className="flex flex-wrap gap-1 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setSimulatedPieces(defaultPendingPieces.toString())}
+                      className="px-2 py-0.5 rounded-md bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold transition"
+                    >
+                      Pending ({defaultPendingPieces})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSimulatedPieces("250")}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition"
+                    >
+                      250
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSimulatedPieces("500")}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition"
+                    >
+                      500
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSimulatedPieces("1000")}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition"
+                    >
+                      1,000
+                    </button>
+                  </div>
+
+                  {/* Formula */}
+                  <div className="text-[11px] font-mono text-slate-600 pt-1 space-y-0.5">
+                    <div className="flex justify-between">
+                      <span>Weft Needed ({activePiecesToRun} × {kgPerPiece}kg):</span>
+                      <span className="font-bold text-slate-900">{suggestion.weftRequiredKg} KG</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Minus Loom Stock:</span>
+                      <span className="font-bold text-emerald-700">- {activeLoomStock} KG</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-slate-900 pt-0.5 border-t border-slate-100">
+                      <span>Net Shortfall:</span>
+                      <span className={suggestion.shortfallKg > 0 ? "text-amber-700" : "text-emerald-700"}>
+                        {suggestion.shortfallKg} KG
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel 3: Suggested Godown Dispatch (4 cols) */}
+              <div className="lg:col-span-4 bg-emerald-50/70 p-4 rounded-2xl border-2 border-emerald-300 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-900 flex items-center justify-between">
+                    <span>Suggested Godown Dispatch</span>
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900">
+                      {kgPerBag} kg/bag
+                    </span>
+                  </div>
+
+                  {suggestion.shortfallKg === 0 ? (
+                    <div className="p-3 rounded-xl bg-emerald-100/70 text-emerald-950 text-xs space-y-0.5">
+                      <div className="font-bold flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+                        <span>Sufficient at Loom</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-800">
+                        Loom has {activeLoomStock} KG, sufficient for {activePiecesToRun} {itemsLabel}.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-white border border-emerald-300 space-y-1 shadow-2xs">
+                      <div className="text-2xl font-black font-mono text-emerald-950 tabular-nums">
+                        {suggestion.suggestedBags}{" "}
+                        <span className="text-sm font-bold text-emerald-700 font-sans">Bags</span>
+                        <span className="text-xs font-semibold text-slate-500 font-mono ml-1.5">
+                          ({suggestion.suggestedKg} KG)
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono">
+                        ⌈{suggestion.shortfallKg}kg ÷ {kgPerBag}kg⌉ = {suggestion.suggestedBags} bags
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Godown status */}
+                  <div className="text-[11px] flex items-center justify-between text-slate-700">
+                    <span>Godown Availability:</span>
+                    {suggestion.isGodownSufficient ? (
+                      <span className="text-emerald-700 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Available ({godownStockBags} bags)
+                      </span>
+                    ) : (
+                      <span className="text-rose-700 font-bold flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" /> Low ({godownStockBags} bags)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 1-Click Dispatch Action */}
+                {suggestion.suggestedBags > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleOpenAddModal("WEFT_BAG", {
+                        weftBagsGiven: suggestion.suggestedBags,
+                        weftGivenKg: suggestion.suggestedKg,
+                        notes: `Suggested dispatch based on ${activePiecesToRun} ${itemsLabel} to run.`,
+                      })
+                    }
+                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    <span>⚡ Issue Suggested {suggestion.suggestedBags} Bags ({suggestion.suggestedKg} KG)</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Embedded Society Matrix Accordion */}
+            {showSocietyMatrix && (
+              <div className="pt-3 border-t border-sky-200/80">
+                <WeftSuggestionView
+                  clothType={clothType}
+                  units={units}
+                  weftInventory={weftInventory}
+                  onRefresh={onRefresh}
+                  onOpenWeftModal={(u, bags, kg) => {
+                    setSelectedUnitId(u.id);
+                    handleOpenAddModal("WEFT_BAG", {
+                      weftBagsGiven: bags,
+                      weftGivenKg: kg,
+                      notes: `Suggested dispatch from society matrix.`,
+                    });
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* =========================================================================
        * SECTION 3: FAST INLINE ENTRY STRIP (OPERATE ERGONOMICS)

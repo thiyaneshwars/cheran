@@ -33,6 +33,7 @@ import { VeattiLedgerTab } from "./veatti/VeattiLedgerTab";
 import { VeattiUnitDetailModal } from "./veatti/VeattiUnitDetailModal";
 import { TraditionalRegisterTab } from "./veatti/TraditionalRegisterTab";
 import { RegisterPowerloomModal } from "./veatti/RegisterPowerloomModal";
+import { WeftSuggestionView } from "./veatti/WeftSuggestionView";
 import {
   DirectEntryModal,
   DailyProductionModal,
@@ -50,12 +51,13 @@ export const SareeProductionView: React.FC = () => {
   const [varavuEntries, setVaravuEntries] = useState<any[]>([]);
   const [advanceEntries, setAdvanceEntries] = useState<any[]>([]);
   const [overview, setOverview] = useState<any>(null);
+  const [weftInventory, setWeftInventory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   // Tabs - Traditional Register is default
   const [activeTab, setActiveTab] = useState<
-    "register" | "units" | "unloaded" | "machines" | "handovers" | "varavu" | "advance" | "ledger"
+    "register" | "units" | "weft" | "unloaded" | "machines" | "handovers" | "varavu" | "advance" | "ledger"
   >("register");
 
   // Selected entities for modals
@@ -144,6 +146,7 @@ export const SareeProductionView: React.FC = () => {
       if (overviewRes.ok) {
         const ovData = await overviewRes.json();
         setOverview(ovData.overview?.saree || null);
+        setWeftInventory(ovData.overview?.weftInventory || null);
       }
     } catch (err) {
       console.error("Failed to load Saree production data:", err);
@@ -520,6 +523,20 @@ export const SareeProductionView: React.FC = () => {
           <span>Powerloom Units ({units.length})</span>
         </button>
 
+        {/* Tab: Weft & Godown Allocation */}
+        <button
+          type="button"
+          onClick={() => setActiveTab("weft")}
+          className={`px-4 py-2.5 rounded-xl transition flex items-center gap-2.5 text-xs font-bold whitespace-nowrap cursor-pointer border ${
+            activeTab === "weft"
+              ? "bg-white text-sky-950 border-slate-200/90 shadow-xs"
+              : "text-slate-600 hover:text-slate-950 hover:bg-white/60 border-transparent"
+          }`}
+        >
+          <Scale className="h-4 w-4 text-sky-600" />
+          <span>Weft &amp; Godown Suggester</span>
+        </button>
+
         {/* Tab: Unloaded Paavu */}
         <button
           type="button"
@@ -582,6 +599,7 @@ export const SareeProductionView: React.FC = () => {
         <TraditionalRegisterTab
           clothType="SAREE"
           units={units}
+          weftInventory={weftInventory}
           onRefresh={fetchData}
           onOpenRegisterModal={() => setShowRegisterPowerloomModal(true)}
           onOpenDirectEntryModal={(u) => {
@@ -612,6 +630,19 @@ export const SareeProductionView: React.FC = () => {
             if (u) setSelectedUnitForAction(u);
             setEditingAdvance(null);
             setShowAdvanceModal(true);
+          }}
+        />
+      )}
+
+      {/* 4.5 TAB: WEFT & GODOWN ALLOCATION */}
+      {activeTab === "weft" && (
+        <WeftSuggestionView
+          clothType="SAREE"
+          units={units}
+          weftInventory={weftInventory}
+          onRefresh={fetchData}
+          onOpenWeftModal={(u, bags, kg) => {
+            setActiveTab("register");
           }}
         />
       )}

@@ -151,6 +151,29 @@ export async function GET(request: Request) {
     );
     const sareeNetBalance = sareeTotalVaravu - sareeTotalAdvance;
 
+    // Calculate Central Godown Weft Stock vs Issued Weft Bags to Powerlooms
+    const allotments = await prisma.govtYarnAllotment.findMany();
+    let totalDhothiGovtWeftKg = 0;
+    let totalSareeGovtWeftKg = 0;
+    for (const a of allotments) {
+      totalDhothiGovtWeftKg += a.dhothiWeftKg || 0;
+      totalSareeGovtWeftKg += a.sareeWeftKg || 0;
+    }
+
+    const veattiWeftIssued = veattiUnits.reduce((acc, u) => {
+      const regWeft = (u.registerEntries || []).reduce((s: number, r: any) => s + (r.weftGivenKg || 0), 0);
+      return acc + (u.initialWeftKg || 0) + regWeft;
+    }, 0);
+    const veattiWeftAtLooms = veattiUnits.reduce((acc, u) => acc + (u.weftStockKg || 0), 0);
+    const veattiGodownWeftKg = Math.max(0, totalDhothiGovtWeftKg - veattiWeftIssued);
+
+    const sareeWeftIssued = sareeUnits.reduce((acc, u) => {
+      const regWeft = (u.registerEntries || []).reduce((s: number, r: any) => s + (r.weftGivenKg || 0), 0);
+      return acc + (u.initialWeftKg || 0) + regWeft;
+    }, 0);
+    const sareeWeftAtLooms = sareeUnits.reduce((acc, u) => acc + (u.weftStockKg || 0), 0);
+    const sareeGodownWeftKg = Math.max(0, totalSareeGovtWeftKg - sareeWeftIssued);
+
     return NextResponse.json({
       overview: {
         veatti: {
@@ -186,6 +209,32 @@ export async function GET(request: Request) {
           unloadedPaavuCount: sareePaavus.filter((p) => p.status === "UNLOADED").length,
           runningPaavuCount: sareePaavus.filter((p) => p.status === "RUNNING").length,
           completedPaavuCount: sareePaavus.filter((p) => p.status === "COMPLETED").length,
+        },
+        weftInventory: {
+          veatti: {
+            govtTotalWeftKg: round2(totalDhothiGovtWeftKg),
+            govtTotalWeftBags: +(totalDhothiGovtWeftKg / 60).toFixed(1),
+            totalIssuedKg: round2(veattiWeftIssued),
+            totalIssuedBags: +(veattiWeftIssued / 60).toFixed(1),
+            godownStockKg: round2(veattiGodownWeftKg),
+            godownStockBags: +(veattiGodownWeftKg / 60).toFixed(1),
+            totalLoomStockKg: round2(veattiWeftAtLooms),
+            totalLoomStockBags: +(veattiWeftAtLooms / 60).toFixed(1),
+            weftRatePerPiece: 0.119,
+            kgPerBag: 60,
+          },
+          saree: {
+            govtTotalWeftKg: round2(totalSareeGovtWeftKg),
+            govtTotalWeftBags: +(totalSareeGovtWeftKg / 50).toFixed(1),
+            totalIssuedKg: round2(sareeWeftIssued),
+            totalIssuedBags: +(sareeWeftIssued / 50).toFixed(1),
+            godownStockKg: round2(sareeGodownWeftKg),
+            godownStockBags: +(sareeGodownWeftKg / 50).toFixed(1),
+            totalLoomStockKg: round2(sareeWeftAtLooms),
+            totalLoomStockBags: +(sareeWeftAtLooms / 50).toFixed(1),
+            weftRatePerPiece: 0.182,
+            kgPerBag: 50,
+          },
         },
         totalConsolidated: {
           totalProducedMeters: round2(veattiTotalProduced + sareeTotalProduced),

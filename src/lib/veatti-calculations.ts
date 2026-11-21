@@ -231,6 +231,126 @@ export function getKgPerBag(clothType?: string): number {
 }
 
 /**
+ * Government Free Dhothi & Saree Scheme Standards (Co-optex / TN Dept of Handlooms)
+ * - Dhothi: 1 piece = 3.65m, Weft = 0.119 kg / piece, 60 kg / bag
+ * - Saree: 1 piece = 5.50m, Weft = 0.182 kg / piece, 50 kg / bag
+ */
+export const GOVT_DHOTHI_LENGTH_METERS = 3.65;
+export const GOVT_DHOTHI_WEFT_KG_PER_PIECE = 0.119;
+export const GOVT_DHOTHI_KG_PER_BAG = 60.0;
+
+export const GOVT_SAREE_LENGTH_METERS = 5.50;
+export const GOVT_SAREE_WEFT_KG_PER_PIECE = 0.182;
+export const GOVT_SAREE_KG_PER_BAG = 50.0;
+
+/**
+ * Calculate Dhothi Pieces from Meters (Integer / Floor - ignores decimals as per scheme standard)
+ */
+export function calculateDhothiPieces(meters: number | string): number {
+  const m = Number(meters) || 0;
+  if (m <= 0) return 0;
+  return Math.floor(m / GOVT_DHOTHI_LENGTH_METERS);
+}
+
+/**
+ * Calculate Saree Pieces from Meters (Integer / Floor - ignores decimals as per scheme standard)
+ */
+export function calculateSareePieces(meters: number | string): number {
+  const m = Number(meters) || 0;
+  if (m <= 0) return 0;
+  return Math.floor(m / GOVT_SAREE_LENGTH_METERS);
+}
+
+/**
+ * Calculate Pieces from Meters based on cloth type (Integer / Floor)
+ */
+export function calculatePiecesFromMeters(meters: number | string, clothType: string = "VEATTI"): number {
+  return clothType === "SAREE" ? calculateSareePieces(meters) : calculateDhothiPieces(meters);
+}
+
+export interface WeftSuggestionResult {
+  clothType: "VEATTI" | "SAREE";
+  lengthPerPiece: number;
+  kgPerPiece: number;
+  kgPerBag: number;
+  paavuMetersAvailable: number;
+  piecesToRun: number;
+  weftRequiredKg: number;
+  currentLoomStockKg: number;
+  currentLoomStockBags: number;
+  shortfallKg: number;
+  suggestedBags: number;
+  suggestedKg: number;
+  godownStockKg?: number;
+  godownStockBags?: number;
+  isGodownSufficient: boolean;
+  status: "ENOUGH_AT_LOOM" | "DISPATCH_NEEDED" | "GODOWN_LOW_STOCK";
+}
+
+/**
+ * Suggest Weft Dispatch based on Paavu pieces to run, loom stock, and godown availability
+ */
+export function calculateWeftRequirementSuggestion(params: {
+  clothType: "VEATTI" | "SAREE";
+  remainingPaavuMeters: number;
+  customPiecesToRun?: number;
+  currentLoomStockKg: number;
+  godownStockKg?: number;
+  customKgPerPiece?: number;
+  customKgPerBag?: number;
+}): WeftSuggestionResult {
+  const isSaree = params.clothType === "SAREE";
+  const lengthPerPiece = isSaree ? GOVT_SAREE_LENGTH_METERS : GOVT_DHOTHI_LENGTH_METERS;
+  const kgPerPiece = params.customKgPerPiece ?? (isSaree ? GOVT_SAREE_WEFT_KG_PER_PIECE : GOVT_DHOTHI_WEFT_KG_PER_PIECE);
+  const kgPerBag = params.customKgPerBag ?? (isSaree ? GOVT_SAREE_KG_PER_BAG : GOVT_DHOTHI_KG_PER_BAG);
+
+  const paavuMetersAvailable = Math.max(0, Number(params.remainingPaavuMeters) || 0);
+  const defaultPieces = Math.floor(paavuMetersAvailable / lengthPerPiece);
+  const piecesToRun =
+    params.customPiecesToRun !== undefined
+      ? Math.max(0, Math.floor(params.customPiecesToRun))
+      : defaultPieces;
+
+  const weftRequiredKg = round2(piecesToRun * kgPerPiece);
+  const currentLoomStockKg = Math.max(0, round2(params.currentLoomStockKg || 0));
+  const currentLoomStockBags = +(currentLoomStockKg / kgPerBag).toFixed(1);
+  const shortfallKg = Math.max(0, round2(weftRequiredKg - currentLoomStockKg));
+
+  const suggestedBags = shortfallKg > 0 ? Math.ceil(shortfallKg / kgPerBag) : 0;
+  const suggestedKg = round2(suggestedBags * kgPerBag);
+
+  const godownStockKg =
+    params.godownStockKg !== undefined ? Math.max(0, round2(params.godownStockKg)) : undefined;
+  const godownStockBags = godownStockKg !== undefined ? +(godownStockKg / kgPerBag).toFixed(1) : undefined;
+  const isGodownSufficient =
+    godownStockKg !== undefined ? godownStockKg >= suggestedKg : true;
+
+  let status: "ENOUGH_AT_LOOM" | "DISPATCH_NEEDED" | "GODOWN_LOW_STOCK" = "ENOUGH_AT_LOOM";
+  if (shortfallKg > 0) {
+    status = isGodownSufficient ? "DISPATCH_NEEDED" : "GODOWN_LOW_STOCK";
+  }
+
+  return {
+    clothType: params.clothType,
+    lengthPerPiece,
+    kgPerPiece,
+    kgPerBag,
+    paavuMetersAvailable,
+    piecesToRun,
+    weftRequiredKg,
+    currentLoomStockKg,
+    currentLoomStockBags,
+    shortfallKg,
+    suggestedBags,
+    suggestedKg,
+    godownStockKg,
+    godownStockBags,
+    isGodownSufficient,
+    status,
+  };
+}
+
+/**
  * Traditional Veatti & Babin Constants & Helpers (Co-optex Tamil Nadu Standard)
  * - Standard Single Dhoti Length: 2.00 Meters (4-Muzham)
  * - 1 Babin Set = 500 Veattis = 1,000 Meters
