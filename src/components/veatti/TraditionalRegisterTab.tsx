@@ -36,31 +36,18 @@ import {
   calculateBagsToKg,
   computeTraditionalRegisterLedger,
   calculateSareeBabinConsumed,
-  calculateMetersFromSarees,
-  calculateSareesFromMeters,
-  SAREE_DEFAULT_LENGTH_METERS,
   SAREE_SAREES_PER_BABIN_SET,
-  SAREE_METERS_PER_BABIN_SET,
   calculateVeattiBabinConsumed,
-  calculateMetersFromVeattis,
-  calculateVeattisFromMeters,
-  VEATTI_DEFAULT_LENGTH_METERS,
   VEATTI_VEATTIS_PER_BABIN_SET,
-  VEATTI_METERS_PER_BABIN_SET,
   TRADITIONAL_WEFT_FACTOR,
   TRADITIONAL_DEFAULT_WAGE_RATE,
   TRADITIONAL_KG_PER_BAG,
   VEATTI_KG_PER_BAG,
   SAREE_KG_PER_BAG,
   getKgPerBag,
-  calculateDhothiPieces,
-  calculateSareePieces,
-  calculatePiecesFromMeters,
   calculateWeftRequirementSuggestion,
-  GOVT_DHOTHI_LENGTH_METERS,
   GOVT_DHOTHI_WEFT_KG_PER_PIECE,
   GOVT_DHOTHI_KG_PER_BAG,
-  GOVT_SAREE_LENGTH_METERS,
   GOVT_SAREE_WEFT_KG_PER_PIECE,
   GOVT_SAREE_KG_PER_BAG,
 } from "@/lib/veatti-calculations";
@@ -324,8 +311,8 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
       description: entry.description || "",
       paavuGivenMeters: entry.paavuGivenMeters || "",
       paavuProducedMeters: entry.paavuProducedMeters || "",
-      sareeCount: entry.paavuProducedMeters && clothType === "SAREE" ? calculateSareesFromMeters(entry.paavuProducedMeters) : "",
-      veattiCount: entry.paavuProducedMeters && clothType === "VEATTI" ? calculateVeattisFromMeters(entry.paavuProducedMeters) : "",
+      sareeCount: entry.paavuProducedMeters || "",
+      veattiCount: entry.paavuProducedMeters || "",
       weftGivenKg: entry.weftGivenKg || "",
       weftBagsGiven: entry.weftBagsGiven || "",
       babinCount: entry.babinCount || "",
@@ -340,8 +327,8 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
 
   // Auto-calculated previews for entry form
   const previewProduced = Number(entryForm.paavuProducedMeters) || 0;
-  const previewSarees = Number(entryForm.sareeCount) || (previewProduced > 0 && clothType === "SAREE" ? calculateSareesFromMeters(previewProduced) : 0);
-  const previewVeattis = Number(entryForm.veattiCount) || (previewProduced > 0 && clothType === "VEATTI" ? calculateVeattisFromMeters(previewProduced) : 0);
+  const previewSarees = previewProduced;
+  const previewVeattis = previewProduced;
   const previewGivenPaavu = Number(entryForm.paavuGivenMeters) || 0;
   const previewRate = Number(entryForm.wageRate) || (clothType === "SAREE" ? 45 : TRADITIONAL_DEFAULT_WAGE_RATE);
   const previewWeftConsumed = calculateWeftConsumed(previewProduced, activeWeftMultiplier);
@@ -467,15 +454,15 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
       "Date",
       "Description",
       "Entry Type",
-      "Paavu Given (m)",
-      "Paavu Produced (m)",
-      "Remaining Paavu (m)",
+      "Paavu Given (Pcs)",
+      "Paavu Produced (Pcs)",
+      "Remaining Paavu (Pcs)",
       "Weft Given (kg)",
       "Weft Bags",
       "Weft Consumed (kg)",
       "Weft Balance (kg)",
       "Babin Count",
-      "Wage Rate (Rs/m)",
+      "Wage Rate (Rs/pc)",
       "Wage Earned (Rs)",
       "Cash Paid (Rs)",
       "Net Balance (Rs)",
@@ -713,7 +700,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     <span className="text-purple-700 font-semibold">{u.babinCount || 0} Babins</span>
                     <span>•</span>
                     <span className="text-sky-700 font-bold font-mono text-[11px] bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
-                      {u.weftMultiplier || (isVeatti ? 0.119 : 0.182)} kg/m
+                      {u.weftMultiplier || (isVeatti ? 0.119 : 0.182)} kg/pc
                     </span>
                     {Number(u.initialWeftKg) > 0 && (
                       <span className="text-sky-800 font-bold font-mono text-[11px] bg-sky-100/60 px-2 py-0.5 rounded-md border border-sky-300">
@@ -729,7 +716,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                       <div className="text-slate-500 font-semibold text-[10px] truncate">Remaining</div>
                       <div className="font-black font-mono tabular-nums text-slate-900 truncate">
                         {(u.remainingPaavuMeters ?? (u.paavuMeters - (u.totalProducedMeters || 0))).toLocaleString()}{" "}
-                        <span className="text-[10px] font-normal text-slate-400">m</span>
+                        <span className="text-[10px] font-normal text-slate-400">{isVeatti ? "pcs" : "pcs"}</span>
                       </div>
                     </div>
 
@@ -787,10 +774,10 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2 flex-wrap">
                 <span>{selectedUnit.weaverName}</span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono">
-                  Wage Rate: ₹{selectedUnit.individualRate || TRADITIONAL_DEFAULT_WAGE_RATE}/m
+                  Wage Rate: ₹{selectedUnit.individualRate || TRADITIONAL_DEFAULT_WAGE_RATE}/pc
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 font-mono">
-                  Weft Factor: {activeWeftMultiplier} kg/m
+                  Weft Factor: {activeWeftMultiplier} kg/pc
                 </span>
                 {Number(selectedUnit.initialWeftKg) > 0 && (
                   <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-sky-100/70 border border-sky-300 text-sky-900 font-mono">
@@ -800,7 +787,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
               </h1>
               <p className="text-xs text-slate-500 font-medium">
                 Traditional Powerloom Accounting Register • Weft Multiplier:{" "}
-                <span className="text-sky-700 font-bold font-mono">{activeWeftMultiplier} kg/m</span>
+                <span className="text-sky-700 font-bold font-mono">{activeWeftMultiplier} kg/pc</span>
                 {Number(selectedUnit.initialWeftKg) > 0 && (
                   <>
                     {" "}• Opening Weft:{" "}
@@ -809,7 +796,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 )}
                 {" "}• Wage Rate:{" "}
                 <span className="text-emerald-700 font-bold font-mono">
-                  ₹{selectedUnit.individualRate || TRADITIONAL_DEFAULT_WAGE_RATE}/m
+                  ₹{selectedUnit.individualRate || TRADITIONAL_DEFAULT_WAGE_RATE}/pc
                 </span>
               </p>
             </div>
@@ -898,11 +885,11 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
               </div>
               <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
                 {(summary?.remainingPaavu ?? 0).toLocaleString()}{" "}
-                <span className="text-xs font-semibold text-slate-500 font-sans">Meters</span>
+                <span className="text-xs font-semibold text-slate-500 font-sans">{clothType === "SAREE" ? "Sarees" : "Dhothis"}</span>
               </div>
               <div className="text-xs text-slate-500 font-mono leading-normal">
-                Given: {summary?.totalPaavuGiven ?? 0}m • Produced:{" "}
-                {summary?.totalProduced ?? 0}m
+                Given: {summary?.totalPaavuGiven ?? 0} pcs • Produced:{" "}
+                {summary?.totalProduced ?? 0} pcs
               </div>
             </div>
 
@@ -1010,14 +997,11 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
         const isSaree = clothType === "SAREE";
         const itemLabel = isSaree ? "Saree" : "Dhothi";
         const itemsLabel = isSaree ? "Sarees" : "Dhothis";
-        const pieceLength = isSaree ? GOVT_SAREE_LENGTH_METERS : GOVT_DHOTHI_LENGTH_METERS;
         const kgPerPiece = isSaree ? GOVT_SAREE_WEFT_KG_PER_PIECE : GOVT_DHOTHI_WEFT_KG_PER_PIECE;
         const kgPerBag = isSaree ? GOVT_SAREE_KG_PER_BAG : GOVT_DHOTHI_KG_PER_BAG;
 
         const activePaavuRemaining = summary?.remainingPaavu ?? (selectedUnit?.remainingPaavuMeters || 0);
-        const defaultPendingPieces = isSaree
-          ? calculateSareePieces(activePaavuRemaining)
-          : calculateDhothiPieces(activePaavuRemaining);
+        const defaultPendingPieces = Math.floor(activePaavuRemaining);
 
         const parsedCustomPieces = simulatedPieces !== "" ? parseInt(simulatedPieces, 10) : undefined;
         const activePiecesToRun = parsedCustomPieces !== undefined && !isNaN(parsedCustomPieces)
@@ -1031,11 +1015,11 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
 
         const suggestion = calculateWeftRequirementSuggestion({
           clothType: clothType || "VEATTI",
-          remainingPaavuMeters: activePaavuRemaining,
+          remainingPaavuPieces: defaultPendingPieces,
           customPiecesToRun: activePiecesToRun,
           currentLoomStockKg: activeLoomStock,
           godownStockKg,
-          customKgPerPiece: selectedUnit?.weftMultiplier ? round2(selectedUnit.weftMultiplier * pieceLength) : kgPerPiece,
+          customKgPerPiece: kgPerPiece,
           customKgPerBag: kgPerBag,
         });
 
@@ -1089,7 +1073,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   <div className="flex justify-between items-center py-1 border-b border-slate-100">
                     <span className="text-slate-500">Remaining Paavu:</span>
                     <span className="font-mono font-bold text-slate-900">
-                      {activePaavuRemaining.toLocaleString()}m ({defaultPendingPieces} {itemsLabel})
+                      {defaultPendingPieces.toLocaleString()} {itemsLabel}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-slate-100">
@@ -1315,7 +1299,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                + Produced Mtrs
+                + Produced (Pcs)
               </button>
               <button
                 type="button"
@@ -1402,119 +1386,33 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 value={inlineDesc}
                 onChange={(e) => setInlineDesc(e.target.value)}
                 placeholder={
-                  clothType === "SAREE" ? "e.g. 2556m Saree, 240 bags..." : "e.g. 2556m Veatti, 240 bags..."
+                  clothType === "SAREE" ? "e.g. 200 Sarees, 240 bags..." : "e.g. 500 Dhothis, 240 bags..."
                 }
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-emerald-600 bg-white"
               />
             </div>
 
             {/* Dynamic Value Input */}
-            {inlineType === "PRODUCED" && clothType === "SAREE" ? (
-              <>
-                <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-purple-700 mb-1">
-                    Sarees (Count)
-                  </label>
-                  <input
-                    type="number"
-                    step="1"
-                    placeholder="e.g. 200"
-                    value={inlineSarees}
-                    onChange={(e) => {
-                      const count = e.target.value;
-                      setInlineSarees(count);
-                      const num = parseFloat(count) || 0;
-                      if (num > 0) {
-                        setInlineValue(String(calculateMetersFromSarees(num)));
-                      } else if (!count) {
-                        setInlineValue("");
-                      }
-                    }}
-                    className="w-full px-3 py-2 rounded-xl border border-purple-300 text-xs font-black font-mono text-purple-900 focus:outline-none focus:border-purple-600 bg-purple-50/30"
-                  />
-                </div>
-                <div className="sm:col-span-3">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
-                    <span>Produced (Meters) *</span>
-                    {parseFloat(inlineValue) > 0 && (
-                      <span className="text-[10px] font-mono text-purple-700 font-bold">
-                        Babin: -{calculateSareeBabinConsumed(inlineValue)} Sets
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    placeholder="e.g. 1100"
-                    value={inlineValue}
-                    onChange={(e) => {
-                      const m = e.target.value;
-                      setInlineValue(m);
-                      const num = parseFloat(m) || 0;
-                      if (num > 0) {
-                        setInlineSarees(String(calculateSareesFromMeters(num)));
-                      } else if (!m) {
-                        setInlineSarees("");
-                      }
-                    }}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-black font-mono text-emerald-700 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </>
-            ) : inlineType === "PRODUCED" ? (
-              <>
-                <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-emerald-800 mb-1">
-                    Veattis (Pieces)
-                  </label>
-                  <input
-                    type="number"
-                    step="1"
-                    placeholder="e.g. 500"
-                    value={inlineVeattis}
-                    onChange={(e) => {
-                      const count = e.target.value;
-                      setInlineVeattis(count);
-                      const num = parseFloat(count) || 0;
-                      if (num > 0) {
-                        setInlineValue(String(calculateMetersFromVeattis(num)));
-                      } else if (!count) {
-                        setInlineValue("");
-                      }
-                    }}
-                    className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs font-black font-mono text-emerald-900 focus:outline-none focus:border-emerald-600 bg-emerald-50/30"
-                  />
-                </div>
-                <div className="sm:col-span-3">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
-                    <span>Produced (Meters) *</span>
-                    {parseFloat(inlineValue) > 0 && (
-                      <span className="text-[10px] font-mono text-purple-700 font-bold">
-                        Babin: -{calculateVeattiBabinConsumed(inlineValue)} Sets
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    placeholder="e.g. 1000"
-                    value={inlineValue}
-                    onChange={(e) => {
-                      const m = e.target.value;
-                      setInlineValue(m);
-                      const num = parseFloat(m) || 0;
-                      if (num > 0) {
-                        setInlineVeattis(String(calculateVeattisFromMeters(num)));
-                      } else if (!m) {
-                        setInlineVeattis("");
-                      }
-                    }}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-black font-mono text-emerald-700 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-              </>
+            {inlineType === "PRODUCED" ? (
+              <div className="sm:col-span-5">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                  <span>Produced {clothType === "SAREE" ? "Sarees" : "Dhothis"} (Pieces) *</span>
+                  {parseFloat(inlineValue) > 0 && (
+                    <span className="text-[10px] font-mono text-purple-700 font-bold">
+                      Babin: -{clothType === "SAREE" ? calculateSareeBabinConsumed(inlineValue) : calculateVeattiBabinConsumed(inlineValue)} Sets
+                    </span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  required
+                  placeholder={clothType === "SAREE" ? "e.g. 200" : "e.g. 500"}
+                  value={inlineValue}
+                  onChange={(e) => setInlineValue(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-black font-mono text-emerald-700 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
             ) : inlineType === "WEFT_BAG" ? (
               <>
                 <div className="sm:col-span-2">
@@ -1568,17 +1466,17 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                   <span>
                     {inlineType === "PAAVU"
-                      ? "Paavu Meters Given *"
+                      ? "Paavu Given (Pieces) *"
                       : "Cash Paid Amount (₹) *"}
                   </span>
                 </label>
                 <input
                   type="number"
-                  step="0.1"
+                  step="1"
                   required
                   placeholder={
                     inlineType === "PAAVU"
-                      ? "e.g. 3170"
+                      ? "e.g. 1000"
                       : "e.g. 100000"
                   }
                   value={inlineValue}
@@ -1786,7 +1684,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   Warp &amp; Production Progress
                 </th>
                 <th colSpan={3} className="py-3 px-4 border-r border-slate-300 bg-sky-50 text-sky-900">
-                  Weft Inventory &amp; Stock Balance ({activeWeftMultiplier} kg/m)
+                  Weft Inventory &amp; Stock Balance ({activeWeftMultiplier} kg/pc)
                 </th>
                 <th colSpan={1} className="py-3 px-4 border-r border-slate-300 bg-slate-100">
                   Loom Equipment
@@ -1809,14 +1707,14 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 <th className="py-3.5 px-4.5 min-w-[280px] border-r border-slate-200 whitespace-nowrap">Description</th>
 
                 {/* Warp & Production */}
-                <th className="py-3.5 px-4.5 min-w-[155px] text-right border-r border-slate-200 whitespace-nowrap">Paavu Given (m)</th>
-                <th className="py-3.5 px-4.5 min-w-[150px] text-right bg-emerald-50/60 text-emerald-800 border-r border-slate-200 whitespace-nowrap">Produced (m)</th>
-                <th className="py-3.5 px-4.5 min-w-[180px] text-right bg-amber-50/70 text-amber-900 border-r border-slate-300 whitespace-nowrap">Remaining Paavu (m)</th>
+                <th className="py-3.5 px-4.5 min-w-[155px] text-right border-r border-slate-200 whitespace-nowrap">Paavu Given (Pcs)</th>
+                <th className="py-3.5 px-4.5 min-w-[150px] text-right bg-emerald-50/60 text-emerald-800 border-r border-slate-200 whitespace-nowrap">Produced (Pcs)</th>
+                <th className="py-3.5 px-4.5 min-w-[180px] text-right bg-amber-50/70 text-amber-900 border-r border-slate-300 whitespace-nowrap">Remaining Paavu (Pcs)</th>
 
                 {/* Weft Inventory */}
                 <th className="py-3.5 px-4.5 min-w-[155px] text-right border-r border-slate-200 whitespace-nowrap">Weft Given (kg)</th>
                 <th className="py-3.5 px-4.5 min-w-[185px] text-right bg-sky-50/60 text-sky-800 border-r border-slate-200 whitespace-nowrap">
-                  Weft Consumed ({activeWeftMultiplier} kg/m)
+                  Weft Consumed ({activeWeftMultiplier} kg/pc)
                 </th>
                 <th className="py-3.5 px-4.5 min-w-[170px] text-right bg-sky-100/70 text-sky-900 border-r border-slate-300 whitespace-nowrap">Weft Balance (kg)</th>
 
@@ -1826,7 +1724,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 </th>
 
                 {/* Wages & Cash */}
-                <th className="py-3.5 px-4.5 min-w-[140px] text-right border-r border-slate-200 whitespace-nowrap">Wage Rate (₹/m)</th>
+                <th className="py-3.5 px-4.5 min-w-[140px] text-right border-r border-slate-200 whitespace-nowrap">Wage Rate (₹/pc)</th>
                 <th className="py-3.5 px-4.5 min-w-[170px] text-right bg-emerald-50/70 text-emerald-800 border-r border-slate-200 whitespace-nowrap">Wage Earned (₹)</th>
                 <th className="py-3.5 px-4.5 min-w-[160px] text-right bg-rose-50/60 text-rose-800 border-r border-slate-200 whitespace-nowrap">Cash Paid (₹)</th>
                 <th className="py-3.5 px-4.5 min-w-[185px] text-right bg-slate-200/80 font-black border-r border-slate-300 whitespace-nowrap">Net Balance (+/-)</th>
@@ -2094,15 +1992,15 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   </td>
                   {/* Total Paavu Given */}
                   <td className="py-4 px-4.5 text-right text-slate-900 font-mono tabular-nums font-bold whitespace-nowrap">
-                    {summary.totalPaavuGiven.toLocaleString()}m
+                    {summary.totalPaavuGiven.toLocaleString()} pcs
                   </td>
                   {/* Total Produced */}
                   <td className="py-4 px-4.5 text-right text-emerald-800 font-mono tabular-nums font-bold whitespace-nowrap">
-                    {summary.totalProduced.toLocaleString()}m
+                    {summary.totalProduced.toLocaleString()} pcs
                   </td>
                   {/* Final Remaining Paavu */}
                   <td className="py-4 px-4.5 text-right text-amber-900 font-mono tabular-nums font-bold whitespace-nowrap">
-                    {summary.remainingPaavu.toLocaleString()}m
+                    {summary.remainingPaavu.toLocaleString()} pcs
                   </td>
                   {/* Total Weft Given */}
                   <td className="py-4 px-4.5 text-right text-slate-900 font-mono tabular-nums font-bold whitespace-nowrap">
@@ -2262,10 +2160,10 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   >
                     <option value="PRODUCED">
                       {clothType === "SAREE"
-                        ? "Saree Production (Produced Meters)"
-                        : "Veatti Production (Produced Meters)"}
+                        ? "Saree Production (Pieces)"
+                        : "Veatti Production (Pieces)"}
                     </option>
-                    <option value="PAAVU">Warp Issued (Paavu Given Meters)</option>
+                    <option value="PAAVU">Warp Issued (Paavu Given Pieces)</option>
                     <option value="WEFT_BAG">Weft Yarn / Bags (Weft in KG)</option>
                     <option value="CASH">Wage Cash / Advance Paid (₹)</option>
                     <option value="BABIN">Babin Issued (Babin Count)</option>
@@ -2283,8 +2181,8 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   required
                   placeholder={
                     clothType === "SAREE"
-                      ? "e.g. 2 Paavu 9 Beams, 240 bag, Saree 10m, cash, needle adjustment"
-                      : "e.g. 2 Paavu 9 Beams, 240 bag, Veatti 10m, cash, needle adjustment"
+                      ? "e.g. 2 Paavu 9 Beams, 240 bag, Saree 200 pcs, cash..."
+                      : "e.g. 2 Paavu 9 Beams, 240 bag, Veatti 500 pcs, cash..."
                   }
                   value={entryForm.description}
                   onChange={(e) => setEntryForm({ ...entryForm, description: e.target.value })}
@@ -2294,136 +2192,42 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
 
               {/* 3. Conditional Dynamic Input Fields Based on Entry Type */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-                {/* PRODUCED: Paavu Meter Produced & Wage Rate */}
+                {/* PRODUCED: Pieces Produced & Wage Rate */}
                 {entryForm.entryType === "PRODUCED" && (
                   <div className="space-y-3">
-                    {clothType === "SAREE" ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs font-black uppercase tracking-wider text-purple-700 mb-1">
-                            Saree Count (Pieces)
-                          </label>
-                          <input
-                            type="number"
-                            step="1"
-                            placeholder="e.g. 200"
-                            value={entryForm.sareeCount}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = parseFloat(val) || 0;
-                              setEntryForm({
-                                ...entryForm,
-                                sareeCount: val,
-                                paavuProducedMeters: num > 0 ? calculateMetersFromSarees(num) : "",
-                              });
-                            }}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-purple-300 bg-purple-50/30 text-sm font-black font-mono text-purple-900 focus:outline-none focus:border-purple-600"
-                          />
-                          <p className="text-[10px] text-purple-600 mt-1">1 Babin set per 200 sarees</p>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
-                            Loom Produced Meters <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            required
-                            placeholder="e.g. 1100"
-                            value={entryForm.paavuProducedMeters}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = parseFloat(val) || 0;
-                              setEntryForm({
-                                ...entryForm,
-                                paavuProducedMeters: val,
-                                sareeCount: num > 0 ? calculateSareesFromMeters(num) : "",
-                              });
-                            }}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-black font-mono text-emerald-700 focus:outline-none focus:border-emerald-600"
-                          />
-                          <p className="text-[10px] text-slate-500 mt-1">5.50m per saree</p>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
-                            Wage Rate per Meter (₹/m) <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            step="0.25"
-                            required
-                            value={entryForm.wageRate}
-                            onChange={(e) => setEntryForm({ ...entryForm, wageRate: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-black font-mono focus:outline-none focus:border-emerald-600"
-                          />
-                        </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider text-emerald-800 mb-1">
+                          {clothType === "SAREE" ? "Sarees Produced (Pieces) *" : "Dhothis Produced (Pieces) *"}
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          required
+                          placeholder={clothType === "SAREE" ? "e.g. 200" : "e.g. 500"}
+                          value={entryForm.paavuProducedMeters}
+                          onChange={(e) => setEntryForm({ ...entryForm, paavuProducedMeters: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50/30 text-sm font-black font-mono text-emerald-950 focus:outline-none focus:border-emerald-600"
+                        />
+                        <p className="text-[10px] text-emerald-700 mt-1">
+                          {clothType === "SAREE" ? "1 Babin set per 200 sarees" : "1 Babin set per 500 dhothis"}
+                        </p>
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs font-black uppercase tracking-wider text-emerald-800 mb-1">
-                            Veattis (Pieces)
-                          </label>
-                          <input
-                            type="number"
-                            step="1"
-                            placeholder="e.g. 500"
-                            value={entryForm.veattiCount}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = parseFloat(val) || 0;
-                              setEntryForm({
-                                ...entryForm,
-                                veattiCount: val,
-                                paavuProducedMeters: num > 0 ? calculateMetersFromVeattis(num) : "",
-                              });
-                            }}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50/30 text-sm font-black font-mono text-emerald-950 focus:outline-none focus:border-emerald-600"
-                          />
-                          <p className="text-[10px] text-emerald-700 mt-1">1 Babin set per 500 veattis</p>
-                        </div>
 
-                        <div>
-                          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
-                            Loom Produced Meters <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            required
-                            placeholder="e.g. 1000"
-                            value={entryForm.paavuProducedMeters}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const num = parseFloat(val) || 0;
-                              setEntryForm({
-                                ...entryForm,
-                                paavuProducedMeters: val,
-                                veattiCount: num > 0 ? calculateVeattisFromMeters(num) : "",
-                              });
-                            }}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-black font-mono text-emerald-700 focus:outline-none focus:border-emerald-600"
-                          />
-                          <p className="text-[10px] text-slate-500 mt-1">2.00m per veatti</p>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
-                            Wage Rate per Meter (₹/m) <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            step="0.25"
-                            required
-                            value={entryForm.wageRate}
-                            onChange={(e) => setEntryForm({ ...entryForm, wageRate: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-black font-mono focus:outline-none focus:border-emerald-600"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                          Wage Rate per Piece (₹/pc) <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.25"
+                          required
+                          value={entryForm.wageRate}
+                          onChange={(e) => setEntryForm({ ...entryForm, wageRate: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-black font-mono focus:outline-none focus:border-emerald-600"
+                        />
                       </div>
-                    )}
+                    </div>
 
                     {/* Instant Auto-Calculation Card */}
                     <div className="grid grid-cols-3 gap-2.5 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs">
@@ -2435,7 +2239,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                           {previewWeftConsumed} <span className="text-xs font-semibold">KG</span>
                         </div>
                         <div className="text-[10px] text-emerald-700 font-mono">
-                          {previewProduced}m × {activeWeftMultiplier} kg/m
+                          {previewProduced} pcs × {activeWeftMultiplier} kg/pc
                         </div>
                       </div>
 
@@ -2447,7 +2251,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                           {previewBabinConsumed} <span className="text-xs font-semibold">Sets</span>
                         </div>
                         <div className="text-[10px] text-purple-700 font-mono">
-                          {clothType === "SAREE" ? "1 set / 200 sarees (1,100m)" : "1 set / 500 veattis (1,000m)"}
+                          {clothType === "SAREE" ? "1 set / 200 sarees" : "1 set / 500 dhothis"}
                         </div>
                       </div>
 
@@ -2459,25 +2263,25 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                           {formatINR(previewWageEarned)}
                         </div>
                         <div className="text-[10px] text-emerald-700 font-mono">
-                          {previewProduced}m × ₹{previewRate}
+                          {previewProduced} pcs × ₹{previewRate}
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* PAAVU: Paavu Given Meters & Beam Count */}
+                {/* PAAVU: Paavu Given Pieces & Beam Count */}
                 {entryForm.entryType === "PAAVU" && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
-                        Paavu Meters Given <span className="text-rose-500">*</span>
+                        Paavu Pieces Given <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="number"
                         step="1"
                         required
-                        placeholder="e.g. 3170 or 8430"
+                        placeholder="e.g. 1000 or 2500"
                         value={entryForm.paavuGivenMeters}
                         onChange={(e) =>
                           setEntryForm({ ...entryForm, paavuGivenMeters: e.target.value })
@@ -2588,7 +2392,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
                     <div className="text-[10px] text-slate-500 font-medium">Remaining Paavu</div>
                     <div className="font-black font-mono tabular-nums text-amber-800">
-                      {projectedRemainingPaavu.toLocaleString()}m
+                      {projectedRemainingPaavu.toLocaleString()} pcs
                     </div>
                   </div>
 

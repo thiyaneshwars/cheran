@@ -42,14 +42,14 @@ describe("Government Free Dhothi & Saree Scheme Weft Calculations", () => {
   });
 
   it("should suggest correct weft KG and bags when loom has shortfall (Dhothi)", () => {
-    // 3,650 meters pending = 1000 Dhothis
+    // 1000 Dhothis pending
     // 1000 Dhothis * 0.119 kg = 119.00 KG weft required
     // Loom has 30 KG in stock
     // Shortfall = 119 - 30 = 89.00 KG
     // 89 KG / 60 kg/bag = ceil(1.483) = 2 Bags (120 KG)
     const suggestion = calculateWeftRequirementSuggestion({
       clothType: "VEATTI",
-      remainingPaavuMeters: 3650,
+      remainingPaavuPieces: 1000,
       currentLoomStockKg: 30,
       godownStockKg: 3000,
     });
@@ -66,14 +66,14 @@ describe("Government Free Dhothi & Saree Scheme Weft Calculations", () => {
   });
 
   it("should detect when loom stock is already sufficient (Dhothi)", () => {
-    // 1,825 meters pending = 500 Dhothis
+    // 500 Dhothis pending
     // 500 * 0.119 = 59.50 KG weft required
     // Loom already has 65 KG in stock
     // Shortfall = max(0, 59.50 - 65) = 0 KG
     // Suggested bags = 0
     const suggestion = calculateWeftRequirementSuggestion({
       clothType: "VEATTI",
-      remainingPaavuMeters: 1825,
+      remainingPaavuPieces: 500,
       currentLoomStockKg: 65,
       godownStockKg: 1000,
     });
@@ -87,14 +87,14 @@ describe("Government Free Dhothi & Saree Scheme Weft Calculations", () => {
   });
 
   it("should correctly handle Saree 50kg bags and 0.182 kg/piece rate", () => {
-    // 2,200 meters pending = 400 Sarees
+    // 400 Sarees pending
     // 400 Sarees * 0.182 kg = 72.80 KG weft required
     // Loom has 15 KG in stock
     // Shortfall = 72.80 - 15 = 57.80 KG
     // 57.80 KG / 50 kg/bag = ceil(1.156) = 2 Bags (100 KG)
     const suggestion = calculateWeftRequirementSuggestion({
       clothType: "SAREE",
-      remainingPaavuMeters: 2200,
+      remainingPaavuPieces: 400,
       currentLoomStockKg: 15,
       godownStockKg: 200,
     });
@@ -114,7 +114,7 @@ describe("Government Free Dhothi & Saree Scheme Weft Calculations", () => {
     // Godown only has 50 KG (less than 120 KG needed).
     const suggestion = calculateWeftRequirementSuggestion({
       clothType: "VEATTI",
-      remainingPaavuMeters: 3650,
+      remainingPaavuPieces: 1000,
       currentLoomStockKg: 0,
       godownStockKg: 50,
     });
@@ -126,13 +126,13 @@ describe("Government Free Dhothi & Saree Scheme Weft Calculations", () => {
   });
 
   it("should allow simulating custom pieces to run", () => {
-    // Loom has 2,000m paavu, but user simulates running exactly 300 Dhothis
+    // Loom has 500 pcs paavu, but user simulates running exactly 300 Dhothis
     // 300 Dhothis * 0.119 = 35.70 KG
     // Loom stock = 10 KG
     // Shortfall = 25.70 KG -> 1 Bag (60 KG)
     const suggestion = calculateWeftRequirementSuggestion({
       clothType: "VEATTI",
-      remainingPaavuMeters: 2000,
+      remainingPaavuPieces: 500,
       customPiecesToRun: 300,
       currentLoomStockKg: 10,
     });

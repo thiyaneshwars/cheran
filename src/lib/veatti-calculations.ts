@@ -273,7 +273,7 @@ export interface WeftSuggestionResult {
   lengthPerPiece: number;
   kgPerPiece: number;
   kgPerBag: number;
-  paavuMetersAvailable: number;
+  paavuPiecesAvailable: number;
   piecesToRun: number;
   weftRequiredKg: number;
   currentLoomStockKg: number;
@@ -289,10 +289,12 @@ export interface WeftSuggestionResult {
 
 /**
  * Suggest Weft Dispatch based on Paavu pieces to run, loom stock, and godown availability
+ * In Dhothi and Saree production, quantity is purely Number of Pieces (no meters).
  */
 export function calculateWeftRequirementSuggestion(params: {
   clothType: "VEATTI" | "SAREE";
-  remainingPaavuMeters: number;
+  remainingPaavuPieces?: number;
+  remainingPaavuMeters?: number;
   customPiecesToRun?: number;
   currentLoomStockKg: number;
   godownStockKg?: number;
@@ -304,8 +306,12 @@ export function calculateWeftRequirementSuggestion(params: {
   const kgPerPiece = params.customKgPerPiece ?? (isSaree ? GOVT_SAREE_WEFT_KG_PER_PIECE : GOVT_DHOTHI_WEFT_KG_PER_PIECE);
   const kgPerBag = params.customKgPerBag ?? (isSaree ? GOVT_SAREE_KG_PER_BAG : GOVT_DHOTHI_KG_PER_BAG);
 
-  const paavuMetersAvailable = Math.max(0, Number(params.remainingPaavuMeters) || 0);
-  const defaultPieces = Math.floor(paavuMetersAvailable / lengthPerPiece);
+  // In Dhothi & Saree production, quantity is purely Number of Pieces (no meters)
+  const rawPieces = params.remainingPaavuPieces !== undefined
+    ? params.remainingPaavuPieces
+    : params.remainingPaavuMeters;
+  const paavuPiecesAvailable = Math.max(0, Math.floor(Number(rawPieces) || 0));
+  const defaultPieces = paavuPiecesAvailable;
   const piecesToRun =
     params.customPiecesToRun !== undefined
       ? Math.max(0, Math.floor(params.customPiecesToRun))
@@ -335,7 +341,7 @@ export function calculateWeftRequirementSuggestion(params: {
     lengthPerPiece,
     kgPerPiece,
     kgPerBag,
-    paavuMetersAvailable,
+    paavuPiecesAvailable,
     piecesToRun,
     weftRequiredKg,
     currentLoomStockKg,

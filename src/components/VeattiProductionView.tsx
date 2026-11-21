@@ -478,6 +478,7 @@ export const VeattiProductionView: React.FC = () => {
 
       {/* 2. Eight Dashboard Cards (Section 6 Integration) */}
       <VeattiFinancialCards
+        clothType="VEATTI"
         totalProduced={totalProduced}
         godownStock={godownStock}
         totalHandovered={totalHandovered}

@@ -302,7 +302,7 @@ export const DirectEntryModal: React.FC<DirectEntryModalProps> = ({
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Total Paavu Meters Given *</label>
+                <label className="font-bold text-slate-700 block mb-1">Total Paavu Pieces Given *</label>
                 <input
                   type="number"
                   required
@@ -345,7 +345,7 @@ export const DirectEntryModal: React.FC<DirectEntryModalProps> = ({
                   onChange={(e) => setForm({ ...form, rateUnit: e.target.value as any })}
                   className="w-full rounded-xl bg-white border border-slate-300 p-2.5 text-slate-900 font-bold outline-none"
                 >
-                  <option value="PER_METER">₹ per Meter (Warp Length)</option>
+                  <option value="PER_METER">₹ per Piece</option>
                   <option value="PER_KG">₹ per KG (Paavu Weight)</option>
                 </select>
               </div>
@@ -399,9 +399,9 @@ export const DirectEntryModal: React.FC<DirectEntryModalProps> = ({
               {/* Right: Weft Multiplier (kg/m) */}
               <div className="bg-white p-3 rounded-xl border border-sky-200/90 shadow-2xs space-y-2">
                 <label className="font-bold text-slate-800 text-xs flex items-center justify-between">
-                  <span className="text-sky-950 font-black">Weft Multiplier (KG/m) *</span>
+                  <span className="text-sky-950 font-black">Weft Multiplier (KG/pc) *</span>
                   <span className="text-[10px] text-sky-700 font-mono font-bold bg-sky-100/70 px-2 py-0.5 rounded-md">
-                    {form.weftMultiplier} kg/m
+                    {form.weftMultiplier} kg/pc
                   </span>
                 </label>
 
@@ -700,13 +700,13 @@ export const DailyProductionModal: React.FC<DailyProductionModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-slate-700 block mb-1">
-                Daily Loom Production (Mtr) *
+                Daily Loom Production (Pieces) *
               </label>
               <input
                 type="number"
                 required
                 min={0}
-                step="0.5"
+                step="1"
                 value={form.dailyMeters}
                 onChange={(e) => setForm({ ...form, dailyMeters: Number(e.target.value) })}
                 className="w-full rounded-xl bg-white border border-slate-300 p-2.5 text-slate-900 text-base font-black outline-none focus:border-emerald-500"
@@ -715,12 +715,12 @@ export const DailyProductionModal: React.FC<DailyProductionModalProps> = ({
 
             <div>
               <label className="font-bold text-slate-700 block mb-1">
-                Wastage / Adjustment (Mtr)
+                Wastage / Adjustment (Pieces)
               </label>
               <input
                 type="number"
                 min={0}
-                step="0.1"
+                step="1"
                 value={form.wastageMeters}
                 onChange={(e) => setForm({ ...form, wastageMeters: Number(e.target.value) })}
                 className="w-full rounded-xl bg-white border border-slate-300 p-2.5 text-slate-900 font-bold outline-none"
@@ -731,7 +731,7 @@ export const DailyProductionModal: React.FC<DailyProductionModalProps> = ({
           {/* Real-time Calculation Preview */}
           <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex justify-between items-center text-xs">
             <span className="font-bold text-emerald-800">Net Production Added:</span>
-            <span className="font-black text-emerald-700 text-sm">{netPreview} Meters</span>
+            <span className="font-black text-emerald-700 text-sm">{netPreview} Pieces</span>
           </div>
 
           <div>
@@ -1367,7 +1367,7 @@ export const ConfigureRateModal: React.FC<ConfigureRateModalProps> = ({
                 className="w-full rounded-xl bg-white border border-slate-300 p-2.5 text-slate-900 font-semibold outline-none"
               >
                 <option value="PER_KG">₹ per KG</option>
-                <option value="PER_METER">₹ per Meter</option>
+                <option value="PER_METER">₹ per Piece</option>
               </select>
             </div>
           </div>
@@ -1564,10 +1564,10 @@ export const PrintStatementModal: React.FC<PrintStatementModalProps> = ({
                     {row.varavuAmount ? formatINR(row.varavuAmount) : "—"}
                   </td>
                   <td className="py-1.5 px-2 text-right border-r border-slate-300">
-                    {row.productionMeters ? `${row.productionMeters}m` : "—"}
+                    {row.productionMeters ? `${row.productionMeters} pcs` : "—"}
                   </td>
                   <td className="py-1.5 px-2 text-right border-r border-slate-300">
-                    {row.handoverMeters ? `${row.handoverMeters}m` : "—"}
+                    {row.handoverMeters ? `${row.handoverMeters} pcs` : "—"}
                   </td>
                   <td className="py-1.5 px-2 text-right font-bold border-r border-slate-300">
                     {row.advanceAmount ? formatINR(row.advanceAmount) : "—"}

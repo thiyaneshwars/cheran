@@ -148,7 +148,7 @@ export const VeattiUnitsTab: React.FC<VeattiUnitsTabProps> = ({
                         <span className="text-slate-400 font-normal">({u.paavuWeightKg || 0} KG)</span>
                       </div>
                       <span className="text-[11px] text-slate-500 block">
-                        {(u.paavuMeters || 0).toLocaleString("en-IN")} Meters
+                        {(u.paavuMeters || 0).toLocaleString("en-IN")} Pieces
                       </span>
                     </td>
 
@@ -158,24 +158,24 @@ export const VeattiUnitsTab: React.FC<VeattiUnitsTabProps> = ({
                         ₹{u.individualRate || 0}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 uppercase">
-                        per {u.rateUnit === "PER_METER" ? "Meter" : "KG"}
+                        per {u.rateUnit === "PER_METER" ? "Piece" : "KG"}
                       </span>
                     </td>
 
                     {/* Loom Produced */}
                     <td className="py-3.5 px-4 font-bold text-emerald-600">
-                      {(u.totalProducedMeters || 0).toLocaleString("en-IN")} m
+                      {(u.totalProducedMeters || 0).toLocaleString("en-IN")} pcs
                     </td>
 
                     {/* Godown */}
                     <td className="py-3.5 px-4 font-bold text-amber-600">
-                      {(u.godownMeters || 0).toLocaleString("en-IN")} m
+                      {(u.godownMeters || 0).toLocaleString("en-IN")} pcs
                     </td>
 
                     {/* Handover & Progress */}
                     <td className="py-3.5 px-4">
                       <span className="font-bold text-blue-600 block">
-                        {(u.handoveredMeters || 0).toLocaleString("en-IN")} m
+                        {(u.handoveredMeters || 0).toLocaleString("en-IN")} pcs
                       </span>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">

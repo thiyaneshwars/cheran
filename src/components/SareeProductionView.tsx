@@ -477,6 +477,7 @@ export const SareeProductionView: React.FC = () => {
 
       {/* 2. Eight Dashboard Cards */}
       <VeattiFinancialCards
+        clothType="SAREE"
         totalProduced={totalProduced}
         godownStock={godownStock}
         totalHandovered={totalHandovered}

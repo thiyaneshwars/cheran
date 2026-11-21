@@ -254,10 +254,10 @@ export const RegisterPowerloomModal: React.FC<RegisterPowerloomModalProps> = ({
             </div>
           </div>
 
-          {/* 4. Default Wage Rate (₹ / Meter) */}
+          {/* 4. Default Wage Rate (₹ / Piece) */}
           <div>
             <label className="block text-xs font-black uppercase tracking-wider text-slate-600 mb-1">
-              Wage Rate per Meter (₹ / Meter) <span className="text-rose-500">*</span>
+              Wage Rate per Piece (₹ / Piece) <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -272,7 +272,7 @@ export const RegisterPowerloomModal: React.FC<RegisterPowerloomModalProps> = ({
               />
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
-              Default rate from traditional register is <strong>₹19.00 / meter</strong>. Configurable per powerloom.
+              Default rate is <strong>{form.clothType === "SAREE" ? "₹42.00 or ₹45.00 / piece" : "₹19.00 / piece"}</strong>. Configurable per powerloom.
             </p>
           </div>
 
@@ -314,7 +314,7 @@ export const RegisterPowerloomModal: React.FC<RegisterPowerloomModalProps> = ({
               {/* Weft Multiplier */}
               <div className="bg-white p-2.5 rounded-xl border border-sky-200 shadow-2xs space-y-1.5">
                 <label className="block text-[11px] font-black text-slate-700">
-                  Weft Factor (kg/m) *
+                  Weft Factor (kg/pc) *
                 </label>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {form.clothType === "SAREE" ? (

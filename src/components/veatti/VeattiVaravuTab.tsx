@@ -160,7 +160,7 @@ export const VeattiVaravuTab: React.FC<VeattiVaravuTabProps> = ({
                     {v.paavuKg} KG
                   </td>
                   <td className="py-3 px-4 font-semibold text-slate-700">
-                    ₹{v.rate} / {v.rateUnit === "PER_METER" ? "Mtr" : "KG"}
+                    ₹{v.rate} / {v.rateUnit === "PER_METER" ? "Piece" : "KG"}
                   </td>
                   <td className="py-3 px-4 font-black text-emerald-600 text-sm">
                     {formatINR(v.amount)}

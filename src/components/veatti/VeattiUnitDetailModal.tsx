@@ -143,11 +143,11 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
             <div className="mt-1">
               <span className="text-xl font-black text-slate-900">
                 {(unitData.totalProducedMeters || 0).toLocaleString("en-IN")}{" "}
-                <span className="text-xs text-emerald-600 font-bold">m</span>
+                <span className="text-xs text-emerald-600 font-bold">pcs</span>
               </span>
             </div>
             <span className="text-[10px] text-slate-400 block mt-0.5">
-              Godown: {(unitData.godownMeters || 0).toLocaleString("en-IN")}m
+              Godown: {(unitData.godownMeters || 0).toLocaleString("en-IN")} pcs
             </span>
           </div>
 
@@ -325,8 +325,8 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                   <span className="font-bold text-slate-800">{unitData.paavuCount} Paavu</span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Total Paavu Meters:</span>
-                  <span className="font-bold text-slate-800">{(unitData.paavuMeters || 0).toLocaleString("en-IN")} m</span>
+                  <span className="text-[11px] text-slate-400 font-medium block">Total Paavu Pieces:</span>
+                  <span className="font-bold text-slate-800">{(unitData.paavuMeters || 0).toLocaleString("en-IN")} pcs</span>
                 </div>
                 <div>
                   <span className="text-[11px] text-slate-400 font-medium block">Paavu Weight (KG):</span>
@@ -340,12 +340,12 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                 </div>
                 <div>
                   <span className="text-[11px] text-slate-400 font-medium block">Conversion Rule:</span>
-                  <span className="font-bold text-slate-800">{unitData.conversionRatio || 12} Meters/KG</span>
+                  <span className="font-bold text-slate-800">{unitData.conversionRatio || 12} Pieces/KG</span>
                 </div>
                 <div>
                   <span className="text-[11px] text-slate-400 font-medium block">Weft Multiplier:</span>
                   <span className="font-extrabold text-sky-800 font-mono">
-                    {unitData.weftMultiplier || (unitData.clothType === "SAREE" ? 0.182 : 0.119)} kg/m
+                    {unitData.weftMultiplier || (unitData.clothType === "SAREE" ? 0.182 : 0.119)} kg/pc
                   </span>
                 </div>
                 <div>
@@ -363,8 +363,8 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                   <span className="font-bold text-slate-800">{unitData.babinCount || 0} Babins</span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Target Handover Meters:</span>
-                  <span className="font-bold text-slate-800">{(unitData.targetMeters || 0).toLocaleString("en-IN")} m</span>
+                  <span className="text-[11px] text-slate-400 font-medium block">Target Handover Pieces:</span>
+                  <span className="font-bold text-slate-800">{(unitData.targetMeters || 0).toLocaleString("en-IN")} pcs</span>
                 </div>
                 <div>
                   <span className="text-[11px] text-slate-400 font-medium block">Target Handover Date:</span>
@@ -405,7 +405,7 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                     <tr>
                       <th className="py-2.5 px-3">Paavu Number</th>
                       <th className="py-2.5 px-3">Weight (KG)</th>
-                      <th className="py-2.5 px-3">Allocated Meters</th>
+                      <th className="py-2.5 px-3">Allocated Pieces</th>
                       <th className="py-2.5 px-3">Produced</th>
                       <th className="py-2.5 px-3">Remaining</th>
                       <th className="py-2.5 px-3">Machine No</th>
@@ -425,12 +425,12 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                         <tr key={p.id} className="hover:bg-slate-50">
                           <td className="py-2.5 px-3 font-bold text-slate-900">{p.paavuNumber}</td>
                           <td className="py-2.5 px-3 font-semibold">{p.paavuWeightKg || 0} kg</td>
-                          <td className="py-2.5 px-3 font-bold">{p.paavuMeters} m</td>
+                          <td className="py-2.5 px-3 font-bold">{p.paavuMeters} pcs</td>
                           <td className="py-2.5 px-3 font-bold text-emerald-600">
-                            {p.actualProducedMeters || 0} m
+                            {p.actualProducedMeters || 0} pcs
                           </td>
                           <td className="py-2.5 px-3 font-bold text-rose-600">
-                            {p.remainingMeters !== undefined ? p.remainingMeters : Math.max(0, p.paavuMeters - (p.actualProducedMeters || 0))} m
+                            {p.remainingMeters !== undefined ? p.remainingMeters : Math.max(0, p.paavuMeters - (p.actualProducedMeters || 0))} pcs
                           </td>
                           <td className="py-2.5 px-3 text-slate-600">{p.machineNumber || "Unloaded"}</td>
                           <td className="py-2.5 px-3">
@@ -495,7 +495,7 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                     <tr>
                       <th className="py-2.5 px-3">Date</th>
                       <th className="py-2.5 px-3">Paavu Ref</th>
-                      <th className="py-2.5 px-3">Daily Meters</th>
+                      <th className="py-2.5 px-3">Daily Pieces</th>
                       <th className="py-2.5 px-3">Wastage / Adj</th>
                       <th className="py-2.5 px-3 font-bold text-emerald-700">Net Production</th>
                       <th className="py-2.5 px-3">Remarks</th>
@@ -518,9 +518,9 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                           <td className="py-2.5 px-3 font-bold text-slate-800">
                             {p.paavuRef || p.paavu?.paavuNumber || "Loom Batch"}
                           </td>
-                          <td className="py-2.5 px-3 font-bold">{p.dailyMeters} m</td>
-                          <td className="py-2.5 px-3 text-rose-600 font-semibold">{p.wastageMeters} m</td>
-                          <td className="py-2.5 px-3 font-black text-emerald-700">{p.netProduction} m</td>
+                          <td className="py-2.5 px-3 font-bold">{p.dailyMeters} pcs</td>
+                          <td className="py-2.5 px-3 text-rose-600 font-semibold">{p.wastageMeters} pcs</td>
+                          <td className="py-2.5 px-3 font-black text-emerald-700">{p.netProduction} pcs</td>
                           <td className="py-2.5 px-3 text-slate-500">{p.remarks || "—"}</td>
                           <td className="py-2.5 px-3 text-center">
                             <div className="flex items-center justify-center gap-1">

@@ -25,10 +25,8 @@ import {
   calculateSareePieces,
   calculatePiecesFromMeters,
   calculateWeftRequirementSuggestion,
-  GOVT_DHOTHI_LENGTH_METERS,
   GOVT_DHOTHI_WEFT_KG_PER_PIECE,
   GOVT_DHOTHI_KG_PER_BAG,
-  GOVT_SAREE_LENGTH_METERS,
   GOVT_SAREE_WEFT_KG_PER_PIECE,
   GOVT_SAREE_KG_PER_BAG,
   WeftSuggestionResult,
@@ -53,7 +51,6 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
   const isSaree = clothType === "SAREE";
   const itemLabel = isSaree ? "Saree" : "Dhothi";
   const itemsLabel = isSaree ? "Sarees" : "Dhothis";
-  const lengthPerPiece = isSaree ? GOVT_SAREE_LENGTH_METERS : GOVT_DHOTHI_LENGTH_METERS; // 5.50 vs 3.65
   const kgPerPiece = isSaree ? GOVT_SAREE_WEFT_KG_PER_PIECE : GOVT_DHOTHI_WEFT_KG_PER_PIECE; // 0.182 vs 0.119
   const kgPerBag = isSaree ? GOVT_SAREE_KG_PER_BAG : GOVT_DHOTHI_KG_PER_BAG; // 50 vs 60
 
@@ -88,10 +85,8 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
   // Compute suggestions for all units
   const unitSuggestions = useMemo(() => {
     return filteredUnits.map((u) => {
-      const remainingPaavuMeters = u.remainingPaavuMeters ?? Math.max(0, (u.paavuMeters || 0) - (u.totalProducedMeters || 0));
-      const defaultPieces = isSaree
-        ? calculateSareePieces(remainingPaavuMeters)
-        : calculateDhothiPieces(remainingPaavuMeters);
+      const rawPieces = u.remainingPaavuMeters ?? Math.max(0, (u.paavuMeters || 0) - (u.totalProducedMeters || 0));
+      const defaultPieces = Math.floor(rawPieces || 0);
 
       const customStr = customPiecesMap[u.id];
       const customPieces = customStr !== undefined && customStr !== "" ? parseInt(customStr, 10) : undefined;
@@ -105,17 +100,16 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
 
       const suggestion = calculateWeftRequirementSuggestion({
         clothType,
-        remainingPaavuMeters,
+        remainingPaavuPieces: defaultPieces,
         customPiecesToRun: piecesToRun,
         currentLoomStockKg: currentLoomStock,
         godownStockKg,
-        customKgPerPiece: u.weftMultiplier ? round2(u.weftMultiplier * lengthPerPiece) : kgPerPiece,
+        customKgPerPiece: kgPerPiece,
         customKgPerBag: kgPerBag,
       });
 
       return {
         unit: u,
-        remainingPaavuMeters,
         defaultPieces,
         piecesToRun,
         totalGivenKg,
@@ -125,7 +119,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
         suggestion,
       };
     });
-  }, [filteredUnits, customPiecesMap, clothType, godownStockKg, isSaree, lengthPerPiece, kgPerPiece, kgPerBag]);
+  }, [filteredUnits, customPiecesMap, clothType, godownStockKg, isSaree, kgPerPiece, kgPerBag]);
 
   // Selected Unit calculation
   const selectedUnitItem = useMemo(() => {
@@ -188,7 +182,6 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
       "Powerloom Weaver",
       "Cloth Type",
       "Looms",
-      "Remaining Paavu (M)",
       `Pending Paavu ${itemsLabel} (Pcs)`,
       `${itemsLabel} To Run (Simulated)`,
       "Weft Given To Loom (KG)",
@@ -206,7 +199,6 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
       `"${r.unit.weaverName || ""}"`,
       r.unit.clothType,
       r.unit.machineCount || 1,
-      r.remainingPaavuMeters,
       r.defaultPieces,
       r.piecesToRun,
       r.totalGivenKg,
@@ -424,14 +416,14 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
               <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">
                 <div className="text-[11px] font-bold text-slate-500 flex justify-between">
                   <span>Pending Paavu on Loom</span>
-                  <span className="font-mono text-emerald-700">{lengthPerPiece}m / pc</span>
+                  <span className="font-mono text-emerald-700 font-bold">{itemLabel} Pieces</span>
                 </div>
                 <div className="text-xl font-black text-slate-900 font-mono tabular-nums">
                   {selectedUnitItem.defaultPieces.toLocaleString()}{" "}
                   <span className="text-xs font-bold text-emerald-600 font-sans">{itemsLabel}</span>
                 </div>
                 <div className="text-[11px] text-slate-500 font-mono">
-                  {selectedUnitItem.remainingPaavuMeters.toLocaleString()} remaining meters
+                  {selectedUnitItem.defaultPieces.toLocaleString()} pending {itemsLabel.toLowerCase()} to weave
                 </div>
               </div>
 
@@ -793,10 +785,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                       {/* Remaining Paavu */}
                       <td className="py-3 px-3 text-right font-mono">
                         <div className="font-bold text-slate-900">
-                          {r.remainingPaavuMeters.toLocaleString()}m
-                        </div>
-                        <div className="text-[10px] text-emerald-700 font-semibold">
-                          {r.defaultPieces} {itemsLabel}
+                          {r.defaultPieces.toLocaleString()} {itemsLabel}
                         </div>
                       </td>
 
@@ -919,7 +908,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
                     {displayedRows.reduce((s, r) => s + (r.unit.machineCount || 1), 0)}
                   </td>
                   <td className="py-3 px-3 text-right font-mono">
-                    {displayedRows.reduce((s, r) => s + r.remainingPaavuMeters, 0).toLocaleString()}m
+                    {displayedRows.reduce((s, r) => s + r.defaultPieces, 0).toLocaleString()} {itemsLabel}
                   </td>
                   <td className="py-3 px-3 text-right font-mono">
                     {displayedRows.reduce((s, r) => s + r.totalGivenBags, 0).toFixed(1)} Bags

@@ -16,6 +16,7 @@ import {
 import { formatINR } from "@/lib/decimal";
 
 interface VeattiFinancialCardsProps {
+  clothType?: "VEATTI" | "SAREE";
   totalProduced: number;
   godownStock: number;
   totalHandovered: number;
@@ -33,6 +34,7 @@ interface VeattiFinancialCardsProps {
 }
 
 export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
+  clothType = "VEATTI",
   totalProduced,
   godownStock,
   totalHandovered,
@@ -48,6 +50,8 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
   totalBabinCount = 0,
   remainingPaavuMeters,
 }) => {
+  const isSaree = clothType === "SAREE";
+  const pieceUnit = isSaree ? "Sarees" : "Dhothis";
   const effectiveRemainingPaavu =
     remainingPaavuMeters !== undefined
       ? remainingPaavuMeters
@@ -67,12 +71,12 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
               {totalProduced.toLocaleString("en-IN")}{" "}
-              <span className="text-sm font-bold text-emerald-600 font-sans">Mtr</span>
+              <span className="text-sm font-bold text-emerald-600 font-sans">{pieceUnit}</span>
             </span>
           </div>
           <p className="mt-2 text-xs text-emerald-700 font-medium flex items-center gap-1.5 leading-relaxed">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-            <span>Total meters produced from powerloom units</span>
+            <span>Total {pieceUnit.toLowerCase()} produced from powerloom units</span>
           </p>
         </div>
 
@@ -87,11 +91,11 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-amber-700">
               {godownStock.toLocaleString("en-IN")}{" "}
-              <span className="text-sm font-bold text-amber-600 font-sans">Mtr</span>
+              <span className="text-sm font-bold text-amber-600 font-sans">{pieceUnit}</span>
             </span>
           </div>
           <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-            Produced ({totalProduced.toLocaleString("en-IN")}m) − Handovered ({totalHandovered.toLocaleString("en-IN")}m)
+            Produced ({totalProduced.toLocaleString("en-IN")} pcs) − Handovered ({totalHandovered.toLocaleString("en-IN")} pcs)
           </p>
         </div>
 
@@ -106,11 +110,11 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-blue-700">
               {totalHandovered.toLocaleString("en-IN")}{" "}
-              <span className="text-sm font-bold text-blue-600 font-sans">Mtr</span>
+              <span className="text-sm font-bold text-blue-600 font-sans">{pieceUnit}</span>
             </span>
           </div>
           <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-            Total {totalHandovered.toLocaleString("en-IN")}m dispatched to Co-optex / Govt
+            Total {totalHandovered.toLocaleString("en-IN")} pcs dispatched to Co-optex / Govt
           </p>
         </div>
 
@@ -125,7 +129,7 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
               {balanceToHandover.toLocaleString("en-IN")}{" "}
-              <span className="text-sm font-bold text-rose-600 font-sans">Mtr</span>
+              <span className="text-sm font-bold text-rose-600 font-sans">{pieceUnit}</span>
             </span>
           </div>
           <p className="mt-2 text-xs font-medium text-rose-600 leading-relaxed">
@@ -147,7 +151,7 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
           <div className="mt-3 flex items-baseline justify-between gap-2 flex-wrap">
             <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
               {(totalPaavuMeters > 0 ? totalPaavuMeters : Math.round(totalPaavuKg)).toLocaleString("en-IN")}{" "}
-              <span className="text-sm font-bold text-indigo-600 font-sans">{totalPaavuMeters > 0 ? "Mtr" : "KG"}</span>
+              <span className="text-sm font-bold text-indigo-600 font-sans">{totalPaavuMeters > 0 ? pieceUnit : "KG"}</span>
             </span>
             <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 flex-wrap">
               <span className="flex items-center gap-1">
@@ -177,11 +181,11 @@ export const VeattiFinancialCards: React.FC<VeattiFinancialCardsProps> = ({
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-purple-700">
               {effectiveRemainingPaavu.toLocaleString("en-IN")}{" "}
-              <span className="text-sm font-bold text-purple-600 font-sans">Mtr</span>
+              <span className="text-sm font-bold text-purple-600 font-sans">{pieceUnit}</span>
             </span>
           </div>
           <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-            Warp remaining to be woven across {unitCount} {unitCount === 1 ? "unit" : "units"}
+            Total {effectiveRemainingPaavu.toLocaleString("en-IN")} {pieceUnit.toLowerCase()} remaining to be woven across {unitCount} units
           </p>
         </div>
 
