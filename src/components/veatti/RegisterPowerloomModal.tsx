@@ -109,7 +109,7 @@ export const RegisterPowerloomModal: React.FC<RegisterPowerloomModalProps> = ({
               <h2 className="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
                 <span>
                   {lockClothType
-                    ? `Register ${form.clothType === "SAREE" ? "Saree" : "Veatti"} Powerloom Unit`
+                    ? `Register ${form.clothType === "SAREE" ? "Saree" : "Dhothi"} Powerloom Unit`
                     : "Register Powerloom Unit"}
                 </span>
               </h2>
@@ -154,10 +154,10 @@ export const RegisterPowerloomModal: React.FC<RegisterPowerloomModalProps> = ({
                   }`}
                 />
                 <span className="font-extrabold text-sm">
-                  {form.clothType === "SAREE" ? "Saree Production Unit" : "Veatti Production Unit"}
+                  {form.clothType === "SAREE" ? "Saree Production Unit" : "Dhothi Production Unit"}
                 </span>
                 <span className="ml-auto text-[11px] font-semibold text-slate-500 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200">
-                  {form.clothType === "SAREE" ? "Saree Only" : "Veatti Only"}
+                  {form.clothType === "SAREE" ? "Saree Only" : "Dhothi Only"}
                 </span>
               </div>
             ) : (
@@ -178,7 +178,7 @@ export const RegisterPowerloomModal: React.FC<RegisterPowerloomModalProps> = ({
                     className="sr-only"
                   />
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-600"></span>
-                  <span>Veatti Production</span>
+                  <span>Dhothi Production</span>
                 </label>
 
                 <label

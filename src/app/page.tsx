@@ -138,7 +138,7 @@ export default function Home() {
   const getPageTitle = (tab: NavItemKey) => {
     switch (tab) {
       case "veatti":
-        return "Veatti Production & Machine Register";
+        return "Dhothi Production & Machine Register";
       case "saree":
         return "Saree Production & Machine Register";
       case "babin":

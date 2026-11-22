@@ -53,7 +53,7 @@ export const VeattiVaravuTab: React.FC<VeattiVaravuTabProps> = ({
             <span className="p-1.5 rounded-xl bg-emerald-100 text-emerald-800">
               <TrendingUp className="h-4 w-4" />
             </span>
-            <span>Individual Veatti Varavu Ledger</span>
+            <span>Individual Varavu Ledger</span>
           </h3>
           <p className="text-xs text-slate-500 mt-1">
             Varavu Amount = Paavu KG × Configured Individual Rate. Every weaver has their independent rate.
@@ -99,7 +99,7 @@ export const VeattiVaravuTab: React.FC<VeattiVaravuTabProps> = ({
             onChange={(e) => setSelectedUnitId(e.target.value)}
             className="rounded-xl bg-white border border-slate-200 px-3 py-2 text-xs text-slate-800 outline-none focus:border-slate-300 font-semibold"
           >
-            <option value="">-- All Veatti Units --</option>
+            <option value="">-- All Units --</option>
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.weaverName} (₹{u.individualRate}/{u.rateUnit || "KG"})
@@ -115,7 +115,7 @@ export const VeattiVaravuTab: React.FC<VeattiVaravuTabProps> = ({
           <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
             <tr>
               <th className="py-3 px-4">Date</th>
-              <th className="py-3 px-4">Veatti / Weaver Name</th>
+              <th className="py-3 px-4">Powerloom / Weaver Name</th>
               <th className="py-3 px-4">Varavu Type</th>
               <th className="py-3 px-4">Paavu KG / Quantity</th>
               <th className="py-3 px-4">Applicable Rate</th>

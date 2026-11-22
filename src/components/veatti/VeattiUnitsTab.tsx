@@ -101,7 +101,7 @@ export const VeattiUnitsTab: React.FC<VeattiUnitsTabProps> = ({
                 <td colSpan={10} className="py-12 text-center text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Factory className="h-8 w-8 text-slate-300" />
-                    <p className="font-semibold">No Veatti powerloom units found.</p>
+                    <p className="font-semibold">No powerloom units found.</p>
                     <button
                       type="button"
                       onClick={onDirectEntryClick}
@@ -232,7 +232,7 @@ export const VeattiUnitsTab: React.FC<VeattiUnitsTabProps> = ({
                         <button
                           type="button"
                           onClick={() => onSelectUnit(u)}
-                          title="Open Individual Veatti Ledger & Accounts"
+                          title="Open Individual Powerloom Ledger & Accounts"
                           className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition"
                         >
                           <Eye className="h-3.5 w-3.5" />

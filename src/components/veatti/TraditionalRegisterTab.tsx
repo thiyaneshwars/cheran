@@ -119,7 +119,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
   const [inlineVeattis, setInlineVeattis] = useState<string>("");
   const [inlineBags, setInlineBags] = useState<string>("");
   const [inlineDesc, setInlineDesc] = useState<string>(
-    clothType === "SAREE" ? "Saree Production" : "Veatti Production"
+    clothType === "SAREE" ? "Saree Production" : "Dhothi Production"
   );
   const [inlineDate, setInlineDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [inlineSaving, setInlineSaving] = useState(false);
@@ -281,7 +281,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
         (type === "PAAVU"
           ? "Warp Issued / Paavu Given"
           : type === "PRODUCED"
-          ? (clothType === "SAREE" ? "Saree Production" : "Veatti Production")
+          ? (clothType === "SAREE" ? "Saree Production" : "Dhothi Production")
           : type === "WEFT_BAG"
           ? "Weft Yarn Issued from Godown"
           : type === "CASH"
@@ -591,7 +591,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   }`}
                 />
                 <span>
-                  {filteredUnits.length} {clothType === "SAREE" ? "Saree Units" : "Veatti Units"}
+                  {filteredUnits.length} {clothType === "SAREE" ? "Saree Units" : "Dhothi Units"}
                 </span>
               </div>
             ) : (
@@ -613,7 +613,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     filterType === "VEATTI" ? "bg-emerald-600 text-white shadow-2xs" : "hover:text-slate-900"
                   }`}
                 >
-                  Veatti ({units.filter((u) => u.clothType === "VEATTI").length})
+                  Dhothi ({units.filter((u) => u.clothType === "VEATTI").length})
                 </button>
                 <button
                   type="button"
@@ -697,7 +697,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                           : "bg-purple-100 text-purple-800"
                       }`}
                     >
-                      {isVeatti ? "Veatti" : "Saree"}
+                      {isVeatti ? "Dhothi" : "Saree"}
                     </span>
                   </div>
 
@@ -775,7 +775,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                   selectedUnit.clothType === "VEATTI" ? "bg-emerald-100 text-emerald-800" : "bg-purple-100 text-purple-800"
                 }`}>
-                  {selectedUnit.clothType === "VEATTI" ? "Veatti Production" : "Saree Production"}
+                  {selectedUnit.clothType === "VEATTI" ? "Dhothi Production" : "Saree Production"}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">
                   {selectedUnit.location ? `📍 ${selectedUnit.location}` : "Tamil Nadu"} • {selectedUnit.machineCount} Looms
@@ -821,7 +821,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 }`}
               >
                 <Plus className="h-4 w-4" />
-                <span>{clothType === "SAREE" ? "Saree Produced" : "Veatti Produced"}</span>
+                <span>{clothType === "SAREE" ? "Saree Produced" : "Dhothi Produced"}</span>
               </button>
 
               <button
@@ -944,7 +944,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 ) : (
                   <>
                     Issued: {summary?.totalBabinIssued ?? summary?.totalBabin ?? selectedUnit.babinCount ?? 0} Sets • Consumed:{" "}
-                    {summary?.totalBabinConsumed ?? 0} Sets (1 set / 500 Veattis)
+                    {summary?.totalBabinConsumed ?? 0} Sets (1 set / 500 Dhothis)
                   </>
                 )}
               </div>
@@ -1360,7 +1360,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                 type="button"
                 onClick={() => {
                   setInlineType("PRODUCED");
-                  setInlineDesc(clothType === "SAREE" ? "Saree Production" : "Veatti Production");
+                  setInlineDesc(clothType === "SAREE" ? "Saree Production" : "Dhothi Production");
                 }}
                 className={`px-3 py-1 rounded-lg transition ${
                   inlineType === "PRODUCED"
@@ -1814,7 +1814,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                       <p className="text-sm font-bold text-slate-600">No register entries found for this powerloom</p>
                       <p className="text-xs text-slate-400">
                         Use the fast entry strip above or click "+ Detailed Entry" to record Paavu allocation,{" "}
-                        {clothType === "SAREE" ? "Saree" : "Veatti"} production, Weft bags, or Cash paid.
+                        {clothType === "SAREE" ? "Saree" : "Dhothi"} production, Weft bags, or Cash paid.
                       </p>
                     </div>
                   </td>
@@ -2163,7 +2163,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
                     Powerloom: <strong className="text-slate-800">{selectedUnit?.weaverName}</strong> (
-                    {selectedUnit?.clothType === "VEATTI" ? "Veatti" : "Saree"})
+                    {selectedUnit?.clothType === "VEATTI" ? "Dhothi" : "Saree"})
                   </p>
                 </div>
               </div>
@@ -2217,7 +2217,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                           t === "PAAVU"
                             ? "Warp Issued / Paavu Given"
                             : t === "PRODUCED"
-                            ? (clothType === "SAREE" ? "Saree Production" : "Veatti Production")
+                            ? (clothType === "SAREE" ? "Saree Production" : "Dhothi Production")
                             : t === "WEFT_BAG"
                             ? "Weft Yarn Issued"
                             : t === "CASH"
@@ -2230,7 +2230,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     <option value="PRODUCED">
                       {clothType === "SAREE"
                         ? "Saree Production (Pieces)"
-                        : "Veatti Production (Pieces)"}
+                        : "Dhothi Production (Pieces)"}
                     </option>
                     <option value="PAAVU">Warp Issued (Paavu Given Pieces)</option>
                     <option value="WEFT_BAG">Weft Yarn / Bags (Weft in KG)</option>
@@ -2251,7 +2251,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   placeholder={
                     clothType === "SAREE"
                       ? "e.g. 2 Paavu 9 Beams, 240 bag, Saree 200 pcs, cash..."
-                      : "e.g. 2 Paavu 9 Beams, 240 bag, Veatti 500 pcs, cash..."
+                      : "e.g. 2 Paavu 9 Beams, 240 bag, Dhothi 500 pcs, cash..."
                   }
                   value={entryForm.description}
                   onChange={(e) => setEntryForm({ ...entryForm, description: e.target.value })}

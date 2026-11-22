@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       key: "veatti" as NavItemKey,
-      label: "Veatti Production",
+      label: "Dhothi Production",
       icon: Layers,
     },
     {

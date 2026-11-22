@@ -333,7 +333,9 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                   <span className="font-bold text-slate-800">{unitData.paavuWeightKg || 0} KG</span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Individual Veatti Rate:</span>
+                  <span className="text-[11px] text-slate-400 font-medium block">
+                    {unitData.clothType === "SAREE" ? "Individual Saree Rate:" : "Individual Dhothi Rate:"}
+                  </span>
                   <span className="font-extrabold text-emerald-700">
                     ₹{unitData.individualRate || 0} / {unitData.rateUnit || "KG"}
                   </span>
@@ -583,7 +585,7 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                     {(!unitData.varavuEntries || unitData.varavuEntries.length === 0) ? (
                       <tr>
                         <td colSpan={8} className="py-6 text-center text-slate-400">
-                          No Varavu entries recorded for this Veatti.
+                          No Varavu entries recorded for this powerloom.
                         </td>
                       </tr>
                     ) : (
@@ -657,7 +659,7 @@ export const VeattiUnitDetailModal: React.FC<VeattiUnitDetailModalProps> = ({
                     {(!unitData.advanceEntries || unitData.advanceEntries.length === 0) ? (
                       <tr>
                         <td colSpan={6} className="py-6 text-center text-slate-400">
-                          No advance entries recorded for this Veatti.
+                          No advance entries recorded for this powerloom.
                         </td>
                       </tr>
                     ) : (

@@ -79,7 +79,7 @@ export const VeattiLedgerTab: React.FC<VeattiLedgerTabProps> = ({
 
     const exportData = ledgerRows.map((row) => ({
       Date: new Date(row.date).toLocaleDateString("en-IN"),
-      "Veatti / Weaver": row.weaverName,
+      "Powerloom / Weaver": row.weaverName,
       Type: row.type,
       "Paavu KG": row.paavuKg ?? "—",
       Rate: row.rate ? `₹${row.rate}` : "—",
@@ -92,10 +92,10 @@ export const VeattiLedgerTab: React.FC<VeattiLedgerTabProps> = ({
     }));
 
     const unitName = selectedUnitId
-      ? units.find((u) => u.id === selectedUnitId)?.weaverName || "Veatti"
-      : "All_Veattis";
+      ? units.find((u) => u.id === selectedUnitId)?.weaverName || "Dhothi"
+      : "All_Dhothis";
 
-    exportToCSV(`Veatti_Accounting_Ledger_${unitName}`, exportData);
+    exportToCSV(`Dhothi_Accounting_Ledger_${unitName}`, exportData);
   };
 
   const handleTriggerPrint = () => {
@@ -113,7 +113,7 @@ export const VeattiLedgerTab: React.FC<VeattiLedgerTabProps> = ({
               <span className="p-1.5 rounded-xl bg-slate-900 text-white">
                 <FileText className="h-4 w-4" />
               </span>
-              <span>Complete Veatti Production & Financial Register</span>
+              <span>Complete Dhothi Production & Financial Register</span>
             </h3>
             <p className="text-xs text-slate-500 mt-1">
               Digital replacement for handwritten register: Track Paavu, Production, Varavu, Handover, Advance & Running Balance.
@@ -205,7 +205,7 @@ export const VeattiLedgerTab: React.FC<VeattiLedgerTabProps> = ({
               onChange={(e) => setSelectedUnitId(e.target.value)}
               className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:border-slate-300"
             >
-              <option value="">-- All Veattis --</option>
+              <option value="">-- All Units --</option>
               {units.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.weaverName} (₹{u.individualRate}/{u.rateUnit || "KG"})
@@ -282,7 +282,7 @@ export const VeattiLedgerTab: React.FC<VeattiLedgerTabProps> = ({
           <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
             <tr>
               <th className="py-3 px-3 whitespace-nowrap">Date</th>
-              <th className="py-3 px-3">Veatti / Weaver</th>
+              <th className="py-3 px-3">Powerloom / Weaver</th>
               <th className="py-3 px-3 text-right">Paavu KG</th>
               <th className="py-3 px-3 text-right">Rate</th>
               <th className="py-3 px-3 text-right bg-emerald-50/70 text-emerald-800">Varavu (Credit)</th>

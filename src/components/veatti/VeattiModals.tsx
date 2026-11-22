@@ -203,9 +203,9 @@ export const DirectEntryModal: React.FC<DirectEntryModalProps> = ({
               />
               <span>
                 {isEditing
-                  ? `Edit ${activeClothType === "SAREE" ? "Saree" : "Veatti"} Contract & Info`
+                  ? `Edit ${activeClothType === "SAREE" ? "Saree" : "Dhothi"} Contract & Info`
                   : `Direct Entry: Individual ${
-                      activeClothType === "SAREE" ? "Saree" : "Veatti"
+                      activeClothType === "SAREE" ? "Saree" : "Dhothi"
                     } Contract`}
               </span>
             </h3>
@@ -227,7 +227,7 @@ export const DirectEntryModal: React.FC<DirectEntryModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
               <label className="font-bold text-slate-700 block mb-1">
-                Veatti / Weaver Name *
+                Powerloom / Weaver Name *
               </label>
               <input
                 type="text"
@@ -901,7 +901,7 @@ export const VaravuModal: React.FC<VaravuModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="font-bold text-slate-700 block mb-1">Veatti / Weaver *</label>
+            <label className="font-bold text-slate-700 block mb-1">Powerloom / Weaver *</label>
             <select
               required
               value={form.unitId}
@@ -1160,7 +1160,7 @@ export const AdvanceModal: React.FC<AdvanceModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="font-bold text-slate-700 block mb-1">Veatti / Weaver *</label>
+            <label className="font-bold text-slate-700 block mb-1">Powerloom / Weaver *</label>
             <select
               required
               value={form.unitId}
@@ -1329,7 +1329,7 @@ export const ConfigureRateModal: React.FC<ConfigureRateModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-200 pb-3">
           <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-emerald-600" />
-            <span>Configure Individual Veatti Rate</span>
+            <span>Configure Individual Dhothi Rate</span>
           </h3>
           <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-slate-900">
             <X className="h-5 w-5" />
@@ -1500,7 +1500,7 @@ export const PrintStatementModal: React.FC<PrintStatementModalProps> = ({
               Registered Under Tamil Nadu Co-operative Societies Act • Society Sizing & Powerloom Division
             </p>
             <h2 className="text-sm font-extrabold uppercase mt-1 tracking-wider bg-slate-100 py-1 inline-block px-4 rounded-md">
-              Veatti Production, Paavu Accounting & Financial Balance Register
+              Dhothi Production, Paavu Accounting & Financial Balance Register
             </h2>
           </div>
 
@@ -1509,7 +1509,7 @@ export const PrintStatementModal: React.FC<PrintStatementModalProps> = ({
             <div>
               <span className="text-slate-500 block text-[10px] uppercase font-bold">Weaver / Unit:</span>
               <span className="font-black text-slate-900 text-sm">
-                {selectedUnit ? selectedUnit.weaverName : "Consolidated - All Veatti Units"}
+                {selectedUnit ? selectedUnit.weaverName : "Consolidated - All Dhothi Units"}
               </span>
             </div>
             <div>
@@ -1535,7 +1535,7 @@ export const PrintStatementModal: React.FC<PrintStatementModalProps> = ({
             <thead className="bg-slate-100 text-slate-900 font-bold border-b border-slate-400">
               <tr>
                 <th className="py-2 px-2 border-r border-slate-300">Date</th>
-                <th className="py-2 px-2 border-r border-slate-300">Veatti / Weaver</th>
+                <th className="py-2 px-2 border-r border-slate-300">Powerloom / Weaver</th>
                 <th className="py-2 px-2 text-right border-r border-slate-300">Paavu KG</th>
                 <th className="py-2 px-2 text-right border-r border-slate-300">Rate</th>
                 <th className="py-2 px-2 text-right border-r border-slate-300 font-black">Varavu (₹)</th>

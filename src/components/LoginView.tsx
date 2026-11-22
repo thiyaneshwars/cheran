@@ -81,7 +81,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="font-bold text-white block">Powerloom Production Registers</span>
-                  <span className="text-[11px] text-slate-400">Authentic handwritten tally for Veatti & Saree</span>
+                  <span className="text-[11px] text-slate-400">Authentic handwritten tally for Dhothi & Saree</span>
                 </div>
               </div>
 

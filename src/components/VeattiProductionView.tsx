@@ -433,11 +433,11 @@ export const VeattiProductionView: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-200 pb-5">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black text-2xl shadow-sm">
-            V
+            D
           </span>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span>Veatti Production & Accounting Ledger</span>
+              <span>Dhothi Production & Accounting Ledger</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed">
               Digital Powerloom Society Accounting: Paavu Allocation, Loom Production, Varavu, Advance & Auto-Tally
@@ -1068,7 +1068,7 @@ export const VeattiProductionView: React.FC = () => {
         isOpen={showDirectEntryModal}
         onClose={() => setShowDirectEntryModal(false)}
         onSuccess={() => {
-          showToast("✓ Veatti powerloom production contract saved successfully!");
+          showToast("✓ Dhothi powerloom production contract saved successfully!");
           fetchData();
         }}
         initialData={editingUnit}
@@ -1456,7 +1456,7 @@ export const VeattiProductionView: React.FC = () => {
                   onChange={(e) => setHandoverForm({ ...handoverForm, unitId: e.target.value })}
                   className="w-full rounded-xl bg-white border border-slate-300 p-2.5 text-slate-900 outline-none"
                 >
-                  <option value="">-- General Society Veatti Batch --</option>
+                  <option value="">-- General Society Dhothi Batch --</option>
                   {units.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.weaverName} (Target: {u.targetMeters}m)
@@ -1590,7 +1590,7 @@ export const VeattiProductionView: React.FC = () => {
         defaultClothType="VEATTI"
         lockClothType={true}
         onSuccess={() => {
-          showToast("✓ Veatti powerloom unit registered successfully!");
+          showToast("✓ Dhothi powerloom unit registered successfully!");
           fetchData();
         }}
       />

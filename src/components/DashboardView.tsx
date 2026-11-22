@@ -359,7 +359,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     : "text-slate-600 hover:text-emerald-700"
                 }`}
               >
-                Dhothi (Veatti)
+                Dhothi Scheme
               </button>
               <button
                 type="button"
@@ -389,7 +389,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 type="button"
                 onClick={() => onNavigate("veatti")}
                 className="px-2.5 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition flex items-center gap-1"
-                title="Open Veatti / Dhothi Production Register"
+                title="Open Dhothi Production Register"
               >
                 <span>Dhothi Looms</span>
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -743,7 +743,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Layers className="h-4 w-4" />
               </div>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
-                Veatti Production
+                Dhothi Production
               </span>
             </div>
             <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition flex-shrink-0 ml-1" />
@@ -952,7 +952,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-slate-900">
-                    Veatti Production
+                    Dhothi Production
                   </span>
                   <span className="text-xs text-slate-400">
                     Powerloom register & wage accounting

@@ -98,7 +98,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                 : "text-slate-600 hover:text-slate-900 hover:bg-white"
             }`}
           >
-            <span>Veatti Division</span>
+            <span>Dhothi Division</span>
           </button>
           <button
             type="button"
@@ -217,11 +217,11 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
               <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
                 <div className="flex items-center gap-3">
                   <span className="h-10 w-10 rounded-xl bg-slate-100 text-slate-900 border border-slate-200/80 flex items-center justify-center font-bold text-lg">
-                    V
+                    D
                   </span>
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">
-                      Veatti Division
+                      Dhothi Division
                     </h2>
                     <p className="text-xs text-slate-500 font-medium">
                       Powerloom Dhoti Production & Warp Management
@@ -335,7 +335,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                 onClick={() => onNavigate("veatti")}
                 className="w-full py-3 rounded-xl bg-[#1E2229] hover:bg-slate-800 text-white font-semibold text-xs shadow-xs transition flex items-center justify-center gap-2"
               >
-                <span>Manage Veatti Powerloom & Paavu Registers</span>
+                <span>Manage Dhothi Powerloom & Paavu Registers</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -520,7 +520,7 @@ export const ProductionDashboardView: React.FC<ProductionDashboardProps> = ({
                         : "bg-purple-50 text-purple-700 border border-purple-200/70"
                     }`}
                   >
-                    {p.clothType === "VEATTI" ? "Veatti" : "Saree"}
+                    {p.clothType === "VEATTI" ? "Dhothi" : "Saree"}
                   </span>
                 </div>
 

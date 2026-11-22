@@ -326,7 +326,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
       const actionWord = editingHandover ? "updated" : "saved";
       showToast(
-        `✓ ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover of ${finalPieces} ${form.clothType === "SAREE" ? "Sarees" : "Dhothis"} ${actionWord} under Challan #${form.challanNo}!`
+        `✓ ${form.clothType === "VEATTI" ? "Dhothi" : "Saree"} Handover of ${finalPieces} ${form.clothType === "SAREE" ? "Sarees" : "Dhothis"} ${actionWord} under Challan #${form.challanNo}!`
       );
       setShowCreateModal(false);
       setEditingHandover(null);
@@ -341,7 +341,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
   // Delete Handover Entry
   const handleDeleteHandover = async (h: any) => {
     const isVeatti = h.clothType === "VEATTI";
-    const label = isVeatti ? "Veatti" : "Saree";
+    const label = isVeatti ? "Dhothi" : "Saree";
     const pcs = h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65));
     const unitLabel = isVeatti ? "Dhothis" : "Sarees";
     if (
@@ -375,7 +375,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
     const exportRows = filteredHandovers.map((h) => ({
       "Challan / Order No": h.challanNo,
-      "Cloth Section": h.clothType === "VEATTI" ? "Veatti" : "Saree",
+      "Cloth Section": h.clothType === "VEATTI" ? "Dhothi" : "Saree",
       "Handover Date": new Date(h.handoverDate).toLocaleDateString("en-IN"),
       "Handover Quantity (Pieces)": h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65)),
       "Source Loom / Weaver": h.unit?.weaverName || "Society Stock Pool",
@@ -429,21 +429,21 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               Stocks Handover to Government
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 font-medium">
-              Dedicated tracking for Veatti & Saree cloth dispatches, challans, godown stock deduction, and statutory tallies
+              Dedicated tracking for Dhothi & Saree cloth dispatches, challans, godown stock deduction, and statutory tallies
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Record Veatti Handover Button */}
+          {/* Record Dhothi Handover Button */}
           <button
             type="button"
             onClick={() => handleOpenCreateModal("VEATTI")}
             className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            <span>+ Record Veatti Handover</span>
+            <span>+ Record Dhothi Handover</span>
           </button>
 
           {/* Record Saree Handover Button */}
@@ -521,7 +521,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             }`}
           >
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span>Veatti Section</span>
+            <span>Dhothi Section</span>
             <span
               className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                 activeSection === "VEATTI"
@@ -529,7 +529,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   : "bg-emerald-50 text-emerald-700"
               }`}
             >
-              {veattiHandovers.length} Challans • {veattiHandovered.toLocaleString("en-IN")}m
+              {veattiHandovers.length} Challans • {veattiHandovered.toLocaleString("en-IN")} Dhothis
             </span>
           </button>
 
@@ -555,7 +555,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   : "bg-purple-50 text-purple-700"
               }`}
             >
-              {sareeHandovers.length} Challans • {sareeHandovered.toLocaleString("en-IN")}m
+              {sareeHandovers.length} Challans • {sareeHandovered.toLocaleString("en-IN")} Sarees
             </span>
           </button>
         </div>
@@ -569,7 +569,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               onClick={() => onNavigate("veatti")}
               className="text-emerald-700 hover:underline"
             >
-              Veatti Production &rarr;
+              Dhothi Production &rarr;
             </button>
             <span>•</span>
             <button
@@ -739,11 +739,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {totalCombinedHandovered.toLocaleString("en-IN")} Mtr • Combined Dhothi + Saree
+              {totalCombinedPiecesHandovered.toLocaleString("en-IN")} Pieces • Combined Dhothi + Saree
             </p>
           </div>
 
-          {/* Card 2: Veatti Handovered */}
+          {/* Card 2: Dhothi Handovered */}
           <div className="rounded-2xl border border-emerald-200/80 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold text-slate-500">
               <span className="uppercase tracking-wider">Dhothi Handovered</span>
@@ -758,7 +758,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {veattiHandovers.length} Challans • {veattiHandovered.toLocaleString("en-IN")} Mtr
+              {veattiHandovers.length} Challans • {dhothiHandoveredPieces.toLocaleString("en-IN")} Dhothis
             </p>
           </div>
 
@@ -777,7 +777,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {sareeHandovers.length} Challans • {sareeHandovered.toLocaleString("en-IN")} Mtr
+              {sareeHandovers.length} Challans • {sareeHandoveredPieces.toLocaleString("en-IN")} Sarees
             </p>
           </div>
 
@@ -805,10 +805,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       {/* VEATTI SECTION SPECIFIC KPIS */}
       {activeSection === "VEATTI" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Veatti Metric 1: Produced */}
+          {/* Dhothi Metric 1: Produced */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-              <span className="uppercase tracking-wider">Veatti Loom Produced</span>
+              <span className="uppercase tracking-wider">Dhothi Loom Produced</span>
               <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
                 <Factory className="h-4 w-4" />
               </span>
@@ -820,14 +820,14 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-emerald-700">
-              Produced across {veattiUnits.length} Veatti Powerlooms
+              Produced across {veattiUnits.length} Dhothi Powerlooms
             </p>
           </div>
 
-          {/* Veatti Metric 2: Godown Stock */}
+          {/* Dhothi Metric 2: Godown Stock */}
           <div className="rounded-2xl border border-amber-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-              <span className="uppercase tracking-wider">Veatti Godown Stock</span>
+              <span className="uppercase tracking-wider">Dhothi Godown Stock</span>
               <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
                 <Warehouse className="h-4 w-4" />
               </span>
@@ -994,7 +994,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 <option value="ALL">All Powerlooms</option>
                 {filterUnitsList.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.weaverName} ({u.clothType === "VEATTI" ? "Veatti" : "Saree"})
+                    {u.weaverName} ({u.clothType === "VEATTI" ? "Dhothi" : "Saree"})
                   </option>
                 ))}
               </select>
@@ -1044,7 +1044,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
             {activeSection !== "ALL" && (
               <span>
                 {" "}
-                in <strong className="text-slate-800">{activeSection === "VEATTI" ? "Veatti" : "Saree"}</strong> section
+                in <strong className="text-slate-800">{activeSection === "VEATTI" ? "Dhothi" : "Saree"}</strong> section
               </span>
             )}
           </div>
@@ -1081,14 +1081,14 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
                   <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <span>Dhothi / Veatti (வேட்டி) Handover Ledger</span>
+                    <span>Dhothi (வேட்டி) Handover Ledger</span>
                     <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                       {veattiHandoversFiltered.length} Challans
                     </span>
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Official Veatti dispatches to Co-optex • {veattiHandoversPieces.toLocaleString("en-IN")} Dhothis
+                  Official Dhothi dispatches to Co-optex • {veattiHandoversPieces.toLocaleString("en-IN")} Dhothis
                 </p>
               </div>
 
@@ -1098,7 +1098,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 className="self-start sm:self-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>+ Record Veatti Handover</span>
+                <span>+ Record Dhothi Handover</span>
               </button>
             </div>
 
@@ -1124,14 +1124,14 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                         <div className="flex flex-col items-center justify-center gap-2">
                           <PackageCheck className="h-8 w-8 text-emerald-300" />
                           <span className="font-bold text-sm text-slate-600">
-                            No Veatti government handover records found.
+                            No Dhothi government handover records found.
                           </span>
                           <button
                             type="button"
                             onClick={() => handleOpenCreateModal("VEATTI")}
                             className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
                           >
-                            + Record First Veatti Handover
+                            + Record First Dhothi Handover
                           </button>
                         </div>
                       </td>
@@ -1237,7 +1237,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     <tr>
                       <td className="py-3 px-4">
                         <span className="font-sans font-black text-emerald-950 uppercase text-[10px]">
-                          Veatti Totals ({veattiHandoversFiltered.length})
+                          Dhothi Totals ({veattiHandoversFiltered.length})
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-400">—</td>
@@ -1456,7 +1456,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                         : "bg-purple-100 text-purple-800"
                     }`}
                   >
-                    {modalClothType === "VEATTI" ? "Veatti Section" : "Saree Section"}
+                    {modalClothType === "VEATTI" ? "Dhothi Section" : "Saree Section"}
                   </span>
                   <span className="text-xs text-slate-400 font-medium">
                     {editingHandover ? "Edit Record" : "Official Dispatch"}
@@ -1505,7 +1505,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     }`}
                   >
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    <span>Veatti Production</span>
+                    <span>Dhothi Production</span>
                   </button>
                   <button
                     type="button"
@@ -1525,7 +1525,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               {/* Stock Availability Context Card */}
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 space-y-1">
                 <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                  <span>Current {form.clothType === "VEATTI" ? "Veatti" : "Saree"} Stock Status</span>
+                  <span>Current {form.clothType === "VEATTI" ? "Dhothi" : "Saree"} Stock Status</span>
                   <Warehouse className="h-3.5 w-3.5 text-amber-600" />
                 </div>
                 <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
@@ -1711,8 +1711,8 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     {submitting
                       ? (editingHandover ? "Updating..." : "Recording...")
                       : editingHandover
-                      ? `Update ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover`
-                      : `Record ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover`}
+                      ? `Update ${form.clothType === "VEATTI" ? "Dhothi" : "Saree"} Handover`
+                      : `Record ${form.clothType === "VEATTI" ? "Dhothi" : "Saree"} Handover`}
                   </span>
                 </button>
               </div>
@@ -1786,7 +1786,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 <div>
                   <span className="text-slate-500 font-bold block">Cloth Production Section:</span>
                   <span className="text-sm font-black text-slate-900">
-                    {selectedPrintHandover.clothType === "VEATTI" ? "Veatti Production" : "Saree Production"}
+                    {selectedPrintHandover.clothType === "VEATTI" ? "Dhothi Production" : "Saree Production"}
                   </span>
                 </div>
                 <div className="text-right">
@@ -1811,7 +1811,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   <tr className="border-b border-slate-900 font-medium">
                     <td className="p-3 border-r border-slate-900">
                       <span className="font-bold">
-                        {selectedPrintHandover.clothType === "VEATTI" ? "Standard Veatti Cloth" : "Standard Saree Cloth"}
+                        {selectedPrintHandover.clothType === "VEATTI" ? "Standard Dhothi Cloth" : "Standard Saree Cloth"}
                       </span>
                       <span className="block text-[11px] text-slate-500">
                         Inspected and approved for government supply

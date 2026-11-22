@@ -63,7 +63,7 @@ export const VeattiAdvanceTab: React.FC<VeattiAdvanceTabProps> = ({
             <span className="p-1.5 rounded-xl bg-amber-100 text-amber-800">
               <CreditCard className="h-4 w-4" />
             </span>
-            <span>Individual Veatti Advance Ledger</span>
+            <span>Individual Advance Ledger</span>
           </h3>
           <p className="text-xs text-slate-500 mt-1">
             Track all cash, bank transfer, and UPI advance disbursements given to each weaver.
@@ -108,7 +108,7 @@ export const VeattiAdvanceTab: React.FC<VeattiAdvanceTabProps> = ({
             onChange={(e) => setSelectedUnitId(e.target.value)}
             className="rounded-xl bg-white border border-slate-200 px-3 py-2 text-xs text-slate-800 outline-none focus:border-slate-300 font-semibold"
           >
-            <option value="">-- All Veatti Units --</option>
+            <option value="">-- All Units --</option>
             {units.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.weaverName} (Adv: {formatINR(u.totalAdvancePaid)})
@@ -124,7 +124,7 @@ export const VeattiAdvanceTab: React.FC<VeattiAdvanceTabProps> = ({
           <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
             <tr>
               <th className="py-3 px-4">Date</th>
-              <th className="py-3 px-4">Veatti / Weaver Name</th>
+              <th className="py-3 px-4">Powerloom / Weaver Name</th>
               <th className="py-3 px-4">Advance Amount (₹)</th>
               <th className="py-3 px-4">Payment Mode</th>
               <th className="py-3 px-4">Voucher / Ref No</th>
