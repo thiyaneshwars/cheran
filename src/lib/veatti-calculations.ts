@@ -928,3 +928,112 @@ export async function syncUnitFinancialsAndTotals(tx: any, unitId: string) {
   return updatedUnit;
 }
 
+/**
+ * Get unified, live global production overview across Veatti and Saree
+ * Single source of truth for DashboardView and Production Overview
+ */
+export async function getGlobalProductionOverview(db: any) {
+  const units = await db.productionUnit.findMany({
+    include: {
+      paavus: true,
+      handovers: { orderBy: { handoverDate: "desc" } },
+      registerEntries: true,
+      dailyProductions: true,
+      varavuEntries: true,
+      advanceEntries: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const effectiveUnits = units.map((u: any) => {
+    const totals = calculateUnitEffectiveTotals(u);
+    return {
+      ...u,
+      totalProducedMeters: totals.totalProduction,
+      paavuMeters: totals.effectivePaavuTotal,
+      paavuWeightKg: totals.paavuWeightKg,
+      babinCount: totals.babinCount,
+      remainingPaavuMeters: totals.remainingPaavu,
+      totalVaravuAmount: totals.totalVaravu,
+      totalAdvancePaid: totals.totalAdvance,
+      currentBalance: totals.currentBalance,
+    };
+  });
+
+  const allHandovers = await db.governmentHandoverLog.findMany();
+  const allPaavus = await db.paavuRecord.findMany();
+
+  // Veatti metrics
+  const veattiUnits = effectiveUnits.filter((u: any) => u.clothType === "VEATTI");
+  const veattiHandovers = allHandovers.filter((h: any) => h.clothType === "VEATTI");
+  const veattiPaavus = allPaavus.filter((p: any) => p.clothType === "VEATTI");
+
+  const veattiTotalProduced = veattiUnits.reduce((acc: number, u: any) => acc + (u.totalProducedMeters || 0), 0);
+  const veattiTotalHandovered = veattiHandovers.reduce(
+    (acc: number, h: any) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor((h.meters || 0) / 3.65)),
+    0
+  );
+  const veattiTotalPaavuMeters = veattiUnits.reduce((acc: number, u: any) => acc + (u.paavuMeters || 0), 0);
+  const veattiRawTarget = veattiUnits.reduce((acc: number, u: any) => acc + (u.targetMeters || 0), 0);
+  const veattiTotalTarget = veattiRawTarget > veattiTotalProduced ? veattiRawTarget : (veattiTotalPaavuMeters > 0 ? veattiTotalPaavuMeters : veattiTotalProduced);
+  const veattiGodownAvailable = Math.max(0, veattiTotalProduced - veattiTotalHandovered);
+  const veattiBalanceToHandover = Math.max(0, veattiTotalTarget - veattiTotalHandovered);
+  const veattiRemainingPaavu = veattiUnits.reduce((acc: number, u: any) => acc + (u.remainingPaavuMeters || 0), 0);
+
+  // Saree metrics
+  const sareeUnits = effectiveUnits.filter((u: any) => u.clothType === "SAREE");
+  const sareeHandovers = allHandovers.filter((h: any) => h.clothType === "SAREE");
+  const sareePaavus = allPaavus.filter((p: any) => p.clothType === "SAREE");
+
+  const sareeTotalProduced = sareeUnits.reduce((acc: number, u: any) => acc + (u.totalProducedMeters || 0), 0);
+  const sareeTotalHandovered = sareeHandovers.reduce(
+    (acc: number, h: any) => acc + (h.pieces && h.pieces > 0 ? h.pieces : Math.floor((h.meters || 0) / 5.5)),
+    0
+  );
+  const sareeTotalPaavuMeters = sareeUnits.reduce((acc: number, u: any) => acc + (u.paavuMeters || 0), 0);
+  const sareeRawTarget = sareeUnits.reduce((acc: number, u: any) => acc + (u.targetMeters || 0), 0);
+  const sareeTotalTarget = sareeRawTarget > sareeTotalProduced ? sareeRawTarget : (sareeTotalPaavuMeters > 0 ? sareeTotalPaavuMeters : sareeTotalProduced);
+  const sareeGodownAvailable = Math.max(0, sareeTotalProduced - sareeTotalHandovered);
+  const sareeBalanceToHandover = Math.max(0, sareeTotalTarget - sareeTotalHandovered);
+  const sareeRemainingPaavu = sareeUnits.reduce((acc: number, u: any) => acc + (u.remainingPaavuMeters || 0), 0);
+
+  // Consolidated
+  const totalConsolidated = {
+    totalProducedMeters: veattiTotalProduced + sareeTotalProduced,
+    totalHandoveredMeters: veattiTotalHandovered + sareeTotalHandovered,
+    godownAvailableMeters: veattiGodownAvailable + sareeGodownAvailable,
+    balanceToHandoverMeters: veattiBalanceToHandover + sareeBalanceToHandover,
+  };
+
+  return {
+    veatti: {
+      totalProducedMeters: veattiTotalProduced,
+      totalHandoveredMeters: veattiTotalHandovered,
+      godownAvailableMeters: veattiGodownAvailable,
+      targetMeters: veattiTotalTarget,
+      balanceToHandoverMeters: veattiBalanceToHandover,
+      totalPaavuGiven: veattiTotalPaavuMeters,
+      remainingPaavu: veattiRemainingPaavu,
+      unitCount: veattiUnits.length,
+      unloadedPaavuCount: veattiPaavus.filter((p: any) => p.status === "UNLOADED").length,
+      runningPaavuCount: veattiPaavus.filter((p: any) => p.status === "RUNNING").length,
+      completedPaavuCount: veattiPaavus.filter((p: any) => p.status === "COMPLETED").length,
+    },
+    saree: {
+      totalProducedMeters: sareeTotalProduced,
+      totalHandoveredMeters: sareeTotalHandovered,
+      godownAvailableMeters: sareeGodownAvailable,
+      targetMeters: sareeTotalTarget,
+      balanceToHandoverMeters: sareeBalanceToHandover,
+      totalPaavuGiven: sareeTotalPaavuMeters,
+      remainingPaavu: sareeRemainingPaavu,
+      unitCount: sareeUnits.length,
+      unloadedPaavuCount: sareePaavus.filter((p: any) => p.status === "UNLOADED").length,
+      runningPaavuCount: sareePaavus.filter((p: any) => p.status === "RUNNING").length,
+      completedPaavuCount: sareePaavus.filter((p: any) => p.status === "COMPLETED").length,
+    },
+    totalConsolidated,
+    effectiveUnits,
+  };
+}
+

@@ -12,6 +12,7 @@ import {
   Calendar,
   ChevronDown,
   ArrowRight,
+  ArrowUpRight,
   MoreVertical,
   Cpu,
   Truck,
@@ -19,6 +20,12 @@ import {
   PieChart as PieChartIcon,
   Layers,
   Send,
+  Warehouse,
+  Factory,
+  PackageCheck,
+  Clock,
+  CheckCircle2,
+  Package,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -50,6 +57,50 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [selectedYear] = useState("This Year");
   const [selectedMonth] = useState("This Month");
+  const [productionFilter, setProductionFilter] = useState<"ALL" | "VEATTI" | "SAREE">("ALL");
+
+  // Dynamic live production & godown overview
+  const prodOverview = data?.productionOverview;
+  const veattiProd = prodOverview?.veatti || {
+    totalProducedMeters: 16900,
+    godownAvailableMeters: 1420,
+    totalHandoveredMeters: 15480,
+    targetMeters: 50967,
+    balanceToHandoverMeters: 35487,
+    totalPaavuGiven: 28640,
+    remainingPaavu: 18020,
+    unitCount: 3,
+  };
+  const sareeProd = prodOverview?.saree || {
+    totalProducedMeters: 3258,
+    godownAvailableMeters: 1295,
+    totalHandoveredMeters: 1963,
+    targetMeters: 22656,
+    balanceToHandoverMeters: 20693,
+    totalPaavuGiven: 22656,
+    remainingPaavu: 19398,
+    unitCount: 6,
+  };
+  const consolidatedProd = prodOverview?.totalConsolidated || {
+    totalProducedMeters: veattiProd.totalProducedMeters + sareeProd.totalProducedMeters,
+    godownAvailableMeters: veattiProd.godownAvailableMeters + sareeProd.godownAvailableMeters,
+    totalHandoveredMeters: veattiProd.totalHandoveredMeters + sareeProd.totalHandoveredMeters,
+    balanceToHandoverMeters: veattiProd.balanceToHandoverMeters + sareeProd.balanceToHandoverMeters,
+  };
+
+  const activeProd =
+    productionFilter === "VEATTI"
+      ? veattiProd
+      : productionFilter === "SAREE"
+      ? sareeProd
+      : consolidatedProd;
+
+  const activeUnitLabel =
+    productionFilter === "VEATTI"
+      ? "Dhothis"
+      : productionFilter === "SAREE"
+      ? "Sarees"
+      : "Pieces";
 
   // Dynamic metrics from database API
   const treasuryBalance =
@@ -256,6 +307,222 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </span>
             <span className="text-xs font-semibold text-slate-500 flex items-center gap-1 mt-1">
               <span>Disbursed: {formatINR(data?.sectionSummaries?.dailyWage?.amountSettled || 0)}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2b. Govt Scheme Production & Godown Stock Inventory (Live Sync with Powerlooms & Handover) */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-5">
+        {/* Header with Title, Mode Switcher & Quick Navigation */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
+              <Warehouse className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                  Govt Scheme Production & Godown Stock
+                </h3>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Sync
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Physical inventory produced from powerlooms, held in society godown, and dispatched to Co-optex / Govt
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Filter Pills */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setProductionFilter("ALL")}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  productionFilter === "ALL"
+                    ? "bg-white text-slate-900 shadow-2xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                All Combined
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductionFilter("VEATTI")}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  productionFilter === "VEATTI"
+                    ? "bg-emerald-600 text-white shadow-2xs font-bold"
+                    : "text-slate-600 hover:text-emerald-700"
+                }`}
+              >
+                Dhothi (Veatti)
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductionFilter("SAREE")}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  productionFilter === "SAREE"
+                    ? "bg-purple-600 text-white shadow-2xs font-bold"
+                    : "text-slate-600 hover:text-purple-700"
+                }`}
+              >
+                Saree Scheme
+              </button>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => onNavigate("saree")}
+                className="px-2.5 py-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition flex items-center gap-1"
+                title="Open Saree Production Register"
+              >
+                <span>Saree Looms</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("veatti")}
+                className="px-2.5 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition flex items-center gap-1"
+                title="Open Veatti / Dhothi Production Register"
+              >
+                <span>Dhothi Looms</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("govt-handover")}
+                className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition flex items-center gap-1"
+                title="Open Govt Handover Ledger"
+              >
+                <span>Govt Handover</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 4 Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 1. Loom Produced */}
+          <div className="p-4.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:shadow-xs transition">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+              <span>Loom Produced As of Now</span>
+              <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
+                <Factory className="h-4 w-4" />
+              </span>
+            </div>
+            <div className="mt-2.5">
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
+                {activeProd.totalProducedMeters.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-emerald-600 font-sans">{activeUnitLabel}</span>
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500">
+              Total {activeUnitLabel.toLowerCase()} produced across active powerloom units
+            </p>
+          </div>
+
+          {/* 2. In Godown Stock */}
+          <div className="p-4.5 rounded-xl border-2 border-amber-400/80 bg-amber-50/40 hover:bg-amber-50/70 hover:shadow-xs transition">
+            <div className="flex items-center justify-between text-xs font-bold text-amber-900">
+              <span className="flex items-center gap-1.5">
+                <span>In Godown Stock</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-200/80 text-amber-900 font-bold uppercase">
+                  Available
+                </span>
+              </span>
+              <span className="p-1.5 rounded-lg bg-amber-200 text-amber-800">
+                <Warehouse className="h-4 w-4" />
+              </span>
+            </div>
+            <div className="mt-2.5">
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-amber-800">
+                {activeProd.godownAvailableMeters.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-amber-700 font-sans">{activeUnitLabel}</span>
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-amber-900/80 font-medium leading-relaxed">
+              Produced ({activeProd.totalProducedMeters.toLocaleString("en-IN")}) − Handovered ({activeProd.totalHandoveredMeters.toLocaleString("en-IN")})
+            </p>
+          </div>
+
+          {/* 3. Handovered in Govt */}
+          <div className="p-4.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:shadow-xs transition">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+              <span>Handovered in Govt</span>
+              <span className="p-1.5 rounded-lg bg-blue-100 text-blue-700">
+                <PackageCheck className="h-4 w-4" />
+              </span>
+            </div>
+            <div className="mt-2.5">
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-blue-700">
+                {activeProd.totalHandoveredMeters.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-blue-600 font-sans">{activeUnitLabel}</span>
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500">
+              Total {activeUnitLabel.toLowerCase()} dispatched to Co-optex / Govt
+            </p>
+          </div>
+
+          {/* 4. Automatic Tally (Balance) */}
+          <div className="p-4.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:shadow-xs transition">
+            <div className="flex items-center justify-between text-xs font-semibold text-rose-700">
+              <span>Automatic Tally (Balance)</span>
+              <span className="p-1.5 rounded-lg bg-rose-100 text-rose-700">
+                <Clock className="h-4 w-4" />
+              </span>
+            </div>
+            <div className="mt-2.5">
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-rose-600">
+                {activeProd.balanceToHandoverMeters.toLocaleString("en-IN")}{" "}
+                <span className="text-sm font-bold text-rose-600 font-sans">{activeUnitLabel}</span>
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-rose-600/80">
+              Target quota balance yet to be dispatched
+            </p>
+          </div>
+        </div>
+
+        {/* Breakdown bar: Individual Scheme Godown Stocks */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 border-t border-slate-100 text-xs">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-semibold text-slate-700">Dhothi Godown Stock:</span>
+            </div>
+            <span className="font-mono font-bold text-slate-900">
+              {veattiProd.godownAvailableMeters.toLocaleString("en-IN")}{" "}
+              <span className="font-sans text-[11px] text-slate-500 font-normal">Dhothis ({veattiProd.unitCount || 3} Looms)</span>
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-purple-500" />
+              <span className="font-semibold text-slate-700">Saree Godown Stock:</span>
+            </div>
+            <span className="font-mono font-bold text-slate-900">
+              {sareeProd.godownAvailableMeters.toLocaleString("en-IN")}{" "}
+              <span className="font-sans text-[11px] text-slate-500 font-normal">Sarees ({sareeProd.unitCount || 6} Looms)</span>
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/80 border border-amber-200/70 sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="font-bold text-amber-900">Total Godown Inventory:</span>
+            </div>
+            <span className="font-mono font-black text-amber-800 text-sm">
+              {consolidatedProd.godownAvailableMeters.toLocaleString("en-IN")}{" "}
+              <span className="font-sans text-xs text-amber-700 font-bold">Pieces</span>
             </span>
           </div>
         </div>

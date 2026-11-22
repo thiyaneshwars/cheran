@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getDashboardMetrics, calculateProfitAnalysis, getConsolidatedBankBalance } from "@/lib/sections";
 import { add, sub, round2 } from "@/lib/decimal";
+import { getGlobalProductionOverview } from "@/lib/veatti-calculations";
 
 export async function GET(request: Request) {
   try {
@@ -118,10 +119,13 @@ export async function GET(request: Request) {
       take: 5,
     });
 
+    const productionOverview = await getGlobalProductionOverview(prisma);
+
     return NextResponse.json({
       metrics,
       profitAnalysis,
       bankDetails,
+      productionOverview,
       sectionSummaries: {
         sizing: sizingSummary,
         powerloom: plSummary,
