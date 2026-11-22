@@ -11,6 +11,7 @@ import {
   RotateCw,
   Download,
   Printer,
+  Pencil,
   Plus,
   Trash2,
   CheckCircle2,
@@ -48,8 +49,9 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Create Handover Modal state
+  // Create/Edit Handover Modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingHandover, setEditingHandover] = useState<any>(null);
   const [modalClothType, setModalClothType] = useState<"VEATTI" | "SAREE">("VEATTI");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -222,6 +224,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
   // Open Handover Entry Modal specifically for a cloth type
   const handleOpenCreateModal = (type: "VEATTI" | "SAREE") => {
+    setEditingHandover(null);
     setModalClothType(type);
     setForm({
       clothType: type,
@@ -239,6 +242,30 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     setShowCreateModal(true);
   };
 
+  // Open Handover Entry Modal for Editing an existing record
+  const handleOpenEditModal = (h: any) => {
+    setEditingHandover(h);
+    setModalClothType(h.clothType);
+    const numPieces =
+      h.pieces && h.pieces > 0
+        ? h.pieces
+        : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65));
+    setForm({
+      clothType: h.clothType,
+      unitId: h.unitId || "",
+      challanNo: h.challanNo || "",
+      handoverDate: h.handoverDate ? new Date(h.handoverDate).toISOString().split("T")[0] : "",
+      meters: h.meters || "",
+      pieces: numPieces || "",
+      recipientDept: h.recipientDept || "Tamil Nadu Handlooms & Textiles / Co-optex",
+      vehicleNo: h.vehicleNo || "",
+      officerName: h.officerName || "",
+      notes: h.notes || "",
+    });
+    setFormError(null);
+    setShowCreateModal(true);
+  };
+
   // Switch type inside modal
   const handleModalTypeChange = (type: "VEATTI" | "SAREE") => {
     setModalClothType(type);
@@ -249,7 +276,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     }));
   };
 
-  // Submit Handover Entry
+  // Submit Handover Entry (Create or Update)
   const handleSubmitHandover = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.challanNo.trim()) {
@@ -270,8 +297,13 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
     setFormError(null);
 
     try {
-      const res = await fetch("/api/production/handover", {
-        method: "POST",
+      const url = editingHandover
+        ? `/api/production/handover/${editingHandover.id}`
+        : "/api/production/handover";
+      const method = editingHandover ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clothType: form.clothType,
@@ -289,16 +321,18 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to record government handover");
+        throw new Error(data.error || "Failed to save government handover");
       }
 
+      const actionWord = editingHandover ? "updated" : "saved";
       showToast(
-        `✓ ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover of ${numMeters.toLocaleString("en-IN")}m saved under Challan #${form.challanNo}!`
+        `✓ ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover of ${finalPieces} pcs (${finalMeters.toLocaleString("en-IN")}m) ${actionWord} under Challan #${form.challanNo}!`
       );
       setShowCreateModal(false);
+      setEditingHandover(null);
       fetchData();
     } catch (err: any) {
-      setFormError(err.message || "Failed to record handover.");
+      setFormError(err.message || "Failed to save handover.");
     } finally {
       setSubmitting(false);
     }
@@ -1172,6 +1206,14 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                               </button>
                               <button
                                 type="button"
+                                onClick={() => handleOpenEditModal(h)}
+                                title="Edit Handover Challan"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => handleDeleteHandover(h)}
                                 title="Delete Handover & Restore Stock"
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
@@ -1358,6 +1400,14 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                               </button>
                               <button
                                 type="button"
+                                onClick={() => handleOpenEditModal(h)}
+                                title="Edit Handover Challan"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => handleDeleteHandover(h)}
                                 title="Delete Handover & Restore Stock"
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
@@ -1416,15 +1466,22 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   >
                     {modalClothType === "VEATTI" ? "Veatti Section" : "Saree Section"}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">Official Dispatch</span>
+                  <span className="text-xs text-slate-400 font-medium">
+                    {editingHandover ? "Edit Record" : "Official Dispatch"}
+                  </span>
                 </div>
                 <h3 className="text-lg font-black text-slate-900 mt-1">
-                  Record Government Handover
+                  {editingHandover
+                    ? `Edit Government Handover (Challan #${editingHandover.challanNo})`
+                    : "Record Government Handover"}
                 </h3>
               </div>
               <button
                 type="button"
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setEditingHandover(null);
+                }}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
               >
                 <X className="h-5 w-5" />
@@ -1659,7 +1716,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setEditingHandover(null);
+                  }}
                   className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
                 >
                   Cancel
@@ -1676,7 +1736,9 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   <Send className="h-4 w-4" />
                   <span>
                     {submitting
-                      ? "Recording..."
+                      ? (editingHandover ? "Updating..." : "Recording...")
+                      : editingHandover
+                      ? `Update ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover`
                       : `Record ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover`}
                   </span>
                 </button>
