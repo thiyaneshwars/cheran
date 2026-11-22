@@ -326,7 +326,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
       const actionWord = editingHandover ? "updated" : "saved";
       showToast(
-        `✓ ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover of ${finalPieces} pcs (${finalMeters.toLocaleString("en-IN")}m) ${actionWord} under Challan #${form.challanNo}!`
+        `✓ ${form.clothType === "VEATTI" ? "Veatti" : "Saree"} Handover of ${finalPieces} ${form.clothType === "SAREE" ? "Sarees" : "Dhothis"} ${actionWord} under Challan #${form.challanNo}!`
       );
       setShowCreateModal(false);
       setEditingHandover(null);
@@ -342,9 +342,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
   const handleDeleteHandover = async (h: any) => {
     const isVeatti = h.clothType === "VEATTI";
     const label = isVeatti ? "Veatti" : "Saree";
+    const pcs = h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65));
+    const unitLabel = isVeatti ? "Dhothis" : "Sarees";
     if (
       !confirm(
-        `Are you sure you want to delete ${label} Handover Challan #${h.challanNo} (${h.meters} Meters)?\n\nThis will restore the godown stock and recalculate loom tallies.`
+        `Are you sure you want to delete ${label} Handover Challan #${h.challanNo} (${pcs} ${unitLabel})?\n\nThis will restore the godown stock and recalculate loom tallies.`
       )
     ) {
       return;
@@ -375,7 +377,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
       "Challan / Order No": h.challanNo,
       "Cloth Section": h.clothType === "VEATTI" ? "Veatti" : "Saree",
       "Handover Date": new Date(h.handoverDate).toLocaleDateString("en-IN"),
-      "Handover Quantity (Meters)": h.meters,
+      "Handover Quantity (Pieces)": h.pieces && h.pieces > 0 ? h.pieces : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65)),
       "Source Loom / Weaver": h.unit?.weaverName || "Society Stock Pool",
       "Recipient Department": h.recipientDept,
       "Vehicle Number": h.vehicleNo || "—",
@@ -856,7 +858,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {veattiHandovers.length} Challans • {veattiHandoveredMeters.toLocaleString("en-IN")} Mtr
+              {veattiHandovers.length} Challans • {dhothiHandoveredPieces.toLocaleString("en-IN")} Dhothis
             </p>
           </div>
 
@@ -937,7 +939,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
               </span>
             </div>
             <p className="mt-1.5 text-[11px] text-slate-500 font-mono">
-              {sareeHandovers.length} Challans • {sareeHandoveredMeters.toLocaleString("en-IN")} Mtr
+              {sareeHandovers.length} Challans • {sareeHandoveredPieces.toLocaleString("en-IN")} Sarees
             </p>
           </div>
 
@@ -1049,7 +1051,17 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
           <div>
             Total Filtered Quantity:{" "}
             <span className="font-extrabold text-blue-600">
-              {filteredHandovers.reduce((acc, h) => acc + (h.meters || 0), 0).toLocaleString("en-IN")} Meters
+              {filteredHandovers
+                .reduce(
+                  (acc, h) =>
+                    acc +
+                    (h.pieces && h.pieces > 0
+                      ? h.pieces
+                      : Math.floor(h.meters / (h.clothType === "SAREE" ? 5.5 : 3.65))),
+                  0
+                )
+                .toLocaleString("en-IN")}{" "}
+              Pieces
             </span>
           </div>
         </div>
@@ -1076,7 +1088,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Official Veatti dispatches to Co-optex • {veattiHandoversMeters.toLocaleString("en-IN")} Meters ({veattiHandoversPieces.toLocaleString("en-IN")} pcs)
+                  Official Veatti dispatches to Co-optex • {veattiHandoversPieces.toLocaleString("en-IN")} Dhothis
                 </p>
               </div>
 
@@ -1096,8 +1108,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   <tr>
                     <th className="py-3 px-4">Challan / Gate Pass #</th>
                     <th className="py-3 px-4">Handover Date</th>
-                    <th className="py-3 px-4 text-right">Quantity (Mtr)</th>
-                    <th className="py-3 px-4 text-right">Pieces (வேட்டி)</th>
+                    <th className="py-3 px-4 text-right">Quantity (Dhothis)</th>
                     <th className="py-3 px-4">Source Powerloom</th>
                     <th className="py-3 px-4">Recipient Dept</th>
                     <th className="py-3 px-4">Vehicle No</th>
@@ -1109,7 +1120,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {veattiHandoversFiltered.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                      <td colSpan={9} className="py-12 text-center text-slate-400">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <PackageCheck className="h-8 w-8 text-emerald-300" />
                           <span className="font-bold text-sm text-slate-600">
@@ -1148,16 +1159,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                             })}
                           </td>
 
-                          {/* Quantity Meters */}
-                          <td className="py-3 px-4 text-right font-mono font-black text-slate-900 whitespace-nowrap">
-                            {h.meters.toLocaleString("en-IN")}{" "}
-                            <span className="text-[10px] font-semibold text-slate-400">m</span>
-                          </td>
-
-                          {/* Pieces */}
+                          {/* Quantity Pieces */}
                           <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
-                            <span className="font-black text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2 py-0.5 rounded-lg text-xs">
-                              {pcs.toLocaleString("en-IN")} pcs
+                            <span className="font-black text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-2.5 py-1 rounded-lg text-xs">
+                              {pcs.toLocaleString("en-IN")} Dhothis
                             </span>
                           </td>
 
@@ -1236,12 +1241,9 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-400">—</td>
-                      <td className="py-3 px-4 text-right font-black text-slate-900">
-                        {veattiHandoversMeters.toLocaleString("en-IN")} m
-                      </td>
                       <td className="py-3 px-4 text-right">
-                        <span className="font-black text-emerald-900 bg-emerald-200/80 px-2 py-0.5 rounded-md text-xs">
-                          {veattiHandoversPieces.toLocaleString("en-IN")} pcs
+                        <span className="font-black text-emerald-900 bg-emerald-200/80 px-2.5 py-1 rounded-md text-xs">
+                          {veattiHandoversPieces.toLocaleString("en-IN")} Dhothis
                         </span>
                       </td>
                       <td colSpan={6} className="py-3 px-4 text-slate-400">—</td>
@@ -1270,7 +1272,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Official Saree dispatches to Co-optex • {sareeHandoversMeters.toLocaleString("en-IN")} Meters ({sareeHandoversPieces.toLocaleString("en-IN")} pcs)
+                  Official Saree dispatches to Co-optex • {sareeHandoversPieces.toLocaleString("en-IN")} Sarees
                 </p>
               </div>
 
@@ -1290,8 +1292,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   <tr>
                     <th className="py-3 px-4">Challan / Gate Pass #</th>
                     <th className="py-3 px-4">Handover Date</th>
-                    <th className="py-3 px-4 text-right">Quantity (Mtr)</th>
-                    <th className="py-3 px-4 text-right">Pieces (சேலை)</th>
+                    <th className="py-3 px-4 text-right">Quantity (Sarees)</th>
                     <th className="py-3 px-4">Source Powerloom</th>
                     <th className="py-3 px-4">Recipient Dept</th>
                     <th className="py-3 px-4">Vehicle No</th>
@@ -1303,7 +1304,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {sareeHandoversFiltered.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                      <td colSpan={9} className="py-12 text-center text-slate-400">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <PackageCheck className="h-8 w-8 text-purple-300" />
                           <span className="font-bold text-sm text-slate-600">
@@ -1342,16 +1343,10 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                             })}
                           </td>
 
-                          {/* Quantity Meters */}
-                          <td className="py-3 px-4 text-right font-mono font-black text-slate-900 whitespace-nowrap">
-                            {h.meters.toLocaleString("en-IN")}{" "}
-                            <span className="text-[10px] font-semibold text-slate-400">m</span>
-                          </td>
-
-                          {/* Pieces */}
+                          {/* Quantity Pieces */}
                           <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
-                            <span className="font-black text-purple-800 bg-purple-100/80 border border-purple-300 px-2 py-0.5 rounded-lg text-xs">
-                              {pcs.toLocaleString("en-IN")} pcs
+                            <span className="font-black text-purple-800 bg-purple-100/80 border border-purple-300 px-2.5 py-1 rounded-lg text-xs">
+                              {pcs.toLocaleString("en-IN")} Sarees
                             </span>
                           </td>
 
@@ -1430,12 +1425,9 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-400">—</td>
-                      <td className="py-3 px-4 text-right font-black text-slate-900">
-                        {sareeHandoversMeters.toLocaleString("en-IN")} m
-                      </td>
                       <td className="py-3 px-4 text-right">
-                        <span className="font-black text-purple-900 bg-purple-200/80 px-2 py-0.5 rounded-md text-xs">
-                          {sareeHandoversPieces.toLocaleString("en-IN")} pcs
+                        <span className="font-black text-purple-900 bg-purple-200/80 px-2.5 py-1 rounded-md text-xs">
+                          {sareeHandoversPieces.toLocaleString("en-IN")} Sarees
                         </span>
                       </td>
                       <td colSpan={6} className="py-3 px-4 text-slate-400">—</td>
@@ -1540,19 +1532,22 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
                     <span className="text-[10px] text-slate-500 font-medium block">Loom Produced</span>
                     <span className="font-black font-mono text-slate-900">
-                      {(form.clothType === "VEATTI" ? veattiProduced : sareeProduced).toLocaleString("en-IN")}m
+                      {(form.clothType === "VEATTI" ? veattiProduced : sareeProduced).toLocaleString("en-IN")}{" "}
+                      <span className="text-[10px] font-sans text-emerald-600 font-bold">{form.clothType === "VEATTI" ? "Dhothis" : "Sarees"}</span>
                     </span>
                   </div>
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
                     <span className="text-[10px] text-slate-500 font-medium block">In Godown Stock</span>
                     <span className="font-black font-mono text-amber-700">
-                      {(form.clothType === "VEATTI" ? veattiGodownStock : sareeGodownStock).toLocaleString("en-IN")}m
+                      {(form.clothType === "VEATTI" ? veattiGodownStock : sareeGodownStock).toLocaleString("en-IN")}{" "}
+                      <span className="text-[10px] font-sans text-amber-600 font-bold">{form.clothType === "VEATTI" ? "Dhothis" : "Sarees"}</span>
                     </span>
                   </div>
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
                     <span className="text-[10px] text-slate-500 font-medium block">Balance Target</span>
                     <span className="font-black font-mono text-rose-700">
-                      {(form.clothType === "VEATTI" ? veattiBalanceToHandover : sareeBalanceToHandover).toLocaleString("en-IN")}m
+                      {(form.clothType === "VEATTI" ? veattiBalanceToHandover : sareeBalanceToHandover).toLocaleString("en-IN")}{" "}
+                      <span className="text-[10px] font-sans text-rose-600 font-bold">{form.clothType === "VEATTI" ? "Dhothis" : "Sarees"}</span>
                     </span>
                   </div>
                 </div>
@@ -1588,8 +1583,8 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                 </div>
               </div>
 
-              {/* Row 2: Pieces, Meters Handovered & Source Powerloom */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Row 2: Delivered Pieces & Source Powerloom */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
                     Delivered Pieces ({form.clothType === "SAREE" ? "Sarees" : "Dhothis"}) <span className="text-rose-500">*</span>
@@ -1616,28 +1611,6 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
 
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Equivalent Meters (Mtr) <span className="text-slate-400 font-normal">(@ {form.clothType === "SAREE" ? "5.5m" : "3.65m"})</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={form.meters}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const m = parseFloat(val) || 0;
-                      const p = m > 0 ? Math.floor(m / (form.clothType === "SAREE" ? 5.5 : 3.65)) : "";
-                      setForm({ ...form, meters: val, pieces: p });
-                    }}
-                    placeholder="e.g. 22860"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-black text-blue-600 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  />
-                  <span className="text-[10px] text-slate-400 mt-1 block">
-                    {form.clothType === "SAREE" ? "Standard ~5.5m/pc" : "Standard ~3.65m/pc"}
-                  </span>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
                     Source Powerloom / Weaver
                   </label>
                   <select
@@ -1648,7 +1621,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     <option value="">Society Common Stock Pool</option>
                     {activeModalUnits.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {u.weaverName} (Produced: {u.totalProducedMeters || 0}m)
+                        {u.weaverName} (Produced: {u.totalProducedMeters || 0} pcs)
                       </option>
                     ))}
                   </select>
@@ -1831,7 +1804,7 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                     <th className="p-2.5 text-left border-r border-slate-900">Description of Goods</th>
                     <th className="p-2.5 text-left border-r border-slate-900">Recipient Department / Depot</th>
                     <th className="p-2.5 text-center border-r border-slate-900">Vehicle No</th>
-                    <th className="p-2.5 text-right">Quantity (Meters)</th>
+                    <th className="p-2.5 text-right">Quantity (Pieces)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1851,7 +1824,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                       {selectedPrintHandover.vehicleNo || "—"}
                     </td>
                     <td className="p-3 text-right font-black font-mono text-sm">
-                      {selectedPrintHandover.meters.toLocaleString("en-IN")} m
+                      {(selectedPrintHandover.pieces && selectedPrintHandover.pieces > 0
+                        ? selectedPrintHandover.pieces
+                        : Math.floor(selectedPrintHandover.meters / (selectedPrintHandover.clothType === "SAREE" ? 5.5 : 3.65))
+                      ).toLocaleString("en-IN")}{" "}
+                      {selectedPrintHandover.clothType === "VEATTI" ? "Dhothis" : "Sarees"}
                     </td>
                   </tr>
                   <tr className="bg-slate-50 font-black">
@@ -1859,7 +1836,11 @@ export const GovtHandoverView: React.FC<GovtHandoverViewProps> = ({ onNavigate }
                       Total Handover Quantity:
                     </td>
                     <td className="p-2.5 text-right font-mono text-sm">
-                      {selectedPrintHandover.meters.toLocaleString("en-IN")} Meters
+                      {(selectedPrintHandover.pieces && selectedPrintHandover.pieces > 0
+                        ? selectedPrintHandover.pieces
+                        : Math.floor(selectedPrintHandover.meters / (selectedPrintHandover.clothType === "SAREE" ? 5.5 : 3.65))
+                      ).toLocaleString("en-IN")}{" "}
+                      {selectedPrintHandover.clothType === "VEATTI" ? "Dhothis" : "Sarees"}
                     </td>
                   </tr>
                 </tbody>
