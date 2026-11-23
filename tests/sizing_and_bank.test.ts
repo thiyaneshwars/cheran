@@ -8,11 +8,14 @@ import { SectionType, TransactionType, Direction, PaymentStatus } from "@prisma/
 describe("Sizing Bill & Bank Balance Feedback Tests", () => {
   beforeEach(async () => {
     await prisma.transaction.deleteMany({
+      where: { referenceNo: { in: ["SET-VET-002", "SET-PL-SAR-001"] } },
+    });
+    await prisma.transaction.deleteMany({
       where: { referenceNo: { contains: "DEP" } },
     });
     await prisma.bankAccount.deleteMany();
     await prisma.sizingBill.deleteMany({
-      where: { billNumber: { in: ["VET-001", "SAR-002-TEST"] } },
+      where: { billNumber: { in: ["VET-001", "VET-002", "SAR-002-TEST"] } },
     });
     await prisma.powerloomTransaction.deleteMany({
       where: { transactionNumber: { in: ["PL-VET-001", "PL-TEST-002", "PL-SAR-001"] } },

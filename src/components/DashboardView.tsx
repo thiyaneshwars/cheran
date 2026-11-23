@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   Landmark,
   Coins,
-  FileSpreadsheet,
   FileText,
   UserCheck,
   TrendingUp,
@@ -15,7 +14,6 @@ import {
   ArrowUpRight,
   MoreVertical,
   Cpu,
-  Truck,
   BarChart2,
   PieChart as PieChartIcon,
   Layers,
@@ -109,8 +107,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     0;
   const totalTransactionsAmount =
     (data?.metrics?.totalIncome || 0) + (data?.metrics?.totalExpenses || 0);
-  const totalSizingAmount =
-    data?.sectionSummaries?.sizing?.totalCredited || 0;
+  const consolidatedBankBalance =
+    data?.metrics?.consolidatedBankBalance ?? data?.bankBalance ?? 0;
   const totalWagesAmount =
     data?.sectionSummaries?.dailyWage?.grossWages ??
     data?.sectionSummaries?.dailyWage?.totalCredited ??
@@ -123,38 +121,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const monthlyChartData = data?.charts?.monthlyChart || [];
 
   // Dynamic Transaction Breakdown Pie Data
-  const sizingSum = data?.sectionSummaries?.sizing?.totalCredited || 0;
   const plSum = data?.sectionSummaries?.powerloom?.totalCredited || 0;
   const wageSum = data?.sectionSummaries?.dailyWage?.totalCredited || 0;
-  const transportSum = data?.sectionSummaries?.transport?.totalCredited || 0;
-  const totalCategorySum = sizingSum + plSum + wageSum + transportSum;
+  const totalCategorySum = plSum + wageSum;
 
   const transactionPieData =
     totalCategorySum > 0
       ? [
           {
-            name: "Sizing Bills",
-            value: Math.round((sizingSum / totalCategorySum) * 100),
-            color: "#22252a",
-            amount: sizingSum,
-          },
-          {
-            name: "Powerloom",
+            name: "Powerloom Production",
             value: Math.round((plSum / totalCategorySum) * 100),
-            color: "#475569",
+            color: "#059669",
             amount: plSum,
           },
           {
-            name: "Wages",
+            name: "Weaver Wages",
             value: Math.round((wageSum / totalCategorySum) * 100),
-            color: "#64748b",
+            color: "#2563eb",
             amount: wageSum,
-          },
-          {
-            name: "Transport",
-            value: Math.round((transportSum / totalCategorySum) * 100),
-            color: "#94a3b8",
-            amount: transportSum,
           },
         ].filter((p) => p.amount > 0)
       : [];
@@ -275,20 +259,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Card 3: Total Sizing Bills */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex items-center gap-4 hover:shadow-sm transition">
-          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
-            <FileText className="h-6 w-6" />
+        {/* Card 3: Bank Balance (Treasury) */}
+        <div
+          onClick={() => onNavigate("banks")}
+          className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex items-center gap-4 hover:shadow-sm hover:border-slate-300 transition cursor-pointer"
+        >
+          <div className="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center text-sky-700 flex-shrink-0">
+            <Landmark className="h-6 w-6" />
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-medium text-slate-500">
-              Total Sizing Bills
+              Bank Balance (Treasury)
             </span>
             <span className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
-              {formatINR(totalSizingAmount)}
+              {formatINR(consolidatedBankBalance)}
             </span>
-            <span className="text-xs font-semibold text-slate-500 flex items-center gap-1 mt-1">
-              <span>Outstanding: {formatINR(data?.sectionSummaries?.sizing?.amountOutstanding || 0)}</span>
+            <span className="text-xs font-semibold text-sky-700 flex items-center gap-1 mt-1">
+              <span>{data?.bankAccounts?.length || 0} active accounts</span>
             </span>
           </div>
         </div>
@@ -719,15 +706,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {/* Action 1 */}
           <div
-            onClick={() => onNavigate("sizing")}
+            onClick={() => onNavigate("saree")}
             className="bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/50 transition cursor-pointer group"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
-                <FileSpreadsheet className="h-4 w-4" />
+              <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
+                <Layers className="h-4 w-4" />
               </div>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
-                Add Sizing Bill
+                Saree Production
               </span>
             </div>
             <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition flex-shrink-0 ml-1" />
@@ -765,17 +752,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition flex-shrink-0 ml-1" />
           </div>
 
-          {/* Action 4: Log Transport Freight */}
+          {/* Action 4: Govt Handover */}
           <div
-            onClick={() => onNavigate("transport")}
+            onClick={() => onNavigate("govt-handover")}
             className="bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/50 transition cursor-pointer group"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
-                <Truck className="h-4 w-4" />
+              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <Send className="h-4 w-4" />
               </div>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
-                Log Transport
+                Govt Handover
               </span>
             </div>
             <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition flex-shrink-0 ml-1" />
@@ -918,29 +905,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="space-y-3.5 my-auto">
-            {/* Sizing Bills */}
-            <div
-              onClick={() => onNavigate("sizing")}
-              className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition cursor-pointer group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-slate-900">
-                    Sizing Bills
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    {pendingSizingCount === 0
-                      ? "Zero pending bills"
-                      : `${pendingSizingCount} bills pending payment`}
-                  </span>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition" />
-            </div>
-
             {/* Veatti Production */}
             <div
               onClick={() => onNavigate("veatti")}
@@ -1004,23 +968,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 transition" />
             </div>
 
-            {/* Transport */}
+            {/* Govt Yarn Allotment */}
             <div
-              onClick={() => onNavigate("transport")}
+              onClick={() => onNavigate("govt-yarn")}
               className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition cursor-pointer group"
             >
               <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
-                  <Truck className="h-5 w-5" />
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
+                  <Package className="h-5 w-5" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-slate-900">
-                    Transport
+                    Govt Yarn Inward Allotment
                   </span>
                   <span className="text-xs text-slate-400">
-                    {pendingTransportCount === 0
-                      ? "Zero pending freight bills"
-                      : `${pendingTransportCount} freight bills pending`}
+                    Raw yarn bales received & quota registers
                   </span>
                 </div>
               </div>

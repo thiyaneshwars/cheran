@@ -7,9 +7,7 @@ import {
   Users,
   Landmark,
   ArrowLeftRight,
-  FileSpreadsheet,
   Cpu,
-  Truck,
   TrendingUp,
   FileText,
   BarChart3,
@@ -29,8 +27,6 @@ export type NavItemKey =
   | "dashboard"
   | "banks"
   | "transactions"
-  | "sizing"
-  | "transport"
   | "profit"
   | "reports"
   | "users"
@@ -79,16 +75,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const operationsMenuItems = [
-    {
-      key: "sizing" as NavItemKey,
-      label: "Sizing Bills",
-      icon: FileSpreadsheet,
-    },
-    {
-      key: "transport" as NavItemKey,
-      label: "Transport",
-      icon: Truck,
-    },
     {
       key: "veatti" as NavItemKey,
       label: "Dhothi Production",

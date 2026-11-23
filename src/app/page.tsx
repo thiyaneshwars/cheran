@@ -6,8 +6,6 @@ import { Header } from "@/components/Header";
 import { DashboardView } from "@/components/DashboardView";
 import { BankAccountsView } from "@/components/BankAccountsView";
 import { TransactionsView } from "@/components/TransactionsView";
-import { SizingBillView } from "@/components/SizingBillView";
-import { TransportView } from "@/components/TransportView";
 import { ProfitView } from "@/components/ProfitView";
 import { ReportsView } from "@/components/ReportsView";
 import { UsersView } from "@/components/UsersView";
@@ -170,10 +168,6 @@ export default function Home() {
         return "Bank Accounts & Treasury Management";
       case "transactions":
         return "General Transactions & Daybook";
-      case "sizing":
-        return "Sizing Bill Accounting";
-      case "transport":
-        return "Transport Freight Ledger";
       case "profit":
         return "Operational Profit & Loss Statement";
       case "reports":
@@ -257,19 +251,6 @@ export default function Home() {
 
           {currentTab === "transactions" && (
             <TransactionsView banks={banks} userRole={currentUser.role} />
-          )}
-
-          {currentTab === "sizing" && (
-            <SizingBillView
-              banks={banks}
-              parties={parties}
-              userRole={currentUser.role}
-              onRefresh={loadMasterData}
-            />
-          )}
-
-          {currentTab === "transport" && (
-            <TransportView banks={banks} userRole={currentUser.role} />
           )}
 
           {currentTab === "profit" && <ProfitView />}
