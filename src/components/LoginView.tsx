@@ -142,7 +142,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full rounded-xl border border-slate-300 pl-10 pr-3.5 py-2.5 text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 font-semibold bg-slate-50/50 focus:bg-white text-xs sm:text-sm transition placeholder-slate-400"
-                    placeholder="production@cheran or aduit@cheran"
+                    placeholder="official@cheran, production@cheran, or aduit@cheran"
                   />
                 </div>
               </div>
@@ -177,7 +177,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                       setEmail("production@cheran");
                       setPassword("Society@2026");
                     }}
-                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 border border-slate-200 text-left transition group"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 border border-slate-200 text-left transition group cursor-pointer"
                   >
                     <span className="font-black text-slate-900 group-hover:text-emerald-700 block text-xs">
                       🏭 Production
@@ -193,7 +193,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                       setEmail("aduit@cheran");
                       setPassword("Society@2026");
                     }}
-                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:border-blue-200 border border-slate-200 text-left transition group"
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:border-blue-200 border border-slate-200 text-left transition group cursor-pointer"
                   >
                     <span className="font-black text-slate-900 group-hover:text-blue-700 block text-xs">
                       📋 Auditing
@@ -203,6 +203,31 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                     </span>
                   </button>
                 </div>
+
+                {/* Special Login Credential: Higher Officials Portal */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("official@cheran");
+                    setPassword("Society@2026");
+                  }}
+                  className="w-full mt-2 p-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-amber-100/50 to-amber-50 hover:from-amber-100 hover:to-amber-200/60 border-2 border-amber-300 text-left transition flex items-center justify-between group shadow-xs cursor-pointer"
+                >
+                  <div className="space-y-0.5">
+                    <span className="font-black text-amber-950 group-hover:text-amber-900 block text-xs flex items-center gap-1.5">
+                      <span>🏛️ Higher Officials Portal (உயரதிகாரிகள்)</span>
+                      <span className="text-[9px] font-bold bg-amber-500 text-black px-1.5 py-0.2 rounded font-sans uppercase">
+                        Executive
+                      </span>
+                    </span>
+                    <span className="text-[10px] text-amber-800 font-mono block">
+                      official@cheran • Godown Stocks & Handover Audit
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-900 font-mono bg-white/80 px-2 py-1 rounded-lg border border-amber-300 shadow-2xs group-hover:bg-amber-500 group-hover:text-white transition">
+                    Sign In &rarr;
+                  </span>
+                </button>
               </div>
 
               <button

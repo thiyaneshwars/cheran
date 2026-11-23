@@ -20,6 +20,7 @@ import { SareeProductionView } from "@/components/SareeProductionView";
 import { GovtHandoverView } from "@/components/GovtHandoverView";
 import { BabinView } from "@/components/BabinView";
 import { GovtYarnAllotmentView } from "@/components/GovtYarnAllotmentView";
+import { ExecutiveOfficialView } from "@/components/executive/ExecutiveOfficialView";
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -131,6 +132,24 @@ export default function Home() {
             setCurrentTab("dashboard");
           }
         }}
+      />
+    );
+  }
+
+  // Higher officials portal: higher officials can only view godown stocks, govt handover & completion %
+  const isOfficial =
+    currentUser.role === "MANAGEMENT" ||
+    currentUser.role === "OFFICIAL" ||
+    currentUser.email === "official@cheran" ||
+    currentUser.email === "officer@cheran" ||
+    currentUser.email === "higherauthority@cheran" ||
+    currentUser.email === "collector@cheran";
+
+  if (isOfficial) {
+    return (
+      <ExecutiveOfficialView
+        user={currentUser}
+        onLogout={handleLogout}
       />
     );
   }

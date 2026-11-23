@@ -92,6 +92,18 @@ async function main() {
       phone: "9842100004",
     },
     {
+      email: "official@cheran",
+      fullName: "Statutory Inspection Official / Directorate of Handlooms (உயரதிகாரி)",
+      role: Role.MANAGEMENT,
+      phone: "9842100099",
+    },
+    {
+      email: "officer@cheran",
+      fullName: "Statutory Inspection Official / Directorate of Handlooms (Alias)",
+      role: Role.MANAGEMENT,
+      phone: "9842100099",
+    },
+    {
       email: "management@cheran.coop",
       fullName: "M. Arumugam (Society President)",
       role: Role.MANAGEMENT,

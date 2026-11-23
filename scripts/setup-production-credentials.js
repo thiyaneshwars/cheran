@@ -69,11 +69,53 @@ async function setupProductionCredentials() {
   });
   console.log("[✓] Configured Credential: production@cheran (Role: PRODUCTION)");
 
-  // 3. Reassign references from other users to aduitUser before deleting them
+  // 3. Create official@cheran (Higher Officials Portal)
+  await prisma.user.upsert({
+    where: { email: "official@cheran" },
+    update: {
+      fullName: "Statutory Inspection Official / Directorate of Handlooms (உயரதிகாரி)",
+      role: Role.MANAGEMENT,
+      passwordHash,
+      isActive: true,
+      phone: "9842100099",
+    },
+    create: {
+      email: "official@cheran",
+      fullName: "Statutory Inspection Official / Directorate of Handlooms (உயரதிகாரி)",
+      role: Role.MANAGEMENT,
+      passwordHash,
+      isActive: true,
+      phone: "9842100099",
+    },
+  });
+  console.log("[✓] Configured Credential: official@cheran (Role: MANAGEMENT / HIGHER OFFICIAL)");
+
+  // Also create officer@cheran alias
+  await prisma.user.upsert({
+    where: { email: "officer@cheran" },
+    update: {
+      fullName: "Statutory Inspection Official / Directorate of Handlooms (Alias)",
+      role: Role.MANAGEMENT,
+      passwordHash,
+      isActive: true,
+      phone: "9842100099",
+    },
+    create: {
+      email: "officer@cheran",
+      fullName: "Statutory Inspection Official / Directorate of Handlooms (Alias)",
+      role: Role.MANAGEMENT,
+      passwordHash,
+      isActive: true,
+      phone: "9842100099",
+    },
+  });
+  console.log("[✓] Configured Credential: officer@cheran (Alias)");
+
+  // 4. Reassign references from other users to aduitUser before deleting them
   const oldUsers = await prisma.user.findMany({
     where: {
       email: {
-        notIn: ["production@cheran", "aduit@cheran", "audit@cheran"],
+        notIn: ["production@cheran", "aduit@cheran", "audit@cheran", "official@cheran", "officer@cheran"],
       },
     },
   });

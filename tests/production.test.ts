@@ -38,6 +38,22 @@ describe("Cheran Textile Production Side Test Suite (Veatti & Saree)", () => {
       },
     });
 
+    await prisma.user.upsert({
+      where: { email: "official@cheran" },
+      update: {
+        role: Role.MANAGEMENT,
+        isActive: true,
+      },
+      create: {
+        email: "official@cheran",
+        fullName: "Statutory Inspection Official / Directorate of Handlooms",
+        role: Role.MANAGEMENT,
+        passwordHash: "dummyhash",
+        isActive: true,
+        phone: "9842100099",
+      },
+    });
+
     // Remove legacy credentials if present
     await prisma.user.deleteMany({
       where: {
@@ -63,12 +79,13 @@ describe("Cheran Textile Production Side Test Suite (Veatti & Saree)", () => {
     await prisma.productionUnit.deleteMany();
   });
 
-  it("Verification 1: Only production@cheran and aduit@cheran credentials exist", async () => {
+  it("Verification 1: Production, Auditing, and Official credentials exist", async () => {
     const users = await prisma.user.findMany({ select: { email: true, role: true } });
     const emails = users.map((u) => u.email);
 
     expect(emails).toContain("production@cheran");
     expect(emails).toContain("aduit@cheran");
+    expect(emails).toContain("official@cheran");
 
     // Legacy users must NOT exist
     expect(emails).not.toContain("admin@cheran.coop");
@@ -80,6 +97,9 @@ describe("Cheran Textile Production Side Test Suite (Veatti & Saree)", () => {
 
     const auditUser = users.find((u) => u.email === "aduit@cheran");
     expect(auditUser?.role).toBe(Role.ADMIN);
+
+    const officialUser = users.find((u) => u.email === "official@cheran");
+    expect(officialUser?.role).toBe(Role.MANAGEMENT);
   });
 
   it("Verification 2: Veatti powerloom details and automatic tallying", async () => {

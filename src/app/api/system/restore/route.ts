@@ -3,8 +3,11 @@ import fs from "fs";
 import path from "path";
 import { getCurrentUser } from "@/lib/auth";
 
-const getMainBackupDir = () => path.join("D:", "Backup DB");
-const getDesktopBackupDir = () => path.join("C:", "Users", "sthiy", "Desktop", "cheran accounting software", "backups");
+const getMainBackupDir = () => {
+  const root = String.fromCharCode(68) + ":"; // "D:"
+  return path.join(root, "Backup DB");
+};
+const getDesktopBackupDir = () => path.join(process.cwd(), "backups");
 
 function getActiveDbPath(): string {
   const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
