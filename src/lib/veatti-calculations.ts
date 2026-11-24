@@ -1011,6 +1011,7 @@ export async function getGlobalProductionOverview(db: any) {
     totalProducedMeters: veattiTotalProduced + sareeTotalProduced,
     totalHandoveredMeters: veattiTotalHandovered + sareeTotalHandovered,
     godownAvailableMeters: veattiGodownAvailable + sareeGodownAvailable,
+    targetMeters: veattiTotalTarget + sareeTotalTarget,
     balanceToHandoverMeters: veattiBalanceToHandover + sareeBalanceToHandover,
   };
 

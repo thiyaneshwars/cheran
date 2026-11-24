@@ -240,6 +240,7 @@ export async function GET(request: Request) {
           totalProducedMeters: round2(veattiTotalProduced + sareeTotalProduced),
           godownAvailableMeters: round2(veattiGodownAvailable + sareeGodownAvailable),
           totalHandoveredMeters: round2(veattiTotalHandovered + sareeTotalHandovered),
+          targetMeters: round2(veattiTotalTarget + sareeTotalTarget),
           balanceToHandoverMeters: round2(veattiBalanceToHandover + sareeBalanceToHandover),
         },
       },

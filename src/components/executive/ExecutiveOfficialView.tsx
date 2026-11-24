@@ -108,28 +108,47 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   };
 
   // Metrics Extraction
-  const veatti = overviewData?.veatti || {
-    totalProducedMeters: 0,
-    totalHandoveredMeters: 0,
-    godownAvailableMeters: 0,
-    targetMeters: 0,
-    balanceToHandoverMeters: 0,
+  const veatti = {
+    totalProducedMeters: Number(overviewData?.veatti?.totalProducedMeters) || 0,
+    totalHandoveredMeters: Number(overviewData?.veatti?.totalHandoveredMeters) || 0,
+    godownAvailableMeters: Number(overviewData?.veatti?.godownAvailableMeters) || 0,
+    targetMeters: Number(overviewData?.veatti?.targetMeters) || 0,
+    balanceToHandoverMeters: Number(overviewData?.veatti?.balanceToHandoverMeters) || 0,
   };
 
-  const saree = overviewData?.saree || {
-    totalProducedMeters: 0,
-    totalHandoveredMeters: 0,
-    godownAvailableMeters: 0,
-    targetMeters: 0,
-    balanceToHandoverMeters: 0,
+  const saree = {
+    totalProducedMeters: Number(overviewData?.saree?.totalProducedMeters) || 0,
+    totalHandoveredMeters: Number(overviewData?.saree?.totalHandoveredMeters) || 0,
+    godownAvailableMeters: Number(overviewData?.saree?.godownAvailableMeters) || 0,
+    targetMeters: Number(overviewData?.saree?.targetMeters) || 0,
+    balanceToHandoverMeters: Number(overviewData?.saree?.balanceToHandoverMeters) || 0,
   };
 
-  const total = overviewData?.totalConsolidated || {
-    totalProducedMeters: veatti.totalProducedMeters + saree.totalProducedMeters,
-    totalHandoveredMeters: veatti.totalHandoveredMeters + saree.totalHandoveredMeters,
-    godownAvailableMeters: veatti.godownAvailableMeters + saree.godownAvailableMeters,
-    targetMeters: veatti.targetMeters + saree.targetMeters,
-    balanceToHandoverMeters: veatti.balanceToHandoverMeters + saree.balanceToHandoverMeters,
+  const computedTarget =
+    Number(overviewData?.totalConsolidated?.targetMeters) ||
+    (veatti.targetMeters + saree.targetMeters > 0
+      ? veatti.targetMeters + saree.targetMeters
+      : veatti.totalProducedMeters + saree.totalProducedMeters);
+
+  const total = {
+    totalProducedMeters:
+      Number(overviewData?.totalConsolidated?.totalProducedMeters) ||
+      (veatti.totalProducedMeters + saree.totalProducedMeters),
+    totalHandoveredMeters:
+      Number(overviewData?.totalConsolidated?.totalHandoveredMeters) ||
+      (veatti.totalHandoveredMeters + saree.totalHandoveredMeters),
+    godownAvailableMeters:
+      Number(overviewData?.totalConsolidated?.godownAvailableMeters) ||
+      (veatti.godownAvailableMeters + saree.godownAvailableMeters),
+    targetMeters: computedTarget,
+    balanceToHandoverMeters:
+      Number(overviewData?.totalConsolidated?.balanceToHandoverMeters) ||
+      Math.max(
+        0,
+        computedTarget -
+          (Number(overviewData?.totalConsolidated?.totalHandoveredMeters) ||
+            veatti.totalHandoveredMeters + saree.totalHandoveredMeters)
+      ),
   };
 
   // Calculate Accurate Percentages
@@ -355,8 +374,8 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 </div>
 
                 <p className="mt-2 text-xs text-slate-300 font-medium">
-                  {total.totalHandoveredMeters.toLocaleString("en-IN")} Pieces Handovered out of{" "}
-                  {total.targetMeters.toLocaleString("en-IN")} Total Pieces Target Quota
+                  {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")} Pieces Handovered out of{" "}
+                  {(total.targetMeters || 0).toLocaleString("en-IN")} Total Pieces Target Quota
                 </p>
               </div>
 
@@ -371,7 +390,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
                   <span>0%</span>
                   <span className="text-amber-300 font-bold">
-                    Remaining Quota: {total.balanceToHandoverMeters.toLocaleString("en-IN")} Pcs
+                    Remaining Quota: {(total.balanceToHandoverMeters || 0).toLocaleString("en-IN")} Pcs
                   </span>
                   <span>100% Target</span>
                 </div>
@@ -404,14 +423,14 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   <div>
                     <span className="text-[10px] font-sans text-slate-400 block uppercase">Govt Handovered:</span>
                     <span className="text-base font-black text-white">
-                      {veatti.totalHandoveredMeters.toLocaleString("en-IN")}
+                      {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
                     </span>
                     <span className="text-[10px] text-emerald-400 block font-sans">Dhothis dispatched</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-sans text-slate-400 block uppercase">In Godown Stock:</span>
                     <span className="text-base font-black text-amber-300">
-                      {veatti.godownAvailableMeters.toLocaleString("en-IN")}
+                      {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")}
                     </span>
                     <span className="text-[10px] text-amber-400/80 block font-sans">Dhothis ready</span>
                   </div>
@@ -427,7 +446,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   />
                 </div>
                 <div className="text-[10px] text-slate-400 text-right font-mono">
-                  Target: {veatti.targetMeters.toLocaleString("en-IN")} Dhothis
+                  Target: {(veatti.targetMeters || 0).toLocaleString("en-IN")} Dhothis
                 </div>
               </div>
             </div>
@@ -458,14 +477,14 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   <div>
                     <span className="text-[10px] font-sans text-slate-400 block uppercase">Govt Handovered:</span>
                     <span className="text-base font-black text-white">
-                      {saree.totalHandoveredMeters.toLocaleString("en-IN")}
+                      {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
                     </span>
                     <span className="text-[10px] text-purple-400 block font-sans">Sarees dispatched</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-sans text-slate-400 block uppercase">In Godown Stock:</span>
                     <span className="text-base font-black text-amber-300">
-                      {saree.godownAvailableMeters.toLocaleString("en-IN")}
+                      {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")}
                     </span>
                     <span className="text-[10px] text-amber-400/80 block font-sans">Sarees ready</span>
                   </div>
@@ -481,7 +500,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   />
                 </div>
                 <div className="text-[10px] text-slate-400 text-right font-mono">
-                  Target: {saree.targetMeters.toLocaleString("en-IN")} Sarees
+                  Target: {(saree.targetMeters || 0).toLocaleString("en-IN")} Sarees
                 </div>
               </div>
             </div>
@@ -521,7 +540,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
                 <div>
                   <span className="text-3xl sm:text-4xl font-black font-mono text-white">
-                    {total.totalProducedMeters.toLocaleString("en-IN")}
+                    {(total.totalProducedMeters || 0).toLocaleString("en-IN")}
                   </span>
                   <span className="text-xs font-bold text-blue-400 ml-1.5">Pieces</span>
                 </div>
@@ -529,11 +548,11 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 <div className="text-[11px] text-slate-400 pt-2 border-t border-white/10 font-mono space-y-0.5">
                   <div className="flex justify-between">
                     <span>Dhothis Woven:</span>
-                    <strong className="text-slate-200">{veatti.totalProducedMeters.toLocaleString("en-IN")}</strong>
+                    <strong className="text-slate-200">{(veatti.totalProducedMeters || 0).toLocaleString("en-IN")}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>Sarees Woven:</span>
-                    <strong className="text-slate-200">{saree.totalProducedMeters.toLocaleString("en-IN")}</strong>
+                    <strong className="text-slate-200">{(saree.totalProducedMeters || 0).toLocaleString("en-IN")}</strong>
                   </div>
                 </div>
               </div>
@@ -549,7 +568,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
                 <div>
                   <span className="text-3xl sm:text-4xl font-black font-mono text-amber-300">
-                    {total.godownAvailableMeters.toLocaleString("en-IN")}
+                    {(total.godownAvailableMeters || 0).toLocaleString("en-IN")}
                   </span>
                   <span className="text-xs font-bold text-amber-200 ml-1.5">Pieces Available</span>
                 </div>
@@ -557,11 +576,11 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 <div className="text-[11px] text-slate-300 pt-2 border-t border-amber-500/20 font-mono space-y-0.5">
                   <div className="flex justify-between">
                     <span>Dhothi Godown:</span>
-                    <strong className="text-amber-200">{veatti.godownAvailableMeters.toLocaleString("en-IN")} pcs</strong>
+                    <strong className="text-amber-200">{(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>Saree Godown:</span>
-                    <strong className="text-amber-200">{saree.godownAvailableMeters.toLocaleString("en-IN")} pcs</strong>
+                    <strong className="text-amber-200">{(saree.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs</strong>
                   </div>
                 </div>
               </div>
@@ -577,7 +596,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
                 <div>
                   <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-300">
-                    {total.totalHandoveredMeters.toLocaleString("en-IN")}
+                    {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")}
                   </span>
                   <span className="text-xs font-bold text-emerald-200 ml-1.5">Pieces Dispatched</span>
                 </div>
@@ -585,11 +604,11 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 <div className="text-[11px] text-slate-300 pt-2 border-t border-emerald-500/20 font-mono space-y-0.5">
                   <div className="flex justify-between">
                     <span>Dhothis Handovered:</span>
-                    <strong className="text-emerald-200">{veatti.totalHandoveredMeters.toLocaleString("en-IN")}</strong>
+                    <strong className="text-emerald-200">{(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>Sarees Handovered:</span>
-                    <strong className="text-emerald-200">{saree.totalHandoveredMeters.toLocaleString("en-IN")}</strong>
+                    <strong className="text-emerald-200">{(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}</strong>
                   </div>
                 </div>
               </div>
@@ -600,15 +619,15 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
               <div className="font-mono flex items-center gap-2 flex-wrap">
                 <span className="text-slate-400">Statutory Stock Formula:</span>
                 <span className="text-white font-bold bg-white/10 px-2.5 py-1 rounded-lg">
-                  Loom Produced ({total.totalProducedMeters.toLocaleString("en-IN")})
+                  Loom Produced ({(total.totalProducedMeters || 0).toLocaleString("en-IN")})
                 </span>
                 <span>=</span>
                 <span className="text-amber-300 font-bold bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30">
-                  In Godown ({total.godownAvailableMeters.toLocaleString("en-IN")})
+                  In Godown ({(total.godownAvailableMeters || 0).toLocaleString("en-IN")})
                 </span>
                 <span>+</span>
                 <span className="text-emerald-300 font-bold bg-emerald-500/20 px-2.5 py-1 rounded-lg border border-emerald-500/30">
-                  Handovered ({total.totalHandoveredMeters.toLocaleString("en-IN")})
+                  Handovered ({(total.totalHandoveredMeters || 0).toLocaleString("en-IN")})
                 </span>
               </div>
 
@@ -757,7 +776,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                           </td>
                           <td className="py-3 px-4 text-right font-mono font-black text-sm">
                             <span className={isDhothi ? "text-emerald-300" : "text-purple-300"}>
-                              {pieces.toLocaleString("en-IN")}{" "}
+                              {(pieces || 0).toLocaleString("en-IN")}{" "}
                               <span className="text-[10px] font-sans font-normal text-slate-400">
                                 {isDhothi ? "Dhothis" : "Sarees"}
                               </span>

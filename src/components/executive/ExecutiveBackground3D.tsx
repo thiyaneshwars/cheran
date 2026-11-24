@@ -218,12 +218,12 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
 
     // 8. Animation Loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const startTime = performance.now();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      const elapsedTime = clock.getElapsedTime();
+      const elapsedTime = (performance.now() - startTime) * 0.001;
 
       // Smooth mouse damping
       currentMouseX += (targetMouseX - currentMouseX) * 0.05;
