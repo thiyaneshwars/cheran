@@ -95,9 +95,7 @@ export async function POST(request: Request) {
 
     // If unitId is provided, sync unit totals
     if (data.unitId) {
-      await prisma.$transaction(async (tx) => {
-        await syncUnitFinancialsAndTotals(tx, data.unitId!);
-      });
+      await syncUnitFinancialsAndTotals(prisma, data.unitId);
     }
 
     try {

@@ -81,14 +81,34 @@ export async function GET(request: Request) {
     const formatted = units.map((u) => {
       const totals = calculateUnitEffectiveTotals(u);
 
-      // If cached DB fields diverge from real computed totals, trigger background sync
+      // If cached DB fields diverge from real computed totals, trigger direct background sync (no transaction lock)
       if (
         Math.abs(u.totalProducedMeters - totals.totalProduction) > 0.01 ||
         Math.abs(u.paavuMeters - totals.effectivePaavuTotal) > 0.01 ||
         u.babinCount !== totals.babinCount ||
         Math.abs((u.remainingPaavuMeters || 0) - totals.remainingPaavu) > 0.01
       ) {
-        prisma.$transaction((tx) => syncUnitFinancialsAndTotals(tx, u.id)).catch(() => {});
+        prisma.productionUnit
+          .update({
+            where: { id: u.id },
+            data: {
+              paavuMeters: totals.effectivePaavuTotal,
+              paavuWeightKg: totals.paavuWeightKg,
+              babinCount: !(u.registerEntries || []).some((r: any) => (r.babinCount || 0) > 0)
+                ? u.babinCount
+                : totals.babinCount,
+              totalProducedMeters: totals.totalProduction,
+              handoveredMeters: totals.totalHandover,
+              godownMeters: totals.godownStock,
+              balanceToHandover: totals.balanceToHandover,
+              totalVaravuAmount: totals.totalVaravu,
+              totalAdvancePaid: totals.totalAdvance,
+              currentBalance: totals.currentBalance,
+              remainingPaavuMeters: totals.remainingPaavu,
+              weftStockKg: totals.weftStockKg,
+            },
+          })
+          .catch(() => {});
       }
 
       return {

@@ -883,21 +883,30 @@ export function calculateUnitEffectiveTotals(unit: any) {
 
 /**
  * Backend Helper: Recalculate and synchronize all financials & production for a Unit
- * Runs inside a Prisma transaction (tx)
+ * Runs inside a Prisma transaction (tx) or with direct prisma client
  */
-export async function syncUnitFinancialsAndTotals(tx: any, unitId: string) {
-  const unit = await tx.productionUnit.findUnique({
-    where: { id: unitId },
-    include: {
-      dailyProductions: true,
-      handovers: true,
-      varavuEntries: true,
-      advanceEntries: true,
-      registerEntries: true,
-    },
-  });
+export async function syncUnitFinancialsAndTotals(tx: any, unitIdOrUnit: string | any) {
+  let unit: any;
+  let unitId: string;
 
-  if (!unit) return null;
+  if (typeof unitIdOrUnit === "string") {
+    unitId = unitIdOrUnit;
+    unit = await tx.productionUnit.findUnique({
+      where: { id: unitId },
+      include: {
+        dailyProductions: true,
+        handovers: true,
+        varavuEntries: true,
+        advanceEntries: true,
+        registerEntries: true,
+      },
+    });
+  } else {
+    unit = unitIdOrUnit;
+    unitId = unit?.id;
+  }
+
+  if (!unit || !unitId) return null;
 
   const totals = calculateUnitEffectiveTotals(unit);
   const isSaree = unit.clothType === "SAREE";
