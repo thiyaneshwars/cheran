@@ -19,7 +19,7 @@ import {
   Maximize2,
   Minimize2,
   Eye,
-  EyeOff,
+  X,
 } from "lucide-react";
 import { ExecutiveBackground3D } from "./ExecutiveBackground3D";
 import { exportToCSV } from "@/lib/export";
@@ -41,7 +41,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showLoomOnly, setShowLoomOnly] = useState(false);
+  const [showLoomModal, setShowLoomModal] = useState(false);
 
   // Live IST Clock
   useEffect(() => {
@@ -131,13 +131,13 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const total = {
     totalProducedMeters:
       Number(overviewData?.totalConsolidated?.totalProducedMeters) ||
-      (veatti.totalProducedMeters + saree.totalProducedMeters),
+      veatti.totalProducedMeters + saree.totalProducedMeters,
     totalHandoveredMeters:
       Number(overviewData?.totalConsolidated?.totalHandoveredMeters) ||
-      (veatti.totalHandoveredMeters + saree.totalHandoveredMeters),
+      veatti.totalHandoveredMeters + saree.totalHandoveredMeters,
     godownAvailableMeters:
       Number(overviewData?.totalConsolidated?.godownAvailableMeters) ||
-      (veatti.godownAvailableMeters + saree.godownAvailableMeters),
+      veatti.godownAvailableMeters + saree.godownAvailableMeters,
     targetMeters: computedTarget,
     balanceToHandoverMeters:
       Number(overviewData?.totalConsolidated?.balanceToHandoverMeters) ||
@@ -237,737 +237,757 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const isInitialLoading = loading && !overviewData;
 
   return (
-    <div className="executive-portal relative min-h-screen w-full bg-[#04070f] text-slate-100 overflow-x-hidden selection:bg-amber-400/30 selection:text-amber-100">
-      {/* Custom GPU Three.js Kinematic Powerloom Machine Background */}
-      <ExecutiveBackground3D activeCategory={activeTab} />
-
-      {/* Main Content Layer */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        {/* =========================================================================
-         * 1. EXECUTIVE TOP BAR & AUTHORITY HEADER
-         * ========================================================================= */}
-        <header className="sticky top-0 z-40 border-b border-white/[0.1] bg-[#040814]/65 backdrop-blur-md px-4 sm:px-6 lg:px-10 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.4)]">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Left: Crest Emblem & Society Identity */}
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-b from-amber-500/20 to-amber-600/10 border border-amber-400/35 shadow-[inset_0_1px_0_0_rgba(251,191,36,0.3)] flex-shrink-0">
-                <ShieldCheck className="h-6 w-6 text-amber-300 stroke-[2]" />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="text-[11px] font-semibold tracking-wide text-amber-300">
-                    Government of Tamil Nadu &bull; Directorate of Handlooms
-                  </span>
-                  <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
-                    Reg. CH-1049
-                  </span>
-                </div>
-                <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2 mt-0.5">
-                  <span>Cheran Co-operative Weavers Society</span>
-                  <span className="text-slate-600 font-normal hidden lg:inline">/</span>
-                  <span className="text-slate-300 font-medium text-xs sm:text-sm hidden lg:inline">
-                    Executive Oversight Portal
-                  </span>
-                </h1>
-              </div>
+    <div className="executive-portal relative min-h-screen w-full bg-[#060A14] text-slate-100 overflow-x-hidden selection:bg-amber-400/30 selection:text-amber-100">
+      {/* =========================================================================
+       * 1. SOLID EXECUTIVE HEADER BAR
+       * ========================================================================= */}
+      <header className="sticky top-0 z-40 border-b border-[#1E2B48] bg-[#091020] px-4 sm:px-6 lg:px-10 py-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Left: Crest Emblem & Society Identity */}
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-[#162038] border border-amber-400/45 flex-shrink-0 shadow-inner">
+              <ShieldCheck className="h-6 w-6 text-amber-300 stroke-[2]" />
             </div>
 
-            {/* Right: IST Sync, Refresh, 3D Loom View, Fullscreen & Sign Out */}
-            <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#091022]/80 border border-white/[0.08] text-[11px] font-mono text-slate-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                <Clock className="h-3.5 w-3.5 text-amber-300/80" />
-                <span className="tabular-nums">{currentTime || "IST Live Sync"}</span>
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="text-[11px] font-semibold tracking-wide text-amber-300">
+                  Government of Tamil Nadu &bull; Directorate of Handlooms
+                </span>
+                <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
+                  Reg. CH-1049
+                </span>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowLoomOnly((prev) => !prev)}
-                title={showLoomOnly ? "Show Portal Data Panels" : "Inspect 3D Powerloom Machine Unobstructed"}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 ${
-                  showLoomOnly
-                    ? "bg-amber-400 text-slate-950 border-amber-300 font-bold"
-                    : "bg-[#0B1326]/80 hover:bg-[#131E3A] border-white/[0.12] hover:border-amber-300/40 text-amber-200"
-                }`}
-              >
-                {showLoomOnly ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                <span>{showLoomOnly ? "Show Data" : "3D Loom"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={fetchData}
-                disabled={refreshing}
-                title="Sync real-time stock and dispatch totals"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0B1326]/80 hover:bg-[#131E3A] border border-white/[0.1] hover:border-amber-300/35 text-xs font-semibold text-slate-200 transition cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
-              >
-                <RefreshCw
-                  className={`h-3.5 w-3.5 text-amber-300 ${refreshing ? "animate-spin" : ""}`}
-                />
-                <span className="hidden sm:inline">Sync</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                title="Toggle Fullscreen Inspection Mode"
-                aria-label="Toggle Fullscreen Inspection Mode"
-                className="p-2 rounded-lg bg-[#0B1326]/80 hover:bg-[#131E3A] border border-white/[0.1] hover:border-amber-300/35 text-slate-300 hover:text-white transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
-              >
-                {isFullscreen ? (
-                  <Minimize2 className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm("Are you sure you want to exit the Executive Portal?")) {
-                    onLogout();
-                  }
-                }}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/70 border border-rose-400/25 text-rose-200 text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Sign Out</span>
-              </button>
+              <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2 mt-0.5">
+                <span>Cheran Co-operative Weavers Society</span>
+                <span className="text-slate-600 font-normal hidden lg:inline">/</span>
+                <span className="text-slate-300 font-medium text-xs sm:text-sm hidden lg:inline">
+                  Executive Oversight Portal
+                </span>
+              </h1>
             </div>
           </div>
-        </header>
 
-        {/* =========================================================================
-         * 2. MAIN EXECUTIVE CONTENT
-         * ========================================================================= */}
-        <main
-          className={`flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-7 transition-all duration-300 ${
-            showLoomOnly
-              ? "opacity-0 pointer-events-none scale-[0.985]"
-              : "opacity-100 scale-100"
-          }`}
-        >
-          {/* Statutory Oversight Summary Header */}
-          <section className="relative overflow-hidden rounded-2xl border border-white/[0.12] border-t-amber-300/30 bg-[#050A17]/42 backdrop-blur-[3px] px-5 py-4 sm:px-6 sm:py-5 shadow-[0_16px_45px_-12px_rgba(0,0,0,0.6)]">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-              <div className="space-y-1.5">
-                <h2 className="text-xl sm:text-2xl lg:text-[26px] font-bold text-white tracking-tight leading-snug">
-                  Central Godown Stocks &amp; Government Handover Tracker
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                  Statutory Free Dhothi &amp; Free Saree distribution monitor for Senior Inspecting Authorities &mdash; verifying physical godown inventory, cumulative Co-optex dispatches, and quota completion.
-                </p>
-              </div>
+          {/* Right: IST Sync, Refresh, 3D Fullscreen Inspect & Sign Out */}
+          <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#070C18] border border-[#1E2B48] text-[11px] font-mono text-slate-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <Clock className="h-3.5 w-3.5 text-amber-300" />
+              <span className="tabular-nums">{currentTime || "IST Live Sync"}</span>
+            </div>
 
-              <div className="self-start lg:self-auto px-4 py-3 rounded-xl bg-[#040813]/55 border border-white/[0.1] space-y-0.5 lg:text-right min-w-[230px]">
+            <button
+              type="button"
+              onClick={() => setShowLoomModal(true)}
+              title="Open Fullscreen 3D Powerloom Simulation"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#121D36] hover:bg-[#19284A] border border-amber-400/35 text-xs font-semibold text-amber-200 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              <Eye className="h-3.5 w-3.5 text-amber-300" />
+              <span>3D Loom</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={fetchData}
+              disabled={refreshing}
+              title="Sync real-time stock and dispatch totals"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#10192E] hover:bg-[#172442] border border-[#233356] hover:border-amber-300/45 text-xs font-semibold text-slate-100 transition cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 text-amber-300 ${refreshing ? "animate-spin" : ""}`}
+              />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              title="Toggle Browser Fullscreen"
+              aria-label="Toggle Browser Fullscreen"
+              className="p-2 rounded-lg bg-[#10192E] hover:bg-[#172442] border border-[#233356] hover:border-amber-300/45 text-slate-200 hover:text-white transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm("Are you sure you want to exit the Executive Portal?")) {
+                  onLogout();
+                }
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#3A121C] hover:bg-[#4D1825] border border-rose-500/40 text-rose-100 text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* =========================================================================
+       * 2. MAIN SOLID EXECUTIVE CONTENT
+       * ========================================================================= */}
+      <main className="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Top Hero Split: Left = Solid Authority Panel, Right = Unobstructed 3D Powerloom Showcase */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          {/* Left: Solid Authority Summary & Officer Card */}
+          <div className="lg:col-span-5 rounded-2xl border border-[#1E2B48] border-t-amber-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between space-y-5">
+            <div className="space-y-2.5">
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                Central Godown Stocks &amp; Government Handover Tracker
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Statutory Free Dhothi &amp; Free Saree distribution oversight for Senior Inspecting Authorities &mdash; verifying physical godown inventory, cumulative Co-optex dispatches, and quota completion.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#070C18] border border-[#1B2742] flex items-center justify-between gap-3">
+              <div>
                 <span className="text-[11px] font-medium text-slate-400 block">
                   Inspecting Official
                 </span>
-                <span className="text-sm font-bold text-amber-200 block">
+                <span className="text-sm font-bold text-amber-300 block mt-0.5">
                   {user?.fullName || "Directorate of Handlooms Official"}
                 </span>
-                <span className="text-[11px] font-mono text-emerald-300/90 block">
+                <span className="text-[11px] font-mono text-emerald-300 block mt-0.5">
                   {user?.email || "official@cheran"}
                 </span>
               </div>
-            </div>
-          </section>
-
-          {/* =========================================================================
-           * 3. HERO OVERALL & SCHEME QUOTA PROGRESS
-           * ========================================================================= */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Card A: Overall Consolidated Quota */}
-            <div className="rounded-2xl border border-white/[0.12] border-t-amber-300/35 bg-[#050A17]/42 backdrop-blur-[3px] p-6 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-amber-300/30">
-              <div>
-                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-amber-300">
-                  <span className="flex items-center gap-1.5">
-                    <Target className="h-4 w-4" />
-                    <span>Overall Scheme Progress</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-200 text-[11px] border border-amber-400/25">
-                    Combined Quota
-                  </span>
-                </div>
-
-                {isInitialLoading ? (
-                  <div className="mt-6 space-y-3 animate-pulse">
-                    <div className="h-12 w-36 rounded-lg bg-white/10" />
-                    <div className="h-4 w-52 rounded bg-white/10" />
-                  </div>
-                ) : (
-                  <div className="mt-5 flex items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl sm:text-5xl font-bold font-financial tabular-nums tracking-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                          {overallPercent}%
-                        </span>
-                        <span className="text-sm font-semibold text-emerald-300">
-                          Completed
-                        </span>
-                      </div>
-                      <p className="mt-2 text-xs text-slate-200 font-medium tabular-nums">
-                        {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")} of{" "}
-                        {(total.targetMeters || 0).toLocaleString("en-IN")} pieces handovered
-                      </p>
-                    </div>
-
-                    {/* Architectural Radial Progress Arc */}
-                    <div className="relative h-16 w-16 flex-shrink-0 flex items-center justify-center">
-                      <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
-                        <circle
-                          cx="32"
-                          cy="32"
-                          r={ringRadius}
-                          fill="none"
-                          stroke="rgba(255,255,255,0.1)"
-                          strokeWidth="4.5"
-                        />
-                        <circle
-                          cx="32"
-                          cy="32"
-                          r={ringRadius}
-                          fill="none"
-                          stroke="#f59e0b"
-                          strokeWidth="4.5"
-                          strokeLinecap="round"
-                          strokeDasharray={ringCircumference}
-                          strokeDashoffset={ringDashOffset}
-                          className="transition-all duration-700 ease-out"
-                        />
-                      </svg>
-                      <span className="absolute text-[10px] font-mono font-bold text-amber-200 tabular-nums">
-                        {Math.round(overallPercent)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Clean Progress Track */}
-              <div className="mt-6 space-y-2">
-                <div className="h-2.5 w-full rounded-full bg-[#040813]/80 overflow-hidden border border-white/[0.08]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-700 ease-out"
-                    style={{ width: `${Math.min(100, Math.max(2, overallPercent))}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-[11px] font-mono text-slate-300 tabular-nums">
-                  <span>0%</span>
-                  <span className="text-amber-200 font-semibold">
-                    Balance Quota: {(total.balanceToHandoverMeters || 0).toLocaleString("en-IN")} Pcs
-                  </span>
-                  <span>100%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card B: Dhothi Scheme Progress */}
-            <div className="rounded-2xl border border-white/[0.12] border-t-emerald-400/35 bg-[#050A17]/42 backdrop-blur-[3px] p-6 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-emerald-400/30">
-              <div>
-                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-emerald-300">
-                  <span className="flex items-center gap-1.5">
-                    <Layers className="h-4 w-4" />
-                    <span>Dhothi Scheme (வேட்டி திட்டம்)</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-200 text-[11px] border border-emerald-400/25">
-                    Pieces
-                  </span>
-                </div>
-
-                {isInitialLoading ? (
-                  <div className="mt-6 space-y-3 animate-pulse">
-                    <div className="h-11 w-28 rounded-lg bg-white/10" />
-                    <div className="h-10 w-full rounded bg-white/10" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="mt-5 flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-emerald-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                        {dhothiPercent}%
-                      </span>
-                      <span className="text-xs font-semibold text-emerald-200/85 uppercase tracking-wider">
-                        Handovered
-                      </span>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-white/[0.1]">
-                      <div>
-                        <span className="text-[11px] text-emerald-100/75 block">
-                          Govt Handovered
-                        </span>
-                        <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
-                          {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-[11px] text-emerald-300/90">Dhothis dispatched</span>
-                      </div>
-                      <div>
-                        <span className="text-[11px] text-emerald-100/75 block">
-                          In Godown Stock
-                        </span>
-                        <span className="text-lg font-bold font-mono tabular-nums text-amber-200 mt-0.5 block">
-                          {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-[11px] text-amber-300/85">Dhothis ready</span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="mt-5 space-y-1.5">
-                <div className="h-2 w-full rounded-full bg-[#040813]/80 overflow-hidden border border-white/[0.08]">
-                  <div
-                    className="h-full rounded-full bg-emerald-400 transition-all duration-700 ease-out"
-                    style={{ width: `${Math.min(100, Math.max(2, dhothiPercent))}%` }}
-                  />
-                </div>
-                <div className="text-[11px] text-emerald-100/80 text-right font-mono tabular-nums">
-                  Target: {(veatti.targetMeters || 0).toLocaleString("en-IN")} Dhothis
-                </div>
-              </div>
-            </div>
-
-            {/* Card C: Saree Scheme Progress */}
-            <div className="rounded-2xl border border-white/[0.12] border-t-rose-400/35 bg-[#050A17]/42 backdrop-blur-[3px] p-6 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-rose-400/30">
-              <div>
-                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-rose-300">
-                  <span className="flex items-center gap-1.5">
-                    <Layers className="h-4 w-4" />
-                    <span>Saree Scheme (சேலை திட்டம்)</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-200 text-[11px] border border-rose-400/25">
-                    Pieces
-                  </span>
-                </div>
-
-                {isInitialLoading ? (
-                  <div className="mt-6 space-y-3 animate-pulse">
-                    <div className="h-11 w-28 rounded-lg bg-white/10" />
-                    <div className="h-10 w-full rounded bg-white/10" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="mt-5 flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-rose-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                        {sareePercent}%
-                      </span>
-                      <span className="text-xs font-semibold text-rose-200/85 uppercase tracking-wider">
-                        Handovered
-                      </span>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-white/[0.1]">
-                      <div>
-                        <span className="text-[11px] text-rose-100/75 block">
-                          Govt Handovered
-                        </span>
-                        <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
-                          {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-[11px] text-rose-300/90">Sarees dispatched</span>
-                      </div>
-                      <div>
-                        <span className="text-[11px] text-rose-100/75 block">
-                          In Godown Stock
-                        </span>
-                        <span className="text-lg font-bold font-mono tabular-nums text-amber-200 mt-0.5 block">
-                          {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")}
-                        </span>
-                        <span className="text-[11px] text-amber-300/85">Sarees ready</span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="mt-5 space-y-1.5">
-                <div className="h-2 w-full rounded-full bg-[#040813]/80 overflow-hidden border border-white/[0.08]">
-                  <div
-                    className="h-full rounded-full bg-rose-400 transition-all duration-700 ease-out"
-                    style={{ width: `${Math.min(100, Math.max(2, sareePercent))}%` }}
-                  />
-                </div>
-                <div className="text-[11px] text-rose-100/80 text-right font-mono tabular-nums">
-                  Target: {(saree.targetMeters || 0).toLocaleString("en-IN")} Sarees
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* =========================================================================
-           * 4. 3-STEP STATUTORY TALLY PIPELINE (Powerloom -> Godown -> Govt)
-           * ========================================================================= */}
-          <section className="rounded-2xl border border-white/[0.12] bg-[#050A17]/46 backdrop-blur-[3px] p-6 sm:p-7 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.1] pb-4">
-              <div>
-                <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
-                  <span>Statutory Stock Flow: Powerloom &rarr; Godown &rarr; Government Handover</span>
-                </h3>
-                <p className="text-xs text-slate-200 mt-1">
-                  Every woven piece enters central godown stock first and deducts strictly upon verified Co-optex dispatch.
-                </p>
-              </div>
-
-              <span className="px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-200 text-xs font-semibold border border-emerald-400/25 self-start sm:self-auto whitespace-nowrap">
-                Co-optex Audit Synced
+              <span className="px-2.5 py-1 rounded-md bg-[#11241D] border border-emerald-500/35 text-[11px] font-semibold text-emerald-300 flex-shrink-0">
+                Authorized
               </span>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch relative">
-              {/* Loom Produced */}
-              <div className="rounded-xl border border-white/[0.1] bg-[#040813]/52 p-5 space-y-3 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
-                  <span>Loom Produced</span>
-                  <span className="p-2 rounded-lg bg-white/[0.08] text-slate-200 border border-white/[0.12]">
-                    <Factory className="h-4 w-4" />
-                  </span>
-                </div>
+          {/* Right: Dedicated Unobstructed 3D Powerloom Machine Viewport Stage */}
+          <div className="lg:col-span-7 relative rounded-2xl border border-[#243456] bg-[#070D1D] shadow-xl overflow-hidden min-h-[260px] sm:min-h-[300px]">
+            <ExecutiveBackground3D variant="stage" activeCategory={activeTab} />
 
-                <div>
-                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
-                    {(total.totalProducedMeters || 0).toLocaleString("en-IN")}
-                  </span>
-                  <span className="text-xs font-medium text-slate-300 ml-1.5">Pieces</span>
-                </div>
-
-                <div className="text-xs text-slate-200 pt-2.5 border-t border-white/[0.1] font-mono tabular-nums space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Dhothis Woven</span>
-                    <strong className="text-white">
-                      {(veatti.totalProducedMeters || 0).toLocaleString("en-IN")}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-300">Sarees Woven</span>
-                    <strong className="text-white">
-                      {(saree.totalProducedMeters || 0).toLocaleString("en-IN")}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* In Central Storage Godown */}
-              <div className="rounded-xl border border-amber-400/40 bg-[#0A1020]/58 p-5 space-y-3 flex flex-col justify-between shadow-[inset_0_1px_0_0_rgba(251,191,36,0.22)]">
-                <div className="flex items-center justify-between text-xs font-semibold text-amber-200">
-                  <span>In Central Godown Stock</span>
-                  <span className="p-2 rounded-lg bg-amber-500/20 text-amber-200 border border-amber-400/30">
-                    <Warehouse className="h-4 w-4" />
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
-                    {(total.godownAvailableMeters || 0).toLocaleString("en-IN")}
-                  </span>
-                  <span className="text-xs font-medium text-amber-200 ml-1.5">
-                    Pieces Available
-                  </span>
-                </div>
-
-                <div className="text-xs text-amber-100/85 pt-2.5 border-t border-amber-400/20 font-mono tabular-nums space-y-1">
-                  <div className="flex justify-between">
-                    <span>Dhothi Godown</span>
-                    <strong className="text-amber-200">
-                      {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs
-                    </strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Saree Godown</span>
-                    <strong className="text-amber-200">
-                      {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Government Handovered */}
-              <div className="rounded-xl border border-emerald-400/30 bg-[#040813]/52 p-5 space-y-3 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-semibold text-emerald-200">
-                  <span>Government Handovered</span>
-                  <span className="p-2 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-400/25">
-                    <Send className="h-4 w-4" />
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-emerald-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
-                    {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                  </span>
-                  <span className="text-xs font-medium text-emerald-200 ml-1.5">
-                    Pieces Dispatched
-                  </span>
-                </div>
-
-                <div className="text-xs text-emerald-100/85 pt-2.5 border-t border-emerald-400/20 font-mono tabular-nums space-y-1">
-                  <div className="flex justify-between">
-                    <span>Dhothis Handovered</span>
-                    <strong className="text-emerald-200">
-                      {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sarees Handovered</span>
-                    <strong className="text-emerald-200">
-                      {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                    </strong>
-                  </div>
-                </div>
-              </div>
+            {/* Clean Solid Corner Captions */}
+            <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#091122] border border-[#233457] text-[11px] font-semibold text-amber-200 shadow-md">
+              <Factory className="h-3.5 w-3.5 text-amber-400" />
+              <span>3D Powerloom Weaving Machine</span>
             </div>
 
-            {/* Statutory Equation Strip */}
-            <div className="px-4 py-3.5 rounded-xl bg-[#040813]/65 border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-200">
-              <div className="font-mono tabular-nums flex items-center gap-2 flex-wrap">
-                <span className="text-slate-400 font-sans">Stock Balance Equation:</span>
-                <span className="text-white font-semibold bg-white/[0.06] px-2.5 py-1 rounded-md border border-white/[0.06]">
-                  Loom Produced ({(total.totalProducedMeters || 0).toLocaleString("en-IN")})
-                </span>
-                <span className="text-slate-400">=</span>
-                <span className="text-amber-200 font-semibold bg-amber-500/15 px-2.5 py-1 rounded-md border border-amber-400/25">
-                  In Godown ({(total.godownAvailableMeters || 0).toLocaleString("en-IN")})
-                </span>
-                <span className="text-slate-400">+</span>
-                <span className="text-emerald-200 font-semibold bg-emerald-500/15 px-2.5 py-1 rounded-md border border-emerald-400/25">
-                  Handovered ({(total.totalHandoveredMeters || 0).toLocaleString("en-IN")})
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-xs">
-                <ChevronRight className="h-3.5 w-3.5 text-amber-300" />
-                <span>Zero Variance &bull; Statutory Tally Verified</span>
-              </div>
-            </div>
-          </section>
-
-          {/* =========================================================================
-           * 5. OFFICIAL GOVERNMENT HANDOVER CHALLANS LEDGER
-           * ========================================================================= */}
-          <section className="rounded-2xl border border-white/[0.12] bg-[#050A17]/48 backdrop-blur-[3px] shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] overflow-hidden space-y-5 p-6 sm:p-7">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
-              <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                    Verified Government Delivery Challans (அரசு ஒப்படைப்பு ரசீதுகள்)
-                  </h3>
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white/[0.08] text-slate-200 border border-white/[0.1] tabular-nums">
-                    {filteredHandovers.length} Dispatches
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mt-1">
-                  Official Co-optex gate-pass dispatches with verified piece counts, vehicle logs, and inspecting authority sign-offs.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div
-                  role="tablist"
-                  aria-label="Filter challans by cloth category"
-                  className="flex items-center bg-[#050914]/90 border border-white/[0.09] p-1 rounded-lg text-xs font-semibold text-slate-300"
-                >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "ALL"}
-                    onClick={() => setActiveTab("ALL")}
-                    className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
-                      activeTab === "ALL"
-                        ? "bg-amber-400 text-slate-950 font-bold shadow-xs"
-                        : "hover:text-white"
-                    }`}
-                  >
-                    All ({handovers.length})
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "DHOTHI"}
-                    onClick={() => setActiveTab("DHOTHI")}
-                    className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
-                      activeTab === "DHOTHI"
-                        ? "bg-emerald-500 text-slate-950 font-bold shadow-xs"
-                        : "hover:text-white"
-                    }`}
-                  >
-                    Dhothis ({handovers.filter((h) => h.clothType === "VEATTI").length})
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeTab === "SAREE"}
-                    onClick={() => setActiveTab("SAREE")}
-                    className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
-                      activeTab === "SAREE"
-                        ? "bg-rose-400 text-slate-950 font-bold shadow-xs"
-                        : "hover:text-white"
-                    }`}
-                  >
-                    Sarees ({handovers.filter((h) => h.clothType === "SAREE").length})
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleExportCSV}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0E172D] hover:bg-[#162242] text-slate-100 border border-white/[0.12] hover:border-amber-300/35 font-semibold text-xs transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
-                >
-                  <Download className="h-3.5 w-3.5 text-amber-300" />
-                  <span>Export Audit CSV</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Scoped Dark Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by Challan #, Recipient Department, Vehicle Number, or Inspecting Officer..."
-                className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium transition"
-              />
-            </div>
-
-            {/* Scoped Dark Obsidian Ledger Table */}
-            <div className="overflow-x-auto rounded-xl border border-white/[0.1] bg-[#040813]/48">
-              <table className="w-full text-left text-xs min-w-[850px]">
-                <thead className="font-semibold uppercase tracking-wider text-[11px]">
-                  <tr>
-                    <th className="py-3.5 px-4">Challan #</th>
-                    <th className="py-3.5 px-4">Dispatch Date</th>
-                    <th className="py-3.5 px-4">Category</th>
-                    <th className="py-3.5 px-4 text-right">Quantity (Pieces)</th>
-                    <th className="py-3.5 px-4">Recipient Dept / Depot</th>
-                    <th className="py-3.5 px-4">Vehicle No</th>
-                    <th className="py-3.5 px-4">Inspecting Officer</th>
-                    <th className="py-3.5 px-4">Notes</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/[0.06] font-medium">
-                  {filteredHandovers.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-400">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <AlertCircle className="h-7 w-7 text-slate-500" />
-                          <span className="font-semibold text-sm text-slate-300">
-                            No government handover records match the current filter.
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredHandovers.map((h) => {
-                      const isDhothi = h.clothType === "VEATTI";
-                      const pieces =
-                        h.pieces && h.pieces > 0
-                          ? h.pieces
-                          : Math.floor((h.meters || 0) / (isDhothi ? 3.65 : 5.5));
-
-                      return (
-                        <tr key={h.id} className="transition-colors">
-                          <td className="py-3.5 px-4 font-mono font-bold text-amber-300 tabular-nums">
-                            #{h.challanNo}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-300 tabular-nums">
-                            {new Date(h.handoverDate).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                                isDhothi
-                                  ? "bg-emerald-500/15 text-emerald-200 border border-emerald-400/25"
-                                  : "bg-rose-500/15 text-rose-200 border border-rose-400/25"
-                              }`}
-                            >
-                              {isDhothi ? "Dhothi (வேட்டி)" : "Saree (சேலை)"}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-bold text-sm tabular-nums">
-                            <span className={isDhothi ? "text-emerald-300" : "text-rose-300"}>
-                              {(pieces || 0).toLocaleString("en-IN")}{" "}
-                              <span className="text-[11px] font-sans font-normal text-slate-400">
-                                {isDhothi ? "Dhothis" : "Sarees"}
-                              </span>
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-200 font-semibold">
-                            {h.recipientDept}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-slate-300">
-                            {h.vehicleNo || "—"}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-300">
-                            {h.officerName || "—"}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-400 truncate max-w-[160px]">
-                            {h.notes || "—"}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-                {filteredHandovers.length > 0 && (
-                  <tfoot className="font-mono font-bold text-slate-200 border-t border-white/[0.1] text-xs">
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="py-3.5 px-4 font-sans font-semibold text-slate-300"
-                      >
-                        Total Dispatched ({filteredHandovers.length} Challans)
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-bold text-amber-300 text-sm tabular-nums">
-                        {filteredTotalPieces.toLocaleString("en-IN")} Pieces
-                      </td>
-                      <td colSpan={4} className="py-3.5 px-4 text-slate-500">
-                        —
-                      </td>
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
-            </div>
-          </section>
-
-          {/* =========================================================================
-           * 6. OFFICIAL INSPECTION AUTHORITY FOOTER
-           * ========================================================================= */}
-          <footer className="pt-4 pb-10 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-amber-300 flex-shrink-0" />
-              <span>
-                Statutory Handloom &amp; Textiles Inspection Authority &bull; Department of Handlooms, Government of Tamil Nadu
-              </span>
-            </div>
-            <div className="text-[11px] font-mono text-slate-400 text-center sm:text-right">
-              Audit Session ID: {user?.id?.substring(0, 8) || "OFFICIAL"} &bull; FY 2026-2027
-            </div>
-          </footer>
-        </main>
-
-        {/* Floating return pill when Inspecting 3D Powerloom unobstructed */}
-        {showLoomOnly && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#050914]/80 border border-amber-400/35 backdrop-blur-md shadow-2xl">
-            <span className="text-xs font-medium text-amber-100">
-              Live 3D Powerloom Weaving View &bull; Move cursor to pan camera
-            </span>
             <button
               type="button"
-              onClick={() => setShowLoomOnly(false)}
-              className="px-3 py-1 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition cursor-pointer"
+              onClick={() => setShowLoomModal(true)}
+              className="absolute bottom-3.5 right-3.5 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#091122] hover:bg-[#13203D] border border-[#233457] hover:border-amber-400/50 text-[11px] font-semibold text-slate-200 transition cursor-pointer shadow-md"
             >
-              Show Data Panels
+              <Maximize2 className="h-3 w-3 text-amber-300" />
+              <span>Expand View</span>
             </button>
           </div>
-        )}
-      </div>
+        </section>
+
+        {/* =========================================================================
+         * 3. SOLID HERO OVERALL & SCHEME QUOTA PROGRESS CARDS
+         * ========================================================================= */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Card A: Overall Consolidated Quota */}
+          <div className="rounded-2xl border border-[#1E2B48] border-t-amber-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 text-xs font-semibold text-amber-300">
+                <span className="flex items-center gap-1.5">
+                  <Target className="h-4 w-4" />
+                  <span>Overall Scheme Progress</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#241D0B] text-amber-200 text-[11px] border border-amber-500/35">
+                  Combined Quota
+                </span>
+              </div>
+
+              {isInitialLoading ? (
+                <div className="mt-6 space-y-3 animate-pulse">
+                  <div className="h-12 w-36 rounded-lg bg-[#16223D]" />
+                  <div className="h-4 w-52 rounded bg-[#16223D]" />
+                </div>
+              ) : (
+                <div className="mt-5 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl sm:text-5xl font-bold font-financial tabular-nums tracking-tight text-white">
+                        {overallPercent}%
+                      </span>
+                      <span className="text-sm font-semibold text-emerald-400">
+                        Completed
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-slate-300 font-medium tabular-nums">
+                      {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")} of{" "}
+                      {(total.targetMeters || 0).toLocaleString("en-IN")} pieces handovered
+                    </p>
+                  </div>
+
+                  {/* Architectural Radial Progress Arc */}
+                  <div className="relative h-16 w-16 flex-shrink-0 flex items-center justify-center">
+                    <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r={ringRadius}
+                        fill="none"
+                        stroke="#192542"
+                        strokeWidth="4.5"
+                      />
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r={ringRadius}
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="4.5"
+                        strokeLinecap="round"
+                        strokeDasharray={ringCircumference}
+                        strokeDashoffset={ringDashOffset}
+                        className="transition-all duration-700 ease-out"
+                      />
+                    </svg>
+                    <span className="absolute text-[10px] font-mono font-bold text-amber-300 tabular-nums">
+                      {Math.round(overallPercent)}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 space-y-2">
+              <div className="h-2.5 w-full rounded-full bg-[#060A14] overflow-hidden border border-[#1B2742]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-700 ease-out"
+                  style={{ width: `${Math.min(100, Math.max(2, overallPercent))}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 tabular-nums">
+                <span>0%</span>
+                <span className="text-amber-300 font-semibold">
+                  Balance Quota: {(total.balanceToHandoverMeters || 0).toLocaleString("en-IN")} Pcs
+                </span>
+                <span>100%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card B: Dhothi Scheme Progress */}
+          <div className="rounded-2xl border border-[#1E2B48] border-t-emerald-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 text-xs font-semibold text-emerald-300">
+                <span className="flex items-center gap-1.5">
+                  <Layers className="h-4 w-4" />
+                  <span>Dhothi Scheme (வேட்டி திட்டம்)</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#0D2820] text-emerald-200 text-[11px] border border-emerald-500/35">
+                  Pieces
+                </span>
+              </div>
+
+              {isInitialLoading ? (
+                <div className="mt-6 space-y-3 animate-pulse">
+                  <div className="h-11 w-28 rounded-lg bg-[#16223D]" />
+                  <div className="h-10 w-full rounded bg-[#16223D]" />
+                </div>
+              ) : (
+                <>
+                  <div className="mt-5 flex items-baseline gap-2">
+                    <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-emerald-300">
+                      {dhothiPercent}%
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-200/85 uppercase tracking-wider">
+                      Handovered
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-[#1B2742]">
+                    <div>
+                      <span className="text-[11px] text-emerald-100/75 block">
+                        Govt Handovered
+                      </span>
+                      <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
+                        {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-[11px] text-emerald-300">Dhothis dispatched</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-emerald-100/75 block">
+                        In Godown Stock
+                      </span>
+                      <span className="text-lg font-bold font-mono tabular-nums text-amber-300 mt-0.5 block">
+                        {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-[11px] text-amber-300/85">Dhothis ready</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="mt-5 space-y-1.5">
+              <div className="h-2 w-full rounded-full bg-[#060A14] overflow-hidden border border-[#1B2742]">
+                <div
+                  className="h-full rounded-full bg-emerald-400 transition-all duration-700 ease-out"
+                  style={{ width: `${Math.min(100, Math.max(2, dhothiPercent))}%` }}
+                />
+              </div>
+              <div className="text-[11px] text-emerald-100/80 text-right font-mono tabular-nums">
+                Target: {(veatti.targetMeters || 0).toLocaleString("en-IN")} Dhothis
+              </div>
+            </div>
+          </div>
+
+          {/* Card C: Saree Scheme Progress */}
+          <div className="rounded-2xl border border-[#1E2B48] border-t-rose-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 text-xs font-semibold text-rose-300">
+                <span className="flex items-center gap-1.5">
+                  <Layers className="h-4 w-4" />
+                  <span>Saree Scheme (சேலை திட்டம்)</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#2E111B] text-rose-200 text-[11px] border border-rose-500/35">
+                  Pieces
+                </span>
+              </div>
+
+              {isInitialLoading ? (
+                <div className="mt-6 space-y-3 animate-pulse">
+                  <div className="h-11 w-28 rounded-lg bg-[#16223D]" />
+                  <div className="h-10 w-full rounded bg-[#16223D]" />
+                </div>
+              ) : (
+                <>
+                  <div className="mt-5 flex items-baseline gap-2">
+                    <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-rose-300">
+                      {sareePercent}%
+                    </span>
+                    <span className="text-xs font-semibold text-rose-200/85 uppercase tracking-wider">
+                      Handovered
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-[#1B2742]">
+                    <div>
+                      <span className="text-[11px] text-rose-100/75 block">
+                        Govt Handovered
+                      </span>
+                      <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
+                        {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-[11px] text-rose-300">Sarees dispatched</span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-rose-100/75 block">
+                        In Godown Stock
+                      </span>
+                      <span className="text-lg font-bold font-mono tabular-nums text-amber-300 mt-0.5 block">
+                        {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-[11px] text-amber-300/85">Sarees ready</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="mt-5 space-y-1.5">
+              <div className="h-2 w-full rounded-full bg-[#060A14] overflow-hidden border border-[#1B2742]">
+                <div
+                  className="h-full rounded-full bg-rose-400 transition-all duration-700 ease-out"
+                  style={{ width: `${Math.min(100, Math.max(2, sareePercent))}%` }}
+                />
+              </div>
+              <div className="text-[11px] text-rose-100/80 text-right font-mono tabular-nums">
+                Target: {(saree.targetMeters || 0).toLocaleString("en-IN")} Sarees
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+         * 4. SOLID 3-STEP STATUTORY TALLY PIPELINE (Powerloom -> Godown -> Govt)
+         * ========================================================================= */}
+        <section className="rounded-2xl border border-[#1E2B48] bg-[#0B1324] p-6 sm:p-7 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1B2742] pb-4">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                <span>Statutory Stock Flow: Powerloom &rarr; Godown &rarr; Government Handover</span>
+              </h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Every woven piece enters central godown stock first and deducts strictly upon verified Co-optex dispatch.
+              </p>
+            </div>
+
+            <span className="px-3 py-1 rounded-lg bg-[#0D2820] text-emerald-300 text-xs font-semibold border border-emerald-500/35 self-start sm:self-auto whitespace-nowrap">
+              Co-optex Audit Synced
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            {/* Loom Produced */}
+            <div className="rounded-xl border border-[#1C2845] bg-[#070C18] p-5 space-y-3 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
+                <span>Loom Produced</span>
+                <span className="p-2 rounded-lg bg-[#141F38] text-slate-200 border border-[#233256]">
+                  <Factory className="h-4 w-4" />
+                </span>
+              </div>
+
+              <div>
+                <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-white">
+                  {(total.totalProducedMeters || 0).toLocaleString("en-IN")}
+                </span>
+                <span className="text-xs font-medium text-slate-300 ml-1.5">Pieces</span>
+              </div>
+
+              <div className="text-xs text-slate-200 pt-2.5 border-t border-[#1B2742] font-mono tabular-nums space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Dhothis Woven</span>
+                  <strong className="text-white">
+                    {(veatti.totalProducedMeters || 0).toLocaleString("en-IN")}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Sarees Woven</span>
+                  <strong className="text-white">
+                    {(saree.totalProducedMeters || 0).toLocaleString("en-IN")}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* In Central Storage Godown */}
+            <div className="rounded-xl border border-amber-400/50 bg-[#101B33] p-5 space-y-3 flex flex-col justify-between shadow-md">
+              <div className="flex items-center justify-between text-xs font-semibold text-amber-200">
+                <span>In Central Godown Stock</span>
+                <span className="p-2 rounded-lg bg-[#2A200C] text-amber-300 border border-amber-400/40">
+                  <Warehouse className="h-4 w-4" />
+                </span>
+              </div>
+
+              <div>
+                <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-amber-300">
+                  {(total.godownAvailableMeters || 0).toLocaleString("en-IN")}
+                </span>
+                <span className="text-xs font-medium text-amber-200 ml-1.5">
+                  Pieces Available
+                </span>
+              </div>
+
+              <div className="text-xs text-amber-100/85 pt-2.5 border-t border-amber-500/25 font-mono tabular-nums space-y-1">
+                <div className="flex justify-between">
+                  <span>Dhothi Godown</span>
+                  <strong className="text-amber-200">
+                    {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Saree Godown</span>
+                  <strong className="text-amber-200">
+                    {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Government Handovered */}
+            <div className="rounded-xl border border-emerald-500/35 bg-[#070C18] p-5 space-y-3 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-xs font-semibold text-emerald-200">
+                <span>Government Handovered</span>
+                <span className="p-2 rounded-lg bg-[#0D2820] text-emerald-300 border border-emerald-500/35">
+                  <Send className="h-4 w-4" />
+                </span>
+              </div>
+
+              <div>
+                <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-emerald-300">
+                  {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")}
+                </span>
+                <span className="text-xs font-medium text-emerald-200 ml-1.5">
+                  Pieces Dispatched
+                </span>
+              </div>
+
+              <div className="text-xs text-emerald-100/85 pt-2.5 border-t border-emerald-500/20 font-mono tabular-nums space-y-1">
+                <div className="flex justify-between">
+                  <span>Dhothis Handovered</span>
+                  <strong className="text-emerald-200">
+                    {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sarees Handovered</span>
+                  <strong className="text-emerald-200">
+                    {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Solid Statutory Equation Strip */}
+          <div className="px-4 py-3.5 rounded-xl bg-[#070C18] border border-[#1B2742] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-200">
+            <div className="font-mono tabular-nums flex items-center gap-2 flex-wrap">
+              <span className="text-slate-400 font-sans">Stock Balance Equation:</span>
+              <span className="text-white font-semibold bg-[#131E36] px-2.5 py-1 rounded-md border border-[#223154]">
+                Loom Produced ({(total.totalProducedMeters || 0).toLocaleString("en-IN")})
+              </span>
+              <span className="text-slate-400">=</span>
+              <span className="text-amber-200 font-semibold bg-[#241D0B] px-2.5 py-1 rounded-md border border-amber-500/35">
+                In Godown ({(total.godownAvailableMeters || 0).toLocaleString("en-IN")})
+              </span>
+              <span className="text-slate-400">+</span>
+              <span className="text-emerald-200 font-semibold bg-[#0D2820] px-2.5 py-1 rounded-md border border-emerald-500/35">
+                Handovered ({(total.totalHandoveredMeters || 0).toLocaleString("en-IN")})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-xs">
+              <ChevronRight className="h-3.5 w-3.5 text-amber-400" />
+              <span>Zero Variance &bull; Statutory Tally Verified</span>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+         * 5. SOLID OFFICIAL GOVERNMENT HANDOVER CHALLANS LEDGER
+         * ========================================================================= */}
+        <section className="rounded-2xl border border-[#1E2B48] bg-[#0B1324] shadow-xl overflow-hidden space-y-5 p-6 sm:p-7">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#1B2742] pb-5">
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                  Verified Government Delivery Challans (அரசு ஒப்படைப்பு ரசீதுகள்)
+                </h3>
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#131E36] text-slate-200 border border-[#243456] tabular-nums">
+                  {filteredHandovers.length} Dispatches
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                Official Co-optex gate-pass dispatches with verified piece counts, vehicle logs, and inspecting authority sign-offs.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div
+                role="tablist"
+                aria-label="Filter challans by cloth category"
+                className="flex items-center bg-[#070C18] border border-[#1E2B48] p-1 rounded-lg text-xs font-semibold text-slate-300"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "ALL"}
+                  onClick={() => setActiveTab("ALL")}
+                  className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
+                    activeTab === "ALL"
+                      ? "bg-amber-400 text-slate-950 font-bold"
+                      : "hover:text-white"
+                  }`}
+                >
+                  All ({handovers.length})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "DHOTHI"}
+                  onClick={() => setActiveTab("DHOTHI")}
+                  className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
+                    activeTab === "DHOTHI"
+                      ? "bg-emerald-500 text-slate-950 font-bold"
+                      : "hover:text-white"
+                  }`}
+                >
+                  Dhothis ({handovers.filter((h) => h.clothType === "VEATTI").length})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "SAREE"}
+                  onClick={() => setActiveTab("SAREE")}
+                  className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
+                    activeTab === "SAREE"
+                      ? "bg-rose-400 text-slate-950 font-bold"
+                      : "hover:text-white"
+                  }`}
+                >
+                  Sarees ({handovers.filter((h) => h.clothType === "SAREE").length})
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#121D36] hover:bg-[#19284A] text-slate-100 border border-[#243456] hover:border-amber-400/50 font-semibold text-xs transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              >
+                <Download className="h-3.5 w-3.5 text-amber-300" />
+                <span>Export Audit CSV</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Solid Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by Challan #, Recipient Department, Vehicle Number, or Inspecting Officer..."
+              className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium transition"
+            />
+          </div>
+
+          {/* Solid Obsidian Ledger Table */}
+          <div className="overflow-x-auto rounded-xl border border-[#1E2B48] bg-[#070C18]">
+            <table className="w-full text-left text-xs min-w-[850px]">
+              <thead className="font-semibold uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th className="py-3.5 px-4">Challan #</th>
+                  <th className="py-3.5 px-4">Dispatch Date</th>
+                  <th className="py-3.5 px-4">Category</th>
+                  <th className="py-3.5 px-4 text-right">Quantity (Pieces)</th>
+                  <th className="py-3.5 px-4">Recipient Dept / Depot</th>
+                  <th className="py-3.5 px-4">Vehicle No</th>
+                  <th className="py-3.5 px-4">Inspecting Officer</th>
+                  <th className="py-3.5 px-4">Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#162038] font-medium">
+                {filteredHandovers.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <AlertCircle className="h-7 w-7 text-slate-500" />
+                        <span className="font-semibold text-sm text-slate-300">
+                          No government handover records match the current filter.
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredHandovers.map((h) => {
+                    const isDhothi = h.clothType === "VEATTI";
+                    const pieces =
+                      h.pieces && h.pieces > 0
+                        ? h.pieces
+                        : Math.floor((h.meters || 0) / (isDhothi ? 3.65 : 5.5));
+
+                    return (
+                      <tr key={h.id} className="transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-amber-300 tabular-nums">
+                          #{h.challanNo}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-300 tabular-nums">
+                          {new Date(h.handoverDate).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                              isDhothi
+                                ? "bg-[#0D2820] text-emerald-200 border border-emerald-500/35"
+                                : "bg-[#2E111B] text-rose-200 border border-rose-500/35"
+                            }`}
+                          >
+                            {isDhothi ? "Dhothi (வேட்டி)" : "Saree (சேலை)"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-mono font-bold text-sm tabular-nums">
+                          <span className={isDhothi ? "text-emerald-300" : "text-rose-300"}>
+                            {(pieces || 0).toLocaleString("en-IN")}{" "}
+                            <span className="text-[11px] font-sans font-normal text-slate-400">
+                              {isDhothi ? "Dhothis" : "Sarees"}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-200 font-semibold">
+                          {h.recipientDept}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-slate-300">
+                          {h.vehicleNo || "—"}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-300">
+                          {h.officerName || "—"}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400 truncate max-w-[160px]">
+                          {h.notes || "—"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              {filteredHandovers.length > 0 && (
+                <tfoot className="font-mono font-bold text-slate-200 border-t border-[#1E2B48] text-xs">
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="py-3.5 px-4 font-sans font-semibold text-slate-300"
+                    >
+                      Total Dispatched ({filteredHandovers.length} Challans)
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-bold text-amber-300 text-sm tabular-nums">
+                      {filteredTotalPieces.toLocaleString("en-IN")} Pieces
+                    </td>
+                    <td colSpan={4} className="py-3.5 px-4 text-slate-500">
+                      —
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+        </section>
+
+        {/* =========================================================================
+         * 6. OFFICIAL INSPECTION AUTHORITY FOOTER
+         * ========================================================================= */}
+        <footer className="pt-4 pb-10 border-t border-[#1B2742] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-amber-400 flex-shrink-0" />
+            <span>
+              Statutory Handloom &amp; Textiles Inspection Authority &bull; Department of Handlooms, Government of Tamil Nadu
+            </span>
+          </div>
+          <div className="text-[11px] font-mono text-slate-400 text-center sm:text-right">
+            Audit Session ID: {user?.id?.substring(0, 8) || "OFFICIAL"} &bull; FY 2026-2027
+          </div>
+        </footer>
+      </main>
+
+      {/* =========================================================================
+       * 7. FULLSCREEN 3D POWERLOOM INSPECTION MODAL (SOLID CHROME)
+       * ========================================================================= */}
+      {showLoomModal && (
+        <div className="fixed inset-0 z-50 bg-[#04070f]">
+          <ExecutiveBackground3D variant="fullscreen" activeCategory={activeTab} />
+
+          <div className="fixed top-5 left-5 z-10 flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#091020] border border-[#233457] text-xs font-semibold text-amber-200 shadow-xl">
+            <Factory className="h-4 w-4 text-amber-400" />
+            <span>Kinematic 3D Powerloom Simulation &bull; {activeTab}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowLoomModal(false)}
+            className="fixed top-5 right-5 z-10 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#091020] hover:bg-[#142240] border border-amber-400/45 text-xs font-bold text-white shadow-xl transition cursor-pointer"
+          >
+            <X className="h-4 w-4 text-amber-300" />
+            <span>Close 3D View</span>
+          </button>
+
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-[#091020] border border-[#233457] text-xs text-slate-300 shadow-xl pointer-events-none">
+            Move cursor to orbit perspective &bull; Synchronized gear train, shedding warp &amp; shuttle flight
+          </div>
+        </div>
+      )}
     </div>
   );
 };

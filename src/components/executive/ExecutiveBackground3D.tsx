@@ -7,6 +7,7 @@ export interface ExecutiveBackground3DProps {
   className?: string;
   intensity?: "normal" | "subtle";
   activeCategory?: "ALL" | "DHOTHI" | "SAREE";
+  variant?: "stage" | "fullscreen";
 }
 
 const CATEGORY_ACCENT_HEX: Record<"ALL" | "DHOTHI" | "SAREE", number> = {
@@ -72,6 +73,7 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
   className = "",
   intensity = "normal",
   activeCategory = "ALL",
+  variant = "stage",
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const categoryRef = useRef<"ALL" | "DHOTHI" | "SAREE">(activeCategory);
@@ -91,12 +93,14 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
-    // 1. Scene, Closer Showcase Camera, Tone-Mapped Renderer
+    // 1. Scene, Responsive Framing Camera, Tone-Mapped Renderer
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x060b18, 0.024);
+    scene.fog = new THREE.FogExp2(0x060b18, 0.022);
 
-    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 140);
-    camera.position.set(-1.35, 2.35, 9.2);
+    const aspect = width / Math.max(height, 1);
+    let baseCameraZ = aspect < 1.35 ? 10.6 : variant === "stage" ? 8.35 : 9.2;
+    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 140);
+    camera.position.set(-1.15, 2.05, baseCameraZ);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -212,12 +216,12 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
     );
 
     // =========================================================================
-    // 4. Master Powerloom Machine Assembly (Framed Clearly Mid-Stage)
+    // 4. Master Powerloom Machine Assembly
     // =========================================================================
     const loomGroup = new THREE.Group();
-    loomGroup.position.set(1.15, -0.05, -0.9);
+    loomGroup.position.set(variant === "stage" ? 0.35 : 0.9, -0.1, -0.9);
     loomGroup.rotation.set(0.16, -0.44, 0);
-    loomGroup.scale.setScalar(1.12);
+    loomGroup.scale.setScalar(variant === "stage" ? 1.15 : 1.12);
     scene.add(loomGroup);
 
     const LOOM_WIDTH = 5.8;
@@ -919,8 +923,10 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       if (!container) return;
       width = container.clientWidth || window.innerWidth;
       height = container.clientHeight || window.innerHeight;
+      const newAspect = width / Math.max(height, 1);
+      baseCameraZ = newAspect < 1.35 ? 10.6 : variant === "stage" ? 8.35 : 9.2;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      camera.aspect = width / height;
+      camera.aspect = newAspect;
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(dpr);
       renderer.setSize(width, height);
@@ -1020,9 +1026,10 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       currentMouseX += (targetMouseX - currentMouseX) * damp;
       currentMouseY += (targetMouseY - currentMouseY) * damp;
 
-      camera.position.x = -1.35 + Math.sin(timeElapsed * 0.14) * 0.45 + currentMouseX * 1.1;
-      camera.position.y = 2.35 + Math.cos(timeElapsed * 0.11) * 0.2 + currentMouseY * 0.55;
-      camera.lookAt(0.45, 0.25, -0.9);
+      camera.position.x = -1.15 + Math.sin(timeElapsed * 0.14) * 0.4 + currentMouseX * 1.05;
+      camera.position.y = 2.05 + Math.cos(timeElapsed * 0.11) * 0.18 + currentMouseY * 0.5;
+      camera.position.z = baseCameraZ;
+      camera.lookAt(variant === "stage" ? 0.15 : 0.45, 0.25, -0.9);
 
       renderer.render(scene, camera);
     };
@@ -1048,16 +1055,21 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       }
       renderer.dispose();
     };
-  }, [intensity]);
+  }, [intensity, variant]);
+
+  const positioningClass =
+    variant === "fullscreen"
+      ? "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+      : "relative w-full h-full pointer-events-none overflow-hidden";
 
   return (
     <div
       ref={mountRef}
       aria-hidden="true"
-      className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
+      className={`${positioningClass} ${className}`}
       style={{
         background:
-          "radial-gradient(ellipse 100% 78% at 58% 35%, #122142 0%, #070d1d 55%, #04070f 100%)",
+          "radial-gradient(ellipse 100% 78% at 54% 40%, #122142 0%, #070d1d 58%, #04070f 100%)",
       }}
     />
   );

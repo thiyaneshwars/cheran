@@ -309,54 +309,54 @@ input::placeholder, textarea::placeholder {
 }
 
 /* ========================================================
-   HIGHER OFFICIALS EXECUTIVE PORTAL — SCOPED DARK ATELIER
+   HIGHER OFFICIALS EXECUTIVE PORTAL — SOLID DARK OBSIDIAN THEME
    Overrides global light-table and light-input rules strictly
    inside .executive-portal without affecting other modules.
    ======================================================== */
 .executive-portal {
   color-scheme: dark;
   scrollbar-width: thin;
-  scrollbar-color: rgba(245, 158, 11, 0.35) rgba(7, 11, 22, 0.8);
+  scrollbar-color: #d97706 #070c18;
 }
 
 .executive-portal table {
-  color: #e2e8f0 !important;
+  color: #f1f5f9 !important;
 }
 
 .executive-portal thead,
 .executive-portal thead tr,
 .executive-portal thead th {
-  background-color: rgba(6, 10, 22, 0.68) !important;
+  background-color: #0e172c !important;
   color: #cbd5e1 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #1e2942 !important;
 }
 
 .executive-portal tbody tr {
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: #162038 !important;
 }
 
 .executive-portal tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: #111c34 !important;
 }
 
 .executive-portal tfoot tr {
-  background-color: rgba(8, 13, 28, 0.65) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #0c1426 !important;
+  border-color: #1e2942 !important;
 }
 
 .executive-portal input,
 .executive-portal select,
 .executive-portal textarea {
-  background-color: rgba(7, 11, 22, 0.82) !important;
+  background-color: #070c18 !important;
   color: #f8fafc !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: #1e2942 !important;
 }
 
 .executive-portal input:focus,
 .executive-portal select:focus,
 .executive-portal textarea:focus {
-  border-color: rgba(245, 158, 11, 0.6) !important;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25) !important;
   outline: none !important;
 }
 
@@ -366,17 +366,17 @@ input::placeholder, textarea::placeholder {
 }
 
 .executive-portal ::-webkit-scrollbar-track {
-  background: rgba(7, 11, 22, 0.85);
+  background: #070c18;
 }
 
 .executive-portal ::-webkit-scrollbar-thumb {
-  background: rgba(245, 158, 11, 0.32);
+  background: #475569;
   border-radius: 9999px;
-  border: 2px solid rgba(7, 11, 22, 0.85);
+  border: 2px solid #070c18;
 }
 
 .executive-portal ::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 158, 11, 0.52);
+  background: #f59e0b;
 }
 
 /* Clean print styles */
