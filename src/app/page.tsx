@@ -19,6 +19,8 @@ import { GovtHandoverView } from "@/components/GovtHandoverView";
 import { BabinView } from "@/components/BabinView";
 import { GovtYarnAllotmentView } from "@/components/GovtYarnAllotmentView";
 import { ExecutiveOfficialView } from "@/components/executive/ExecutiveOfficialView";
+import { CheranSealBadge } from "@/components/ui/CheranSealBadge";
+import { ScrollThreadBar } from "@/components/ui/ScrollReveal";
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -105,15 +107,45 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#181311]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#382E2A] border-t-[#E1E5EB]" />
-          <span className="text-sm font-bold text-white">
-            Loading Cheran Co-operative Accounting & Production System...
-          </span>
-          <span className="text-xs text-[#D8C3AE]">
-            Please wait while application state is verified
-          </span>
+      <div className="flex min-h-screen w-screen flex-col items-center justify-center bg-[#FAF7F0] px-6 text-[#14233C]">
+        <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[#D4CAB0] bg-white shadow-xs">
+          <div className="h-1 w-full bg-[#14233C]" />
+          <div className="p-8">
+          <div className="flex flex-col items-center text-center">
+            <CheranSealBadge size="lg" />
+            <h1 className="font-display mt-5 text-2xl font-bold tracking-tight text-[#14233C]">
+              Cheran Co-operative Society
+            </h1>
+            <p className="mt-1.5 text-xs font-medium text-[#5B6B84]">
+              Statutory Accounting &amp; Powerloom Dispatch System · Reg. No. SL-204
+            </p>
+          </div>
+
+          {/* Woven Shuttle Weft Track */}
+          <div className="mt-7 space-y-2.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[#5B6B84]">
+              <span>Verifying application session &amp; ledger state</span>
+              <span className="font-financial text-[#B47B2B]">LIVE SYNC</span>
+            </div>
+            <div className="relative h-2 w-full overflow-hidden rounded-full bg-[#EFE9DA] border border-[#E5DEC9]">
+              <div className="shuttle-thread-runner h-full w-1/3 rounded-full bg-gradient-to-r from-[#14233C] via-[#B47B2B] to-[#D49A42]" />
+            </div>
+            <div className="grid grid-cols-3 gap-2 pt-2 text-[10.5px] font-financial text-[#5B6B84]">
+              <div className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#14233C]" />
+                <span>01 Session</span>
+              </div>
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#B47B2B]" />
+                <span>02 Godown</span>
+              </div>
+              <div className="flex items-center justify-end gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#166534]" />
+                <span>03 Co-optex</span>
+              </div>
+            </div>
+          </div>
+          </div>
         </div>
       </div>
     );
@@ -188,7 +220,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#FAF7F0] text-[#14233C] font-sans">
+      <ScrollThreadBar />
       {/* Sidebar Navigation */}
       <Sidebar
         currentTab={currentTab}
@@ -210,7 +243,10 @@ export default function Home() {
           user={currentUser}
         />
 
-        <main className="flex-1 pb-16">
+        <main
+          key={currentTab}
+          className="flex-1 pb-16 workspace-ledger ledger-tab-enter"
+        >
           {currentTab === "veatti" && <VeattiProductionView />}
 
           {currentTab === "saree" && <SareeProductionView />}

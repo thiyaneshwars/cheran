@@ -805,21 +805,21 @@ export const PowerloomView: React.FC<PowerloomViewProps> = ({
             onClick={() => setActiveSectionTab("CONTRACTS")}
             className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
               activeSectionTab === "CONTRACTS"
-                ? "bg-[#1E2229] text-white shadow-xs font-bold"
+                ? "bg-[#14233C] text-white shadow-xs font-bold"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            📋 Powerloom Production Entries ({records.length})
+            Powerloom Production Entries ({records.length})
           </button>
           <button
             onClick={() => setActiveSectionTab("ADVANCE_SETTLEMENT")}
             className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
               activeSectionTab === "ADVANCE_SETTLEMENT"
-                ? "bg-[#1E2229] text-white shadow-xs font-bold"
+                ? "bg-[#14233C] text-white shadow-xs font-bold"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            💰 Advance Amount & Settlement Tracker
+            Advance Amount &amp; Settlement Tracker
           </button>
         </div>
 

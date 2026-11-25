@@ -686,8 +686,8 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   }`}
                 >
                   {/* Top: Name & Cloth Type Badge */}
-                  <div className="flex items-start justify-between gap-3 mb-2.5">
-                    <div className="font-black text-base text-slate-900 tracking-tight truncate">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="font-bold text-base text-slate-900 tracking-normal leading-snug truncate">
                       {u.weaverName}
                     </div>
                     <span
@@ -702,7 +702,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   </div>
 
                   {/* Location & Looms */}
-                  <div className="text-xs text-slate-500 font-medium mb-3.5 flex items-center gap-2 flex-wrap">
+                  <div className="text-xs text-slate-500 font-medium mb-3.5 flex items-center gap-x-2.5 gap-y-1.5 flex-wrap leading-relaxed">
                     <span>📍 {u.location || "Tamil Nadu"}</span>
                     <span>•</span>
                     <span>{u.machineCount || 1} Looms</span>
@@ -720,27 +720,27 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   </div>
 
                   {/* 3 Live Mini Metrics */}
-                  <div className="grid grid-cols-3 gap-2 pt-2.5 border-t border-slate-100 text-xs">
+                  <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-slate-100 text-xs">
                     {/* Remaining Paavu */}
-                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 space-y-0.5">
-                      <div className="text-slate-500 font-semibold text-[10px] truncate">Remaining</div>
-                      <div className="font-black font-mono tabular-nums text-slate-900 truncate">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                      <div className="text-slate-500 font-semibold text-[10.5px] truncate">Remaining</div>
+                      <div className="font-bold font-mono tabular-nums text-slate-900 truncate">
                         {currentRemaining.toLocaleString()}{" "}
-                        <span className="text-[10px] font-normal text-slate-400">pcs</span>
+                        <span className="text-[10.5px] font-normal text-slate-400">pcs</span>
                       </div>
                     </div>
 
                     {/* Weft Stock */}
-                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 space-y-0.5">
-                      <div className="text-slate-500 font-semibold text-[10px] truncate">Weft Stock</div>
-                      <div className="font-black font-mono tabular-nums text-slate-900 truncate">
-                        {currentWeft} <span className="text-[10px] font-normal text-slate-400">kg</span>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                      <div className="text-slate-500 font-semibold text-[10.5px] truncate">Weft Stock</div>
+                      <div className="font-bold font-mono tabular-nums text-slate-900 truncate">
+                        {currentWeft} <span className="text-[10.5px] font-normal text-slate-400">kg</span>
                       </div>
                     </div>
 
                     {/* Net Balance */}
                     <div
-                      className={`p-2 rounded-xl border space-y-0.5 ${
+                      className={`p-2.5 rounded-xl border space-y-1 ${
                         isPayable
                           ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                           : isExcess
@@ -748,10 +748,10 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                           : "bg-slate-50 text-slate-700 border-slate-200"
                       }`}
                     >
-                      <div className="font-semibold text-[10px] truncate">
+                      <div className="font-semibold text-[10.5px] truncate">
                         {isPayable ? "+ Payable" : isExcess ? "- Excess" : "Settled"}
                       </div>
-                      <div className="font-black font-mono tabular-nums truncate">
+                      <div className="font-bold font-mono tabular-nums truncate">
                         {isPayable ? "+" : isExcess ? "-" : ""}
                         {formatINR(Math.abs(netBal))}
                       </div>
@@ -770,8 +770,8 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
       {selectedUnit && (
         <div className="bg-white text-slate-900 rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/90 space-y-5 no-print">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2.5">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                   selectedUnit.clothType === "VEATTI" ? "bg-emerald-100 text-emerald-800" : "bg-purple-100 text-purple-800"
                 }`}>
@@ -781,7 +781,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                   {selectedUnit.location ? `📍 ${selectedUnit.location}` : "Tamil Nadu"} • {selectedUnit.machineCount} Looms
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal leading-snug text-slate-900 flex items-center gap-3 flex-wrap">
                 <span>{selectedUnit.weaverName}</span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono">
                   Wage Rate: ₹{selectedUnit.individualRate || TRADITIONAL_DEFAULT_WAGE_RATE}/pc
@@ -888,79 +888,96 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
           {/* 5 Core Traditional Live Tally Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 pt-5 border-t border-slate-100">
             {/* Card 1: Remaining Paavu Meter */}
-            <div className="p-4.5 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200/70 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-amber-900 flex items-center justify-between">
+            <div className="min-w-0 p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70 shadow-xs space-y-2 overflow-hidden">
+              <div className="text-xs font-bold text-amber-900 flex items-center justify-between gap-2">
                 <span>Remaining Paavu</span>
                 <PackageCheck className="h-4 w-4 text-amber-600 flex-shrink-0" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
-                {(summary?.remainingPaavu ?? 0).toLocaleString()}{" "}
-                <span className="text-xs font-semibold text-slate-500 font-sans">{clothType === "SAREE" ? "Sarees" : "Dhothis"}</span>
+              <div className="text-xl sm:text-2xl xl:text-[22px] leading-tight font-extrabold tabular-nums text-slate-900 break-words">
+                <span className="whitespace-nowrap">
+                  {(summary?.remainingPaavu ?? 0).toLocaleString()}
+                </span>{" "}
+                <span className="text-xs font-semibold text-slate-500">
+                  {clothType === "SAREE" ? "Sarees" : "Dhothis"}
+                </span>
               </div>
-              <div className="text-xs text-slate-500 font-mono leading-normal">
+              <div className="text-[11px] text-slate-500 leading-relaxed">
                 Given: {summary?.totalPaavuGiven ?? 0} pcs • Produced:{" "}
                 {summary?.totalProduced ?? 0} pcs
               </div>
             </div>
 
             {/* Card 2: Available Weft Stock (KG) */}
-            <div className="p-4.5 sm:p-5 rounded-2xl bg-sky-50/60 border border-sky-200/70 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-sky-900 flex items-center justify-between">
+            <div className="min-w-0 p-4 rounded-2xl bg-sky-50/60 border border-sky-200/70 shadow-xs space-y-2 overflow-hidden">
+              <div className="text-xs font-bold text-sky-900 flex items-center justify-between gap-2">
                 <span>Weft Stock Available</span>
                 <Scale className="h-4 w-4 text-sky-600 flex-shrink-0" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-sky-950">
-                {summary?.weftStock ?? selectedUnit.weftStockKg ?? 0}{" "}
-                <span className="text-xs font-semibold text-slate-500 font-sans">KG</span>
+              <div className="text-xl sm:text-2xl xl:text-[22px] leading-tight font-extrabold tabular-nums text-sky-950 break-words">
+                <span className="whitespace-nowrap">
+                  {summary?.weftStock ?? selectedUnit.weftStockKg ?? 0}
+                </span>{" "}
+                <span className="text-xs font-semibold text-slate-500">KG</span>
               </div>
-              <div className="text-xs text-slate-500 font-mono leading-normal">
-                Opening: {selectedUnit.initialWeftKg || 0}kg • Given: {summary?.totalWeftGiven || selectedUnit.initialWeftKg || 0}kg • Consumed: {summary?.totalWeftConsumed || 0}kg
+              <div className="text-[11px] text-slate-500 leading-relaxed">
+                Opening: {selectedUnit.initialWeftKg || 0}kg • Given:{" "}
+                {summary?.totalWeftGiven || selectedUnit.initialWeftKg || 0}kg • Consumed:{" "}
+                {summary?.totalWeftConsumed || 0}kg
               </div>
             </div>
 
             {/* Card 3: Available Babin Sets */}
-            <div className="p-4.5 sm:p-5 rounded-2xl bg-purple-50/60 border border-purple-200/70 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-purple-900 flex items-center justify-between">
+            <div className="min-w-0 p-4 rounded-2xl bg-purple-50/60 border border-purple-200/70 shadow-xs space-y-2 overflow-hidden">
+              <div className="text-xs font-bold text-purple-900 flex items-center justify-between gap-2">
                 <span>Available Babin Sets</span>
                 <Layers className="h-4 w-4 text-purple-600 flex-shrink-0" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900">
-                {(summary?.remainingBabin !== undefined
-                  ? summary.remainingBabin
-                  : summary?.totalBabin !== undefined
-                  ? summary.totalBabin
-                  : (selectedUnit.babinCount || 0)
-                ).toLocaleString()}{" "}
-                <span className="text-xs font-semibold text-slate-500 font-sans">
-                  Sets
-                </span>
+              <div className="text-xl sm:text-2xl xl:text-[22px] leading-tight font-extrabold tabular-nums text-slate-900 break-words">
+                <span className="whitespace-nowrap">
+                  {(summary?.remainingBabin !== undefined
+                    ? summary.remainingBabin
+                    : summary?.totalBabin !== undefined
+                    ? summary.totalBabin
+                    : (selectedUnit.babinCount || 0)
+                  ).toLocaleString()}
+                </span>{" "}
+                <span className="text-xs font-semibold text-slate-500">Sets</span>
               </div>
-              <div className="text-xs text-slate-500 font-mono leading-normal">
+              <div className="text-[11px] text-slate-500 leading-relaxed">
                 {clothType === "SAREE" ? (
                   <>
-                    Issued: {summary?.totalBabinIssued ?? summary?.totalBabin ?? selectedUnit.babinCount ?? 0} Sets • Consumed:{" "}
-                    {summary?.totalBabinConsumed ?? 0} Sets (1 set / 200 Sarees)
+                    Issued:{" "}
+                    {summary?.totalBabinIssued ??
+                      summary?.totalBabin ??
+                      selectedUnit.babinCount ??
+                      0}{" "}
+                    Sets • Consumed: {summary?.totalBabinConsumed ?? 0} Sets (1 set / 200 Sarees)
                   </>
                 ) : (
                   <>
-                    Issued: {summary?.totalBabinIssued ?? summary?.totalBabin ?? selectedUnit.babinCount ?? 0} Sets • Consumed:{" "}
-                    {summary?.totalBabinConsumed ?? 0} Sets (1 set / 500 Dhothis)
+                    Issued:{" "}
+                    {summary?.totalBabinIssued ??
+                      summary?.totalBabin ??
+                      selectedUnit.babinCount ??
+                      0}{" "}
+                    Sets • Consumed: {summary?.totalBabinConsumed ?? 0} Sets (1 set / 500 Dhothis)
                   </>
                 )}
               </div>
             </div>
 
             {/* Card 4: Total Wage Earned vs Cash Paid */}
-            <div className="p-4.5 sm:p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-emerald-900 flex items-center justify-between">
+            <div className="min-w-0 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 shadow-xs space-y-2 overflow-hidden">
+              <div className="text-xs font-bold text-emerald-900 flex items-center justify-between gap-2">
                 <span>Total Wages Earned</span>
                 <TrendingUp className="h-4 w-4 text-emerald-600 flex-shrink-0" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-emerald-900">
+              <div className="text-xl sm:text-2xl xl:text-[21px] leading-tight font-extrabold tabular-nums text-emerald-900 whitespace-nowrap truncate" title={formatINR(summary?.totalWageEarned || selectedUnit.totalVaravuAmount || 0)}>
                 {formatINR(summary?.totalWageEarned || selectedUnit.totalVaravuAmount || 0)}
               </div>
-              <div className="text-xs text-slate-500 font-mono leading-normal">
-                Cash Paid: {formatINR(summary?.totalCashPaid || selectedUnit.totalAdvancePaid || 0)}
+              <div className="text-[11px] text-slate-500 leading-relaxed tabular-nums">
+                Cash Paid:{" "}
+                {formatINR(summary?.totalCashPaid || selectedUnit.totalAdvancePaid || 0)}
               </div>
             </div>
 
@@ -969,10 +986,13 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
               const currentBal = summary?.netBalance ?? selectedUnit.currentBalance ?? 0;
               const isPayable = currentBal > 0;
               const isExcess = currentBal < 0;
+              const formattedBal = `${isPayable ? "+" : isExcess ? "-" : ""}${formatINR(
+                Math.abs(currentBal)
+              )}`;
 
               return (
                 <div
-                  className={`p-4.5 sm:p-5 rounded-2xl border shadow-xs space-y-2 ${
+                  className={`min-w-0 p-4 rounded-2xl border shadow-xs space-y-2 overflow-hidden ${
                     isPayable
                       ? "bg-emerald-50 border-emerald-200 text-emerald-950"
                       : isExcess
@@ -980,18 +1000,50 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                       : "bg-slate-50 border-slate-200 text-slate-900"
                   }`}
                 >
-                  <div className="text-xs font-bold flex items-center justify-between">
-                    <span className={isPayable ? "text-emerald-900" : isExcess ? "text-rose-900" : "text-slate-700"}>
-                      {isPayable ? "Payable (+ Society Owes)" : isExcess ? "Excess Advance (- Held)" : "Balance Settled"}
+                  <div className="text-xs font-bold flex items-center justify-between gap-2">
+                    <span
+                      className={
+                        isPayable
+                          ? "text-emerald-900"
+                          : isExcess
+                          ? "text-rose-900"
+                          : "text-slate-700"
+                      }
+                    >
+                      {isPayable
+                        ? "Payable (+ Owes)"
+                        : isExcess
+                        ? "Excess Advance (- Held)"
+                        : "Balance Settled"}
                     </span>
-                    <DollarSign className={`h-4 w-4 flex-shrink-0 ${isPayable ? "text-emerald-600" : isExcess ? "text-rose-600" : "text-slate-500"}`} />
+                    <DollarSign
+                      className={`h-4 w-4 flex-shrink-0 ${
+                        isPayable
+                          ? "text-emerald-600"
+                          : isExcess
+                          ? "text-rose-600"
+                          : "text-slate-500"
+                      }`}
+                    />
                   </div>
-                  <div className={`text-2xl sm:text-3xl font-black font-mono tabular-nums ${isPayable ? "text-emerald-700" : isExcess ? "text-rose-700" : "text-slate-900"}`}>
-                    {isPayable ? "+" : isExcess ? "-" : ""}
-                    {formatINR(Math.abs(currentBal))}
+                  <div
+                    title={formattedBal}
+                    className={`text-xl sm:text-2xl xl:text-[21px] leading-tight font-extrabold tabular-nums whitespace-nowrap truncate ${
+                      isPayable
+                        ? "text-emerald-700"
+                        : isExcess
+                        ? "text-rose-700"
+                        : "text-slate-900"
+                    }`}
+                  >
+                    {formattedBal}
                   </div>
-                  <div className="text-xs text-slate-500 leading-normal">
-                    {isPayable ? "Amount payable to powerloom" : isExcess ? "Excess advance held by powerloom" : "Account perfectly balanced"}
+                  <div className="text-[11px] text-slate-500 leading-relaxed">
+                    {isPayable
+                      ? "Amount payable to powerloom"
+                      : isExcess
+                      ? "Excess advance held by powerloom"
+                      : "Account perfectly balanced"}
                   </div>
                 </div>
               );
@@ -1200,7 +1252,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                       <div className="flex justify-between font-bold text-slate-900 pt-0.5 border-t border-purple-100">
                         <span>Babin Shortfall:</span>
                         <span className={suggestion.babinShortfall > 0 ? "text-purple-800 font-extrabold" : "text-emerald-700"}>
-                          {suggestion.babinShortfall > 0 ? `${suggestion.babinShortfall} Sets (${suggestion.suggestedBabinSets} needed)` : "✅ Sufficient"}
+                          {suggestion.babinShortfall > 0 ? `${suggestion.babinShortfall} Sets (${suggestion.suggestedBabinSets} needed)` : "Sufficient"}
                         </span>
                       </div>
                     </div>
@@ -1251,7 +1303,7 @@ export const TraditionalRegisterTab: React.FC<TraditionalRegisterTabProps> = ({
                     </div>
                     <div className="flex items-baseline justify-between">
                       <span className="font-bold font-mono text-purple-950 text-sm">
-                        {suggestion.suggestedBabinSets > 0 ? `${suggestion.suggestedBabinSets} Sets Needed` : "✅ Sufficient Sets at Loom"}
+                        {suggestion.suggestedBabinSets > 0 ? `${suggestion.suggestedBabinSets} Sets Needed` : "Sufficient Sets at Loom"}
                       </span>
                       <span className="text-[10px] text-purple-700 font-mono">
                         ({suggestion.babinSetsRequired} req • {activeBabinCount} avail)

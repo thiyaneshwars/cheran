@@ -1,401 +1,304 @@
 @import "tailwindcss";
 
+:root {
+  --bg-ivory: #faf7f0;
+  --bg-linen: #f3eee3;
+  --bg-card: #ffffff;
+  --ink-indigo: #14233c;
+  --ink-body: #25344d;
+  --ink-muted: #5b6b84;
+  --accent-zari: #b47b2b;
+  --accent-zari-bright: #d49a42;
+  --accent-zari-soft: #fef5e4;
+  --border-linen: #e5dec9;
+  --border-strong: #d4cab0;
+  --status-emerald: #166534;
+  --status-emerald-bg: #ecfdf5;
+  --status-deficit: #9a3412;
+  --status-deficit-bg: #fff7ed;
+  --status-crimson: #991b1b;
+  --status-crimson-bg: #fef2f2;
+  --font-base-scale: 16px;
+}
+
 @layer base {
-  :root {
-    /* Executive Clean Palette Matching Reference Screenshot */
-    --bg-app: #f4f6f8;
-    --bg-surface: #ffffff;
-    --bg-surface-elevated: #ffffff;
-    --bg-surface-well: #f8fafc;
-
-    /* Primary Accent / Active States: Dark Graphite */
-    --accent-primary: #1e2229;
-    --accent-hover: #0f172a;
-
-    /* System Typography & Borders */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --border-subtle: #e2e8f0;
-    --border-card: #e5e7eb;
-
-    /* Financial State Colors */
-    --color-positive: #047857;
-    --color-positive-bg: #ecfdf5;
-    --color-positive-border: #a7f3d0;
-
-    --color-pending: #b45309;
-    --color-pending-bg: #fffbeb;
-    --color-pending-border: #fde68a;
-
-    --color-loss: #dc2626;
-    --color-loss-bg: #fef2f2;
-    --color-loss-border: #fecaca;
-
-    --font-base-scale: 16px;
-  }
-
   html[data-font-size="large"] {
     --font-base-scale: 18px;
     font-size: 112.5%;
   }
 
+  html,
   body {
-    background-color: var(--bg-app);
-    color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    background-color: var(--bg-ivory);
+    color: var(--ink-indigo);
+    font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    word-spacing: 0.02em;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not(.unstyled-input),
+  select:not(.unstyled-input),
+  textarea:not(.unstyled-input) {
+    color: var(--ink-indigo);
+  }
+
+  table thead th {
+    background-color: var(--bg-linen);
+    color: var(--ink-body);
+    border-bottom: 1px solid var(--border-linen);
+  }
+
+  table tbody tr {
+    border-bottom: 1px solid #f0eadc;
   }
 }
 
-/* Tabular & Legible Financial Numbers */
-.font-financial {
-  font-feature-settings: "tnum" 1, "cv05" 1;
-  letter-spacing: -0.015em;
+/* Editorial Display Serif (apply via .font-display explicitly; keep operational tables/headers in clean UI sans) */
+.font-display {
+  font-family: var(--font-display), "Newsreader", Georgia, serif;
+  letter-spacing: -0.005em;
+  word-spacing: 0.03em;
 }
 
-/* Custom Scrollbars */
+.font-financial {
+  font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Custom Linen & Indigo Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: var(--bg-linen);
 }
 
-/* Landscape View & Wide Tables Horizontal Scrollbar */
+::-webkit-scrollbar-thumb {
+  background: #c7bba0;
+  border-radius: 999px;
+  border: 2px solid var(--bg-linen);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+
+/* Landscape View & Wide Tables Horizontal Scrollbar (restored for Traditional Register & Ledgers) */
 .scrollbar-landscape {
   scrollbar-width: thin;
-  scrollbar-color: #64748b #e2e8f0;
+  scrollbar-color: #7b889e #e5dec9;
 }
+
 .scrollbar-landscape::-webkit-scrollbar {
   height: 12px !important;
   display: block !important;
 }
+
 .scrollbar-landscape::-webkit-scrollbar-track {
-  background: #e2e8f0 !important;
+  background: #f3eee3 !important;
   border-radius: 6px !important;
   margin: 0 4px;
 }
+
 .scrollbar-landscape::-webkit-scrollbar-thumb {
-  background: #64748b !important;
+  background: #8a94a6 !important;
   border-radius: 6px !important;
-  border: 2px solid #e2e8f0 !important;
-}
-.scrollbar-landscape::-webkit-scrollbar-thumb:hover {
-  background: #334155 !important;
+  border: 2px solid #f3eee3 !important;
 }
 
-/* Skeleton Loading Shimmer Effect */
-@keyframes shimmer {
+.scrollbar-landscape::-webkit-scrollbar-thumb:hover {
+  background: #14233c !important;
+}
+
+/* Skeleton Loader Shimmer */
+@keyframes shimmerSweep {
   0% {
-    background-position: -200% 0;
+    background-position: 200% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -200% 0;
   }
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    #f1f5f9 0%,
-    #e2e8f0 50%,
-    #f1f5f9 100%
-  );
+  background: linear-gradient(90deg, #f3eee3 25%, #e8e0cf 50%, #f3eee3 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.8s infinite ease-in-out;
+  animation: shimmerSweep 1.6s infinite linear;
 }
 
-/* Smooth Scrolling & Entrance Animations */
-@keyframes slideUpFade {
+/* Loom Shuttle Thread Progress (Loading Screen) */
+@keyframes shuttleGlide {
   0% {
-    opacity: 0;
-    transform: translateY(14px);
+    transform: translateX(-15%);
+  }
+  50% {
+    transform: translateX(285%);
   }
   100% {
+    transform: translateX(-15%);
+  }
+}
+
+.shuttle-thread-runner {
+  animation: shuttleGlide 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Progressive Enhancement Scroll Reveals (Always visible by default) */
+.sr-block {
+  transition:
+    opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.sr-block[data-scroll-state="pending"] {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.sr-block[data-scroll-state="visible"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Woven Horizon Divider Seam */
+.weave-horizon {
+  position: relative;
+  height: 1px;
+  width: 100%;
+  background: #e5dec9;
+  overflow: hidden;
+}
+
+.weave-horizon-stitch {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #14233c 0%,
+    #14233c 38%,
+    #b47b2b 52%,
+    #d49a42 64%,
+    transparent 100%
+  );
+  transform-origin: left center;
+  transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.weave-horizon[data-scroll-state="pending"] .weave-horizon-stitch {
+  transform: scaleX(0);
+}
+
+.weave-horizon[data-scroll-state="visible"] .weave-horizon-stitch {
+  transform: scaleX(1);
+}
+
+/* Progress Bar Smooth Expand */
+.rail-fill-animated {
+  transition: width 760ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Smooth Tab Entry */
+@keyframes ledgerTabEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.animate-slide-up {
-  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.ledger-tab-enter {
+  animation: ledgerTabEnter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
+/* Unified Temple-Indigo & Kora Ivory Workspace Harmonization
+   Explicitly keeps sans headings airy and legible without tight/condensed letter cramping */
+:where(.workspace-ledger .tracking-tight) {
+  letter-spacing: 0em;
+  word-spacing: 0.03em;
+}
+
+:where(.workspace-ledger h1, .workspace-ledger h2, .workspace-ledger h3) {
+  letter-spacing: 0em;
+  word-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+:where(.workspace-ledger table th, .workspace-ledger table td) {
+  line-height: 1.45;
+  word-spacing: 0.02em;
+}
+
+:where(.workspace-ledger .bg-slate-50),
+:where(.workspace-ledger .bg-\[\#F4F6F8\]) {
+  background-color: var(--bg-ivory);
+}
+
+:where(.workspace-ledger .bg-slate-100) {
+  background-color: var(--bg-linen);
+}
+
+:where(.workspace-ledger .border-slate-200),
+:where(.workspace-ledger .border-slate-200\/90),
+:where(.workspace-ledger .border-slate-200\/80),
+:where(.workspace-ledger .border-slate-100),
+:where(.workspace-ledger [class*="border-[#E5E9E3]"]) {
+  border-color: var(--border-linen);
+}
+
+:where(.workspace-ledger .bg-slate-900),
+:where(.workspace-ledger [class*="bg-[#245B52]"]) {
+  background-color: var(--ink-indigo);
+}
+
+:where(.workspace-ledger .bg-slate-900:hover),
+:where(.workspace-ledger [class*="hover:bg-[#1D4B43]"]:hover) {
+  background-color: #1d3254;
+}
+
+:where(.workspace-ledger [class*="text-[#26332F]"]) {
+  color: var(--ink-indigo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-block,
+  .sr-block[data-scroll-state="pending"],
+  .sr-block[data-scroll-state="visible"] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.04);
+
+  .weave-horizon-stitch,
+  .weave-horizon[data-scroll-state="pending"] .weave-horizon-stitch {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+
+  .shuttle-thread-runner,
+  .rail-fill-animated,
+  .skeleton-shimmer,
+  .ledger-tab-enter {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 3s infinite ease-in-out;
-}
-
-/* ========================================================
-   UNIVERSAL THEME MAPPINGS (MATCHING REFERENCE MOCKUP)
-   ======================================================== */
-
-html, body {
-  background-color: #f4f6f8 !important;
-  color: #0f172a !important;
-}
-
-/* Primary Brand Action Button: Dark Graphite */
-[class*="bg-[#245B52]"],
-[class*="bg-[#0284C7]"] {
-  background-color: #1e2229 !important;
-  color: #ffffff !important;
-  border-color: #1e2229 !important;
-  font-weight: 600 !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-}
-
-[class*="hover:bg-[#1D4B43]"]:hover,
-[class*="hover:bg-[#0369A1]"]:hover {
-  background-color: #0f172a !important;
-}
-
-/* Secondary Button / Pill Outline Text */
-[class*="text-[#245B52]"],
-[class*="text-[#0284C7]"] {
-  color: #1e2229 !important;
-}
-
-[class*="border-[#245B52]"],
-[class*="border-[#0284C7]"] {
-  border-color: #e2e8f0 !important;
-}
-
-/* Universal Typography Mappings */
-[class*="text-[#26332F]"] {
-  color: #0f172a !important;
-}
-
-[class*="text-[#68756F]"] {
-  color: #64748b !important;
-}
-
-[class*="text-[#4A5952]"] {
-  color: #475569 !important;
-}
-
-[class*="text-[#8E9B95]"],
-[class*="text-[#94A3B8]"] {
-  color: #94a3b8 !important;
-}
-
-/* Universal Borders */
-[class*="border-[#E5E9E3]"] {
-  border-color: #e2e8f0 !important;
-}
-
-[class*="divide-[#E5E9E3]"] > * + * {
-  border-color: #f1f5f9 !important;
-}
-
-[class*="border-[#DCEAE2]"],
-[class*="border-[#D5DDD2]"],
-[class*="border-[#D8E2D5]"] {
-  border-color: #e2e8f0 !important;
-}
-
-/* Light Gray Wells & Inset Containers */
-[class*="bg-[#F0F6F3]"],
-[class*="bg-[#F7F8F5]"],
-[class*="bg-[#EBEFE9]"],
-[class*="bg-[#F0F4EF]"] {
-  background-color: #f8fafc !important;
-}
-
-/* Positive / Credits / Receivables: Soft Emerald */
-[class*="text-[#246944]"] {
-  color: #047857 !important;
-}
-[class*="bg-[#EBF5F0]"] {
-  background-color: #ecfdf5 !important;
-}
-[class*="border-[#C8E5D5]"] {
-  border-color: #a7f3d0 !important;
-}
-
-/* Pending / Advances / Warnings: Warm Amber */
-[class*="text-[#975A16]"],
-[class*="text-[#7D4A12]"] {
-  color: #b45309 !important;
-}
-[class*="bg-[#FEF8EC]"] {
-  background-color: #fffbeb !important;
-}
-[class*="border-[#F7E4BE]"] {
-  border-color: #fde68a !important;
-}
-
-/* Debits / Payables / Outstandings: Soft Rose */
-[class*="text-[#B93838]"],
-[class*="text-[#F43F5E]"],
-[class*="text-[#FB7185]"],
-[class*="text-[#FF2E93]"] {
-  color: #dc2626 !important;
-}
-[class*="bg-[#FDF2F2]"] {
-  background-color: #fef2f2 !important;
-}
-[class*="border-[#F7D2D2]"],
-[class*="border-[#F43F5E]"],
-[class*="border-[#FB7185]"],
-[class*="border-[#FF2E93]"] {
-  border-color: #fecaca !important;
-}
-
-/* Clean Tables */
-table {
-  color: #0f172a !important;
-}
-
-thead, thead tr, thead th {
-  background-color: #f8fafc !important;
-  color: #475569 !important;
-  border-color: #e2e8f0 !important;
-}
-
-tbody tr {
-  border-color: #f1f5f9 !important;
-}
-
-tbody tr:hover {
-  background-color: #f8fafc !important;
-}
-
-/* Inputs, Selects, and Textareas */
-input, select, textarea {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-
-input:focus, select:focus, textarea:focus {
-  border-color: #94a3b8 !important;
-  box-shadow: 0 0 0 1px #94a3b8 !important;
-  outline: none !important;
-}
-
-input::placeholder, textarea::placeholder {
-  color: #94a3b8 !important;
-}
-
-/* Modal Backdrops & Overlays */
-[class*="bg-[#26332F]/50"],
-[class*="bg-black/50"],
-[class*="bg-black/70"] {
-  background-color: rgba(15, 23, 42, 0.45) !important;
-  backdrop-filter: blur(4px) !important;
-}
-
-/* ========================================================
-   HIGHER OFFICIALS EXECUTIVE PORTAL — SOLID DARK OBSIDIAN THEME
-   Overrides global light-table and light-input rules strictly
-   inside .executive-portal without affecting other modules.
-   ======================================================== */
-.executive-portal {
-  color-scheme: dark;
-  scrollbar-width: thin;
-  scrollbar-color: #d97706 #070c18;
-}
-
-.executive-portal table {
-  color: #f1f5f9 !important;
-}
-
-.executive-portal thead,
-.executive-portal thead tr,
-.executive-portal thead th {
-  background-color: #0e172c !important;
-  color: #cbd5e1 !important;
-  border-color: #1e2942 !important;
-}
-
-.executive-portal tbody tr {
-  border-color: #162038 !important;
-}
-
-.executive-portal tbody tr:hover {
-  background-color: #111c34 !important;
-}
-
-.executive-portal tfoot tr {
-  background-color: #0c1426 !important;
-  border-color: #1e2942 !important;
-}
-
-.executive-portal input,
-.executive-portal select,
-.executive-portal textarea {
-  background-color: #070c18 !important;
-  color: #f8fafc !important;
-  border-color: #1e2942 !important;
-}
-
-.executive-portal input:focus,
-.executive-portal select:focus,
-.executive-portal textarea:focus {
-  border-color: #f59e0b !important;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25) !important;
-  outline: none !important;
-}
-
-.executive-portal input::placeholder,
-.executive-portal textarea::placeholder {
-  color: #64748b !important;
-}
-
-.executive-portal ::-webkit-scrollbar-track {
-  background: #070c18;
-}
-
-.executive-portal ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 9999px;
-  border: 2px solid #070c18;
-}
-
-.executive-portal ::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b;
-}
-
-/* Clean print styles */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #111111 !important;
-  }
   .no-print {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
-  }
-  .printable-area {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 }

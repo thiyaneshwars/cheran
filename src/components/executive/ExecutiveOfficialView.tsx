@@ -2,27 +2,32 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Warehouse,
-  Send,
-  Target,
-  Factory,
-  RefreshCw,
-  LogOut,
   ShieldCheck,
-  CheckCircle2,
+  LogOut,
+  RefreshCw,
+  Factory,
+  Warehouse,
+  PackageCheck,
   Clock,
-  Download,
   Search,
+  Download,
+  Printer,
+  CheckCircle2,
+  AlertTriangle,
   Layers,
   ChevronRight,
-  AlertCircle,
+  Package,
   Maximize2,
-  Minimize2,
-  Eye,
   X,
 } from "lucide-react";
 import { ExecutiveBackground3D } from "./ExecutiveBackground3D";
-import { exportToCSV } from "@/lib/export";
+import { CheranSealBadge } from "../ui/CheranSealBadge";
+import {
+  RevealBlock,
+  WeaveRule,
+  ScrollThreadBar,
+  DispatchTickRail,
+} from "../ui/ScrollReveal";
 
 interface ExecutiveOfficialViewProps {
   user: any;
@@ -40,50 +45,31 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const [activeTab, setActiveTab] = useState<"ALL" | "DHOTHI" | "SAREE">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTime, setCurrentTime] = useState<string>("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showLoomModal, setShowLoomModal] = useState(false);
 
-  // Live IST Clock
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleDateString("en-IN", {
-          weekday: "short",
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Fetch Live Data
-  const fetchData = async () => {
-    setRefreshing(true);
+  const loadExecutiveData = async (isManualSync = false) => {
     try {
+      if (isManualSync) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
+
       const [ovRes, handRes] = await Promise.all([
         fetch("/api/production/overview"),
         fetch("/api/production/handover"),
       ]);
 
-      if (ovRes.ok) {
-        const d = await ovRes.json();
-        setOverviewData(d.overview || null);
+      if (!ovRes.ok || !handRes.ok) {
+        throw new Error("Unable to load official dispatch telemetry");
       }
-      if (handRes.ok) {
-        const h = await handRes.json();
-        setHandovers(Array.isArray(h) ? h : []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch executive data:", err);
+
+      const ovJson = await ovRes.json();
+      const handJson = await handRes.json();
+
+      setOverviewData(ovJson.overview || ovJson);
+      setHandovers(Array.isArray(handJson) ? handJson : []);
+    } catch (err: any) {
+      setError(err.message || "Failed to synchronize live Society stocks.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -91,900 +77,770 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   };
 
   useEffect(() => {
-    fetchData();
+    loadExecutiveData(false);
+    const updateClock = () => {
+      setCurrentTime(
+        new Date().toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  // Fullscreen toggle helper
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
-    }
+  // Derived Official Piece Totals (Strict pieces, zero meters)
+  const veatti = overviewData?.veatti || {
+    totalProducedMeters: 0,
+    godownAvailableMeters: 0,
+    totalHandoveredMeters: 0,
+    balanceToHandoverMeters: 0,
+    targetMeters: 0,
+    activeUnitsCount: 0,
+    unloadedPaavuCount: 0,
+    runningPaavuCount: 0,
+    completedPaavuCount: 0,
   };
 
-  // Safe Numeric Metrics Extraction
-  const veatti = {
-    totalProducedMeters: Number(overviewData?.veatti?.totalProducedMeters) || 0,
-    totalHandoveredMeters: Number(overviewData?.veatti?.totalHandoveredMeters) || 0,
-    godownAvailableMeters: Number(overviewData?.veatti?.godownAvailableMeters) || 0,
-    targetMeters: Number(overviewData?.veatti?.targetMeters) || 0,
-    balanceToHandoverMeters: Number(overviewData?.veatti?.balanceToHandoverMeters) || 0,
+  const saree = overviewData?.saree || {
+    totalProducedMeters: 0,
+    godownAvailableMeters: 0,
+    totalHandoveredMeters: 0,
+    balanceToHandoverMeters: 0,
+    targetMeters: 0,
+    activeUnitsCount: 0,
+    unloadedPaavuCount: 0,
+    runningPaavuCount: 0,
+    completedPaavuCount: 0,
   };
 
-  const saree = {
-    totalProducedMeters: Number(overviewData?.saree?.totalProducedMeters) || 0,
-    totalHandoveredMeters: Number(overviewData?.saree?.totalHandoveredMeters) || 0,
-    godownAvailableMeters: Number(overviewData?.saree?.godownAvailableMeters) || 0,
-    targetMeters: Number(overviewData?.saree?.targetMeters) || 0,
-    balanceToHandoverMeters: Number(overviewData?.saree?.balanceToHandoverMeters) || 0,
-  };
-
-  const computedTarget =
-    Number(overviewData?.totalConsolidated?.targetMeters) ||
-    (veatti.targetMeters + saree.targetMeters > 0
-      ? veatti.targetMeters + saree.targetMeters
-      : veatti.totalProducedMeters + saree.totalProducedMeters);
-
-  const total = {
+  const consolidated = overviewData?.totalConsolidated || {
     totalProducedMeters:
-      Number(overviewData?.totalConsolidated?.totalProducedMeters) ||
-      veatti.totalProducedMeters + saree.totalProducedMeters,
-    totalHandoveredMeters:
-      Number(overviewData?.totalConsolidated?.totalHandoveredMeters) ||
-      veatti.totalHandoveredMeters + saree.totalHandoveredMeters,
+      (veatti.totalProducedMeters || 0) + (saree.totalProducedMeters || 0),
     godownAvailableMeters:
-      Number(overviewData?.totalConsolidated?.godownAvailableMeters) ||
-      veatti.godownAvailableMeters + saree.godownAvailableMeters,
-    targetMeters: computedTarget,
+      (veatti.godownAvailableMeters || 0) + (saree.godownAvailableMeters || 0),
+    totalHandoveredMeters:
+      (veatti.totalHandoveredMeters || 0) + (saree.totalHandoveredMeters || 0),
+    targetMeters: (veatti.targetMeters || 0) + (saree.targetMeters || 0),
     balanceToHandoverMeters:
-      Number(overviewData?.totalConsolidated?.balanceToHandoverMeters) ||
-      Math.max(
-        0,
-        computedTarget -
-          (Number(overviewData?.totalConsolidated?.totalHandoveredMeters) ||
-            veatti.totalHandoveredMeters + saree.totalHandoveredMeters)
-      ),
+      (veatti.balanceToHandoverMeters || 0) +
+      (saree.balanceToHandoverMeters || 0),
   };
 
-  // Percentages
-  const overallPercent =
-    total.targetMeters > 0
-      ? Math.min(100, Math.round((total.totalHandoveredMeters / total.targetMeters) * 1000) / 10)
-      : 0;
+  const activeStats =
+    activeTab === "DHOTHI"
+      ? veatti
+      : activeTab === "SAREE"
+      ? saree
+      : consolidated;
 
-  const dhothiPercent =
-    veatti.targetMeters > 0
-      ? Math.min(100, Math.round((veatti.totalHandoveredMeters / veatti.targetMeters) * 1000) / 10)
-      : 0;
+  const activeUnitLabel =
+    activeTab === "DHOTHI"
+      ? "Dhothis"
+      : activeTab === "SAREE"
+      ? "Sarees"
+      : "Pieces";
 
-  const sareePercent =
-    saree.targetMeters > 0
-      ? Math.min(100, Math.round((saree.totalHandoveredMeters / saree.targetMeters) * 1000) / 10)
-      : 0;
+  const calcPct = (handedOver: number, target: number) => {
+    if (!target || target <= 0) return 0;
+    return Math.min(100, Math.max(0, (handedOver / target) * 100));
+  };
 
-  // Radial gauge circumference for SVG progress ring
-  const ringRadius = 26;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringDashOffset =
-    ringCircumference - (Math.min(100, overallPercent) / 100) * ringCircumference;
+  const activePct = calcPct(
+    activeStats.totalHandoveredMeters || 0,
+    activeStats.targetMeters || 0
+  );
+  const dhothiPct = calcPct(
+    veatti.totalHandoveredMeters || 0,
+    veatti.targetMeters || 0
+  );
+  const sareePct = calcPct(
+    saree.totalHandoveredMeters || 0,
+    saree.targetMeters || 0
+  );
 
-  // Filter Handovers for Ledger
+  const weftInfo = overviewData?.weftInventory || {
+    veatti: { godownStockKg: 0, godownStockBags: 0, totalLoomStockBags: 0 },
+    saree: { godownStockKg: 0, godownStockBags: 0, totalLoomStockBags: 0 },
+  };
+
+  const resolvePieces = (h: any) => {
+    if (h.pieces && Number(h.pieces) > 0) return Number(h.pieces);
+    const divisor = h.clothType === "SAREE" ? 5.5 : 3.65;
+    return Math.floor((Number(h.meters) || 0) / divisor);
+  };
+
   const filteredHandovers = useMemo(() => {
     return handovers.filter((h) => {
-      const matchType =
-        activeTab === "ALL" ||
-        (activeTab === "DHOTHI" && h.clothType === "VEATTI") ||
-        (activeTab === "SAREE" && h.clothType === "SAREE");
+      if (activeTab === "DHOTHI" && h.clothType !== "VEATTI") return false;
+      if (activeTab === "SAREE" && h.clothType !== "SAREE") return false;
 
-      if (!matchType) return false;
-
-      if (!searchTerm) return true;
-      const q = searchTerm.toLowerCase();
-      return (
-        String(h.challanNo || "").toLowerCase().includes(q) ||
-        String(h.recipientDept || "").toLowerCase().includes(q) ||
-        String(h.vehicleNo || "").toLowerCase().includes(q) ||
-        String(h.officerName || "").toLowerCase().includes(q) ||
-        String(h.unit?.weaverName || "").toLowerCase().includes(q)
-      );
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        const hay = [
+          h.challanNo,
+          h.recipientDept,
+          h.officerName,
+          h.vehicleNo,
+          h.unit?.weaverName,
+          h.notes,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
     });
   }, [handovers, activeTab, searchTerm]);
 
-  const filteredTotalPieces = useMemo(() => {
-    return filteredHandovers.reduce((s, h) => {
-      const isDhothi = h.clothType === "VEATTI";
-      const p =
-        h.pieces && h.pieces > 0
-          ? h.pieces
-          : Math.floor((h.meters || 0) / (isDhothi ? 3.65 : 5.5));
-      return s + p;
-    }, 0);
-  }, [filteredHandovers]);
-
-  // Export Executive Audit CSV
   const handleExportCSV = () => {
-    if (filteredHandovers.length === 0) {
-      alert("No handover dispatches to export.");
-      return;
-    }
+    const headers = [
+      "Challan No",
+      "Dispatch Date",
+      "Variety",
+      "Quantity (Pieces)",
+      "Recipient Department",
+      "Officer / Verifier",
+      "Vehicle / Unit",
+    ];
+    const rows = filteredHandovers.map((h) => [
+      `"${(h.challanNo || "").replace(/"/g, '""')}"`,
+      new Date(h.handoverDate).toLocaleDateString("en-IN"),
+      h.clothType === "SAREE" ? "Saree" : "Dhothi",
+      resolvePieces(h),
+      `"${(h.recipientDept || "Co-optex / Govt").replace(/"/g, '""')}"`,
+      `"${(h.officerName || "-").replace(/"/g, '""')}"`,
+      `"${(h.vehicleNo || h.unit?.weaverName || "-").replace(/"/g, '""')}"`,
+    ]);
 
-    const rows = filteredHandovers.map((h) => {
-      const isDhothi = h.clothType === "VEATTI";
-      const pieces =
-        h.pieces && h.pieces > 0
-          ? h.pieces
-          : Math.floor((h.meters || 0) / (isDhothi ? 3.65 : 5.5));
-
-      return {
-        "Challan / Order No": h.challanNo,
-        "Dispatch Date": new Date(h.handoverDate).toLocaleDateString("en-IN"),
-        "Cloth Category": isDhothi ? "Dhothi (வேட்டி)" : "Saree (சேலை)",
-        "Handover Quantity (Pieces)": pieces,
-        "Source Powerloom / Unit": h.unit?.weaverName || "Society Godown Pool",
-        "Recipient Department": h.recipientDept || "Co-optex / Govt Depot",
-        "Vehicle Number": h.vehicleNo || "—",
-        "Inspection Officer": h.officerName || "—",
-        Notes: h.notes || "—",
-      };
-    });
-
-    exportToCSV(`Official_Government_Handover_Audit_${activeTab}`, rows);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Cheran_Govt_Handover_${activeTab}_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const isInitialLoading = loading && !overviewData;
+  const officialDisplayName = user?.fullName || "Senior Inspecting Official";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF7F0] px-6 py-10">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="h-20 rounded-2xl skeleton-shimmer border border-[#E5DEC9]" />
+          <div className="h-80 rounded-2xl skeleton-shimmer border border-[#E5DEC9]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="h-32 rounded-xl skeleton-shimmer border border-[#E5DEC9]"
+              />
+            ))}
+          </div>
+          <div className="h-80 rounded-2xl skeleton-shimmer border border-[#E5DEC9]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="executive-portal relative min-h-screen w-full bg-[#060A14] text-slate-100 overflow-x-hidden selection:bg-amber-400/30 selection:text-amber-100">
-      {/* =========================================================================
-       * 1. SOLID EXECUTIVE HEADER BAR
-       * ========================================================================= */}
-      <header className="sticky top-0 z-40 border-b border-[#1E2B48] bg-[#091020] px-4 sm:px-6 lg:px-10 py-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Left: Crest Emblem & Society Identity */}
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-[#162038] border border-amber-400/45 flex-shrink-0 shadow-inner">
-              <ShieldCheck className="h-6 w-6 text-amber-300 stroke-[2]" />
-            </div>
+    <div className="min-h-screen bg-[#FAF7F0] text-[#14233C] font-sans">
+      <ScrollThreadBar />
 
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-[11px] font-semibold tracking-wide text-amber-300">
-                  Government of Tamil Nadu &bull; Directorate of Handlooms
-                </span>
-                <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
-                  Reg. CH-1049
+      {/* Top Sticky Temple Indigo Authority Header */}
+      <header className="sticky top-0 z-30 bg-[#14233C] text-[#FAF7F0] border-b-2 border-[#B47B2B] no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <CheranSealBadge size="sm" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-lg sm:text-xl font-bold text-white truncate">
+                  Cheran Co-operative Society · Statutory Dispatch Portal
+                </h1>
+                <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#166534]/35 text-[#86EFAC] border border-[#22C55E]/35">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80]" />
+                  Live Tally
                 </span>
               </div>
-              <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2 mt-0.5">
-                <span>Cheran Co-operative Weavers Society</span>
-                <span className="text-slate-600 font-normal hidden lg:inline">/</span>
-                <span className="text-slate-300 font-medium text-xs sm:text-sm hidden lg:inline">
-                  Executive Oversight Portal
-                </span>
-              </h1>
+              <p className="text-[11px] sm:text-xs text-[#A8B6CE] truncate mt-0.5">
+                Reg. No. SL-204 · Co-optex Piece Inspection &amp; Godown Audit ·{" "}
+                <span className="font-financial text-[#E7C37B]">{currentTime}</span>
+              </p>
             </div>
           </div>
 
-          {/* Right: IST Sync, Refresh, 3D Fullscreen Inspect & Sign Out */}
-          <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#070C18] border border-[#1E2B48] text-[11px] font-mono text-slate-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <Clock className="h-3.5 w-3.5 text-amber-300" />
-              <span className="tabular-nums">{currentTime || "IST Live Sync"}</span>
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => loadExecutiveData(true)}
+              disabled={refreshing}
+              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 text-[#E7C37B] ${
+                  refreshing ? "animate-spin" : ""
+                }`}
+              />
+              <span className="hidden sm:inline">
+                {refreshing ? "Syncing..." : "Sync Ledger"}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="px-3 py-2 rounded-xl bg-[#B47B2B] hover:bg-[#9E6A22] text-xs font-semibold text-white transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Export CSV</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => window.print()}
+              title="Print Statutory Dossier"
+              className="hidden md:inline-flex p-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white transition cursor-pointer"
+            >
+              <Printer className="h-4 w-4" />
+            </button>
+
+            <div className="hidden lg:flex items-center gap-2.5 pl-3 border-l border-white/15 text-xs">
+              <div className="w-8 h-8 rounded-full bg-[#0A101B] border border-[#D49A42] flex items-center justify-center text-[#E7C37B] font-bold">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <div className="leading-tight">
+                <div className="font-semibold text-white">{officialDisplayName}</div>
+                <div className="text-[10.5px] text-[#A8B6CE]">Inspecting Officer</div>
+              </div>
             </div>
 
             <button
               type="button"
-              onClick={() => setShowLoomModal(true)}
-              title="Open Fullscreen 3D Powerloom Simulation"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#121D36] hover:bg-[#19284A] border border-amber-400/35 text-xs font-semibold text-amber-200 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-            >
-              <Eye className="h-3.5 w-3.5 text-amber-300" />
-              <span>3D Loom</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={fetchData}
-              disabled={refreshing}
-              title="Sync real-time stock and dispatch totals"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#10192E] hover:bg-[#172442] border border-[#233356] hover:border-amber-300/45 text-xs font-semibold text-slate-100 transition cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 text-amber-300 ${refreshing ? "animate-spin" : ""}`}
-              />
-              <span className="hidden sm:inline">Sync</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              title="Toggle Browser Fullscreen"
-              aria-label="Toggle Browser Fullscreen"
-              className="p-2 rounded-lg bg-[#10192E] hover:bg-[#172442] border border-[#233356] hover:border-amber-300/45 text-slate-200 hover:text-white transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-            >
-              {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm("Are you sure you want to exit the Executive Portal?")) {
-                  onLogout();
-                }
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#3A121C] hover:bg-[#4D1825] border border-rose-500/40 text-rose-100 text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              onClick={onLogout}
+              title="Sign Out"
+              className="px-3 py-2 rounded-xl bg-white/8 hover:bg-[#991B1B]/80 border border-white/15 text-xs font-semibold text-white transition flex items-center gap-1.5 cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
-              <span>Sign Out</span>
+              <span className="hidden sm:inline">Exit</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* =========================================================================
-       * 2. MAIN SOLID EXECUTIVE CONTENT
-       * ========================================================================= */}
-      <main className="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* Top Hero Split: Left = Solid Authority Panel, Right = Unobstructed 3D Powerloom Showcase */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          {/* Left: Solid Authority Summary & Officer Card */}
-          <div className="lg:col-span-5 rounded-2xl border border-[#1E2B48] border-t-amber-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between space-y-5">
-            <div className="space-y-2.5">
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
-                Central Godown Stocks &amp; Government Handover Tracker
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Statutory Free Dhothi &amp; Free Saree distribution oversight for Senior Inspecting Authorities &mdash; verifying physical godown inventory, cumulative Co-optex dispatches, and quota completion.
-              </p>
+      {/* Main Scrollable Statutory Dossier */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9 space-y-8">
+        {error && (
+          <div className="p-4 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] text-xs font-medium flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <span>{error}</span>
             </div>
-
-            <div className="p-4 rounded-xl bg-[#070C18] border border-[#1B2742] flex items-center justify-between gap-3">
-              <div>
-                <span className="text-[11px] font-medium text-slate-400 block">
-                  Inspecting Official
-                </span>
-                <span className="text-sm font-bold text-amber-300 block mt-0.5">
-                  {user?.fullName || "Directorate of Handlooms Official"}
-                </span>
-                <span className="text-[11px] font-mono text-emerald-300 block mt-0.5">
-                  {user?.email || "official@cheran"}
-                </span>
-              </div>
-              <span className="px-2.5 py-1 rounded-md bg-[#11241D] border border-emerald-500/35 text-[11px] font-semibold text-emerald-300 flex-shrink-0">
-                Authorized
-              </span>
-            </div>
-          </div>
-
-          {/* Right: Dedicated Unobstructed 3D Powerloom Machine Viewport Stage */}
-          <div className="lg:col-span-7 relative rounded-2xl border border-[#243456] bg-[#070D1D] shadow-xl overflow-hidden min-h-[260px] sm:min-h-[300px]">
-            <ExecutiveBackground3D variant="stage" activeCategory={activeTab} />
-
-            {/* Clean Solid Corner Captions */}
-            <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#091122] border border-[#233457] text-[11px] font-semibold text-amber-200 shadow-md">
-              <Factory className="h-3.5 w-3.5 text-amber-400" />
-              <span>3D Powerloom Weaving Machine</span>
-            </div>
-
             <button
               type="button"
-              onClick={() => setShowLoomModal(true)}
-              className="absolute bottom-3.5 right-3.5 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#091122] hover:bg-[#13203D] border border-[#233457] hover:border-amber-400/50 text-[11px] font-semibold text-slate-200 transition cursor-pointer shadow-md"
+              onClick={() => loadExecutiveData(true)}
+              className="underline font-bold cursor-pointer"
             >
-              <Maximize2 className="h-3 w-3 text-amber-300" />
-              <span>Expand View</span>
+              Retry
             </button>
           </div>
-        </section>
+        )}
 
-        {/* =========================================================================
-         * 3. SOLID HERO OVERALL & SCHEME QUOTA PROGRESS CARDS
-         * ========================================================================= */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Card A: Overall Consolidated Quota */}
-          <div className="rounded-2xl border border-[#1E2B48] border-t-amber-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 text-xs font-semibold text-amber-300">
-                <span className="flex items-center gap-1.5">
-                  <Target className="h-4 w-4" />
-                  <span>Overall Scheme Progress</span>
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#241D0B] text-amber-200 text-[11px] border border-amber-500/35">
-                  Combined Quota
-                </span>
-              </div>
-
-              {isInitialLoading ? (
-                <div className="mt-6 space-y-3 animate-pulse">
-                  <div className="h-12 w-36 rounded-lg bg-[#16223D]" />
-                  <div className="h-4 w-52 rounded bg-[#16223D]" />
-                </div>
-              ) : (
-                <div className="mt-5 flex items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-bold font-financial tabular-nums tracking-tight text-white">
-                        {overallPercent}%
-                      </span>
-                      <span className="text-sm font-semibold text-emerald-400">
-                        Completed
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-slate-300 font-medium tabular-nums">
-                      {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")} of{" "}
-                      {(total.targetMeters || 0).toLocaleString("en-IN")} pieces handovered
-                    </p>
-                  </div>
-
-                  {/* Architectural Radial Progress Arc */}
-                  <div className="relative h-16 w-16 flex-shrink-0 flex items-center justify-center">
-                    <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r={ringRadius}
-                        fill="none"
-                        stroke="#192542"
-                        strokeWidth="4.5"
-                      />
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r={ringRadius}
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth="4.5"
-                        strokeLinecap="round"
-                        strokeDasharray={ringCircumference}
-                        strokeDashoffset={ringDashOffset}
-                        className="transition-all duration-700 ease-out"
-                      />
-                    </svg>
-                    <span className="absolute text-[10px] font-mono font-bold text-amber-300 tabular-nums">
-                      {Math.round(overallPercent)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-6 space-y-2">
-              <div className="h-2.5 w-full rounded-full bg-[#060A14] overflow-hidden border border-[#1B2742]">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-700 ease-out"
-                  style={{ width: `${Math.min(100, Math.max(2, overallPercent))}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 tabular-nums">
-                <span>0%</span>
-                <span className="text-amber-300 font-semibold">
-                  Balance Quota: {(total.balanceToHandoverMeters || 0).toLocaleString("en-IN")} Pcs
-                </span>
-                <span>100%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card B: Dhothi Scheme Progress */}
-          <div className="rounded-2xl border border-[#1E2B48] border-t-emerald-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 text-xs font-semibold text-emerald-300">
-                <span className="flex items-center gap-1.5">
-                  <Layers className="h-4 w-4" />
-                  <span>Dhothi Scheme (வேட்டி திட்டம்)</span>
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#0D2820] text-emerald-200 text-[11px] border border-emerald-500/35">
-                  Pieces
-                </span>
-              </div>
-
-              {isInitialLoading ? (
-                <div className="mt-6 space-y-3 animate-pulse">
-                  <div className="h-11 w-28 rounded-lg bg-[#16223D]" />
-                  <div className="h-10 w-full rounded bg-[#16223D]" />
-                </div>
-              ) : (
-                <>
-                  <div className="mt-5 flex items-baseline gap-2">
-                    <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-emerald-300">
-                      {dhothiPercent}%
-                    </span>
-                    <span className="text-xs font-semibold text-emerald-200/85 uppercase tracking-wider">
-                      Handovered
-                    </span>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-[#1B2742]">
-                    <div>
-                      <span className="text-[11px] text-emerald-100/75 block">
-                        Govt Handovered
-                      </span>
-                      <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
-                        {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                      </span>
-                      <span className="text-[11px] text-emerald-300">Dhothis dispatched</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-emerald-100/75 block">
-                        In Godown Stock
-                      </span>
-                      <span className="text-lg font-bold font-mono tabular-nums text-amber-300 mt-0.5 block">
-                        {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")}
-                      </span>
-                      <span className="text-[11px] text-amber-300/85">Dhothis ready</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="mt-5 space-y-1.5">
-              <div className="h-2 w-full rounded-full bg-[#060A14] overflow-hidden border border-[#1B2742]">
-                <div
-                  className="h-full rounded-full bg-emerald-400 transition-all duration-700 ease-out"
-                  style={{ width: `${Math.min(100, Math.max(2, dhothiPercent))}%` }}
-                />
-              </div>
-              <div className="text-[11px] text-emerald-100/80 text-right font-mono tabular-nums">
-                Target: {(veatti.targetMeters || 0).toLocaleString("en-IN")} Dhothis
-              </div>
-            </div>
-          </div>
-
-          {/* Card C: Saree Scheme Progress */}
-          <div className="rounded-2xl border border-[#1E2B48] border-t-rose-400/70 bg-[#0B1324] p-6 shadow-xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between gap-2 text-xs font-semibold text-rose-300">
-                <span className="flex items-center gap-1.5">
-                  <Layers className="h-4 w-4" />
-                  <span>Saree Scheme (சேலை திட்டம்)</span>
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#2E111B] text-rose-200 text-[11px] border border-rose-500/35">
-                  Pieces
-                </span>
-              </div>
-
-              {isInitialLoading ? (
-                <div className="mt-6 space-y-3 animate-pulse">
-                  <div className="h-11 w-28 rounded-lg bg-[#16223D]" />
-                  <div className="h-10 w-full rounded bg-[#16223D]" />
-                </div>
-              ) : (
-                <>
-                  <div className="mt-5 flex items-baseline gap-2">
-                    <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-rose-300">
-                      {sareePercent}%
-                    </span>
-                    <span className="text-xs font-semibold text-rose-200/85 uppercase tracking-wider">
-                      Handovered
-                    </span>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-[#1B2742]">
-                    <div>
-                      <span className="text-[11px] text-rose-100/75 block">
-                        Govt Handovered
-                      </span>
-                      <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
-                        {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                      </span>
-                      <span className="text-[11px] text-rose-300">Sarees dispatched</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-rose-100/75 block">
-                        In Godown Stock
-                      </span>
-                      <span className="text-lg font-bold font-mono tabular-nums text-amber-300 mt-0.5 block">
-                        {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")}
-                      </span>
-                      <span className="text-[11px] text-amber-300/85">Sarees ready</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="mt-5 space-y-1.5">
-              <div className="h-2 w-full rounded-full bg-[#060A14] overflow-hidden border border-[#1B2742]">
-                <div
-                  className="h-full rounded-full bg-rose-400 transition-all duration-700 ease-out"
-                  style={{ width: `${Math.min(100, Math.max(2, sareePercent))}%` }}
-                />
-              </div>
-              <div className="text-[11px] text-rose-100/80 text-right font-mono tabular-nums">
-                Target: {(saree.targetMeters || 0).toLocaleString("en-IN")} Sarees
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================================
-         * 4. SOLID 3-STEP STATUTORY TALLY PIPELINE (Powerloom -> Godown -> Govt)
-         * ========================================================================= */}
-        <section className="rounded-2xl border border-[#1E2B48] bg-[#0B1324] p-6 sm:p-7 shadow-xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1B2742] pb-4">
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
-                <span>Statutory Stock Flow: Powerloom &rarr; Godown &rarr; Government Handover</span>
-              </h3>
-              <p className="text-xs text-slate-300 mt-1">
-                Every woven piece enters central godown stock first and deducts strictly upon verified Co-optex dispatch.
-              </p>
-            </div>
-
-            <span className="px-3 py-1 rounded-lg bg-[#0D2820] text-emerald-300 text-xs font-semibold border border-emerald-500/35 self-start sm:self-auto whitespace-nowrap">
-              Co-optex Audit Synced
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-            {/* Loom Produced */}
-            <div className="rounded-xl border border-[#1C2845] bg-[#070C18] p-5 space-y-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
-                <span>Loom Produced</span>
-                <span className="p-2 rounded-lg bg-[#141F38] text-slate-200 border border-[#233256]">
-                  <Factory className="h-4 w-4" />
-                </span>
-              </div>
-
+        {/* CHAPTER 1: Immediate Hero Thesis + Live Kinematic 3D Powerloom Viewport */}
+        <section className="rounded-2xl bg-white border border-[#D4CAB0] overflow-hidden shadow-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-12">
+            {/* Left Core Solid Cotton Ledger Summary */}
+            <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col justify-between gap-6">
               <div>
-                <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-white">
-                  {(total.totalProducedMeters || 0).toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs font-medium text-slate-300 ml-1.5">Pieces</span>
-              </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="inline-flex rounded-xl border border-[#E5DEC9] bg-[#FAF7F0] p-1 text-xs font-semibold">
+                    {(["ALL", "DHOTHI", "SAREE"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer ${
+                          activeTab === tab
+                            ? "bg-[#14233C] text-white"
+                            : "text-[#5B6B84] hover:text-[#14233C]"
+                        }`}
+                      >
+                        {tab === "ALL"
+                          ? "All Varieties"
+                          : tab === "DHOTHI"
+                          ? "Dhothi Quota"
+                          : "Saree Quota"}
+                      </button>
+                    ))}
+                  </div>
 
-              <div className="text-xs text-slate-200 pt-2.5 border-t border-[#1B2742] font-mono tabular-nums space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Dhothis Woven</span>
-                  <strong className="text-white">
-                    {(veatti.totalProducedMeters || 0).toLocaleString("en-IN")}
-                  </strong>
+                  <span className="font-financial text-lg font-bold text-[#14233C] bg-[#FEF5E4] border border-[#E7C37B] px-3 py-1 rounded-lg">
+                    {activePct.toFixed(1)}% Complete
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Sarees Woven</span>
-                  <strong className="text-white">
-                    {(saree.totalProducedMeters || 0).toLocaleString("en-IN")}
-                  </strong>
+
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#14233C] leading-tight">
+                  Govt Handover &amp; Physical Piece Dispatch Statement
+                </h2>
+                <p className="text-xs sm:text-sm text-[#5B6B84] mt-2 leading-relaxed max-w-2xl">
+                  Official piece-counted verification tracking total woven inventory produced on Society looms, current physical godown holdings, and verified receipts dispatched to Co-optex.
+                </p>
+              </div>
+
+              <DispatchTickRail
+                produced={activeStats.totalProducedMeters || 0}
+                godown={activeStats.godownAvailableMeters || 0}
+                handedOver={activeStats.totalHandoveredMeters || 0}
+                target={activeStats.targetMeters || 0}
+                unitLabel={activeUnitLabel}
+              />
+
+              <div className="rounded-xl bg-[#FAF7F0] border border-[#E5DEC9] p-4 flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs font-semibold text-[#5B6B84]">
+                    Pending Target Balance
+                  </div>
+                  <div className="font-financial text-xl font-bold text-[#9A3412] mt-0.5 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-[#B45309] flex-shrink-0" />
+                    <span>
+                      -{(activeStats.balanceToHandoverMeters || 0).toLocaleString("en-IN")}{" "}
+                      {activeUnitLabel}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            {/* In Central Storage Godown */}
-            <div className="rounded-xl border border-amber-400/50 bg-[#101B33] p-5 space-y-3 flex flex-col justify-between shadow-md">
-              <div className="flex items-center justify-between text-xs font-semibold text-amber-200">
-                <span>In Central Godown Stock</span>
-                <span className="p-2 rounded-lg bg-[#2A200C] text-amber-300 border border-amber-400/40">
-                  <Warehouse className="h-4 w-4" />
-                </span>
-              </div>
-
-              <div>
-                <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-amber-300">
-                  {(total.godownAvailableMeters || 0).toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs font-medium text-amber-200 ml-1.5">
-                  Pieces Available
-                </span>
-              </div>
-
-              <div className="text-xs text-amber-100/85 pt-2.5 border-t border-amber-500/25 font-mono tabular-nums space-y-1">
-                <div className="flex justify-between">
-                  <span>Dhothi Godown</span>
-                  <strong className="text-amber-200">
-                    {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span>Saree Godown</span>
-                  <strong className="text-amber-200">
-                    {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")} pcs
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Government Handovered */}
-            <div className="rounded-xl border border-emerald-500/35 bg-[#070C18] p-5 space-y-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-semibold text-emerald-200">
-                <span>Government Handovered</span>
-                <span className="p-2 rounded-lg bg-[#0D2820] text-emerald-300 border border-emerald-500/35">
-                  <Send className="h-4 w-4" />
-                </span>
-              </div>
-
-              <div>
-                <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-emerald-300">
-                  {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs font-medium text-emerald-200 ml-1.5">
-                  Pieces Dispatched
-                </span>
-              </div>
-
-              <div className="text-xs text-emerald-100/85 pt-2.5 border-t border-emerald-500/20 font-mono tabular-nums space-y-1">
-                <div className="flex justify-between">
-                  <span>Dhothis Handovered</span>
-                  <strong className="text-emerald-200">
-                    {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sarees Handovered</span>
-                  <strong className="text-emerald-200">
-                    {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
-                  </strong>
+                <div className="text-right font-financial text-xs text-[#5B6B84]">
+                  <div>Target Obligation</div>
+                  <div className="font-bold text-[#14233C] text-sm mt-0.5">
+                    {(activeStats.targetMeters || 0).toLocaleString("en-IN")} {activeUnitLabel}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Solid Statutory Equation Strip */}
-          <div className="px-4 py-3.5 rounded-xl bg-[#070C18] border border-[#1B2742] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-200">
-            <div className="font-mono tabular-nums flex items-center gap-2 flex-wrap">
-              <span className="text-slate-400 font-sans">Stock Balance Equation:</span>
-              <span className="text-white font-semibold bg-[#131E36] px-2.5 py-1 rounded-md border border-[#223154]">
-                Loom Produced ({(total.totalProducedMeters || 0).toLocaleString("en-IN")})
-              </span>
-              <span className="text-slate-400">=</span>
-              <span className="text-amber-200 font-semibold bg-[#241D0B] px-2.5 py-1 rounded-md border border-amber-500/35">
-                In Godown ({(total.godownAvailableMeters || 0).toLocaleString("en-IN")})
-              </span>
-              <span className="text-slate-400">+</span>
-              <span className="text-emerald-200 font-semibold bg-[#0D2820] px-2.5 py-1 rounded-md border border-emerald-500/35">
-                Handovered ({(total.totalHandoveredMeters || 0).toLocaleString("en-IN")})
-              </span>
-            </div>
+            {/* Right: Dedicated Unobstructed 3D Kinematic Powerloom Machine Showcase */}
+            <div className="lg:col-span-6 relative bg-[#070D1D] border-t lg:border-t-0 lg:border-l border-[#14233C] min-h-[320px] sm:min-h-[380px] overflow-hidden">
+              <ExecutiveBackground3D variant="stage" activeCategory={activeTab} />
 
-            <div className="flex items-center gap-1.5 text-emerald-300 font-semibold text-xs">
-              <ChevronRight className="h-3.5 w-3.5 text-amber-400" />
-              <span>Zero Variance &bull; Statutory Tally Verified</span>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================================
-         * 5. SOLID OFFICIAL GOVERNMENT HANDOVER CHALLANS LEDGER
-         * ========================================================================= */}
-        <section className="rounded-2xl border border-[#1E2B48] bg-[#0B1324] shadow-xl overflow-hidden space-y-5 p-6 sm:p-7">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#1B2742] pb-5">
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                  Verified Government Delivery Challans (அரசு ஒப்படைப்பு ரசீதுகள்)
-                </h3>
-                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#131E36] text-slate-200 border border-[#243456] tabular-nums">
-                  {filteredHandovers.length} Dispatches
-                </span>
+              {/* Solid Ink Telemetry Labels over 3D Viewport */}
+              <div className="absolute top-4 left-4 z-10 pointer-events-none flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#091122] border border-[#233457] text-[11px] font-semibold text-[#E7C37B]">
+                <Factory className="h-3.5 w-3.5 text-[#D49A42]" />
+                <span>3D Powerloom Weaving Machine · {activeTab}</span>
               </div>
-              <p className="text-xs text-slate-300 mt-1">
-                Official Co-optex gate-pass dispatches with verified piece counts, vehicle logs, and inspecting authority sign-offs.
-              </p>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div
-                role="tablist"
-                aria-label="Filter challans by cloth category"
-                className="flex items-center bg-[#070C18] border border-[#1E2B48] p-1 rounded-lg text-xs font-semibold text-slate-300"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === "ALL"}
-                  onClick={() => setActiveTab("ALL")}
-                  className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
-                    activeTab === "ALL"
-                      ? "bg-amber-400 text-slate-950 font-bold"
-                      : "hover:text-white"
-                  }`}
-                >
-                  All ({handovers.length})
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === "DHOTHI"}
-                  onClick={() => setActiveTab("DHOTHI")}
-                  className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
-                    activeTab === "DHOTHI"
-                      ? "bg-emerald-500 text-slate-950 font-bold"
-                      : "hover:text-white"
-                  }`}
-                >
-                  Dhothis ({handovers.filter((h) => h.clothType === "VEATTI").length})
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === "SAREE"}
-                  onClick={() => setActiveTab("SAREE")}
-                  className={`px-3 py-1.5 rounded-md transition cursor-pointer ${
-                    activeTab === "SAREE"
-                      ? "bg-rose-400 text-slate-950 font-bold"
-                      : "hover:text-white"
-                  }`}
-                >
-                  Sarees ({handovers.filter((h) => h.clothType === "SAREE").length})
-                </button>
+              <div className="absolute bottom-4 left-4 z-10 pointer-events-none flex items-center gap-3 px-3 py-1.5 rounded-lg bg-[#091122] border border-[#233457] text-[11px] font-financial text-[#CBD5E1]">
+                <span>{(veatti.activeUnitsCount || 0) + (saree.activeUnitsCount || 0)} Loom Units</span>
+                <span>·</span>
+                <span>{handovers.length} Challans</span>
               </div>
 
               <button
                 type="button"
-                onClick={handleExportCSV}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#121D36] hover:bg-[#19284A] text-slate-100 border border-[#243456] hover:border-amber-400/50 font-semibold text-xs transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                onClick={() => setShowLoomModal(true)}
+                className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#091122] hover:bg-[#14233C] border border-[#233457] hover:border-[#D49A42]/60 text-[11px] font-semibold text-white transition cursor-pointer"
               >
-                <Download className="h-3.5 w-3.5 text-amber-300" />
-                <span>Export Audit CSV</span>
+                <Maximize2 className="h-3 w-3 text-[#E7C37B]" />
+                <span>Expand 3D View</span>
               </button>
             </div>
           </div>
-
-          {/* Solid Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by Challan #, Recipient Department, Vehicle Number, or Inspecting Officer..."
-              className="w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium transition"
-            />
-          </div>
-
-          {/* Solid Obsidian Ledger Table */}
-          <div className="overflow-x-auto rounded-xl border border-[#1E2B48] bg-[#070C18]">
-            <table className="w-full text-left text-xs min-w-[850px]">
-              <thead className="font-semibold uppercase tracking-wider text-[11px]">
-                <tr>
-                  <th className="py-3.5 px-4">Challan #</th>
-                  <th className="py-3.5 px-4">Dispatch Date</th>
-                  <th className="py-3.5 px-4">Category</th>
-                  <th className="py-3.5 px-4 text-right">Quantity (Pieces)</th>
-                  <th className="py-3.5 px-4">Recipient Dept / Depot</th>
-                  <th className="py-3.5 px-4">Vehicle No</th>
-                  <th className="py-3.5 px-4">Inspecting Officer</th>
-                  <th className="py-3.5 px-4">Notes</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#162038] font-medium">
-                {filteredHandovers.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-400">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <AlertCircle className="h-7 w-7 text-slate-500" />
-                        <span className="font-semibold text-sm text-slate-300">
-                          No government handover records match the current filter.
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredHandovers.map((h) => {
-                    const isDhothi = h.clothType === "VEATTI";
-                    const pieces =
-                      h.pieces && h.pieces > 0
-                        ? h.pieces
-                        : Math.floor((h.meters || 0) / (isDhothi ? 3.65 : 5.5));
-
-                    return (
-                      <tr key={h.id} className="transition-colors">
-                        <td className="py-3.5 px-4 font-mono font-bold text-amber-300 tabular-nums">
-                          #{h.challanNo}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-300 tabular-nums">
-                          {new Date(h.handoverDate).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                              isDhothi
-                                ? "bg-[#0D2820] text-emerald-200 border border-emerald-500/35"
-                                : "bg-[#2E111B] text-rose-200 border border-rose-500/35"
-                            }`}
-                          >
-                            {isDhothi ? "Dhothi (வேட்டி)" : "Saree (சேலை)"}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-sm tabular-nums">
-                          <span className={isDhothi ? "text-emerald-300" : "text-rose-300"}>
-                            {(pieces || 0).toLocaleString("en-IN")}{" "}
-                            <span className="text-[11px] font-sans font-normal text-slate-400">
-                              {isDhothi ? "Dhothis" : "Sarees"}
-                            </span>
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-200 font-semibold">
-                          {h.recipientDept}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-slate-300">
-                          {h.vehicleNo || "—"}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-300">
-                          {h.officerName || "—"}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-400 truncate max-w-[160px]">
-                          {h.notes || "—"}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-              {filteredHandovers.length > 0 && (
-                <tfoot className="font-mono font-bold text-slate-200 border-t border-[#1E2B48] text-xs">
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="py-3.5 px-4 font-sans font-semibold text-slate-300"
-                    >
-                      Total Dispatched ({filteredHandovers.length} Challans)
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-amber-300 text-sm tabular-nums">
-                      {filteredTotalPieces.toLocaleString("en-IN")} Pieces
-                    </td>
-                    <td colSpan={4} className="py-3.5 px-4 text-slate-500">
-                      —
-                    </td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          </div>
         </section>
 
-        {/* =========================================================================
-         * 6. OFFICIAL INSPECTION AUTHORITY FOOTER
-         * ========================================================================= */}
-        <footer className="pt-4 pb-10 border-t border-[#1B2742] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-amber-400 flex-shrink-0" />
-            <span>
-              Statutory Handloom &amp; Textiles Inspection Authority &bull; Department of Handlooms, Government of Tamil Nadu
-            </span>
-          </div>
-          <div className="text-[11px] font-mono text-slate-400 text-center sm:text-right">
-            Audit Session ID: {user?.id?.substring(0, 8) || "OFFICIAL"} &bull; FY 2026-2027
-          </div>
-        </footer>
+        <WeaveRule label="Headline Statutory Piece Counters" />
+
+        {/* CHAPTER 2: 4 Core Statutory Counters (Single-label precision) */}
+        <RevealBlock>
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-xl bg-white border border-[#BBF7D0] p-5">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#5B6B84]">
+                <span>Handed Over to Govt</span>
+                <PackageCheck className="h-4 w-4 text-[#166534]" />
+              </div>
+              <div className="font-financial text-2xl sm:text-3xl font-bold text-[#14233C] mt-3">
+                {(activeStats.totalHandoveredMeters || 0).toLocaleString("en-IN")}{" "}
+                <span className="font-sans text-xs font-semibold text-[#166534]">
+                  {activeUnitLabel}
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6B84] mt-2">
+                Verified deliveries receipted by Co-optex
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-white border border-[#D49A42]/70 p-5">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#5B6B84]">
+                <span>Godown Ready Stock</span>
+                <Warehouse className="h-4 w-4 text-[#B47B2B]" />
+              </div>
+              <div className="font-financial text-2xl sm:text-3xl font-bold text-[#14233C] mt-3">
+                {(activeStats.godownAvailableMeters || 0).toLocaleString("en-IN")}{" "}
+                <span className="font-sans text-xs font-semibold text-[#B47B2B]">
+                  {activeUnitLabel}
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6B84] mt-2">
+                Physical inventory awaiting dispatch lorry
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-white border border-[#E5DEC9] p-5">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#5B6B84]">
+                <span>Produced As of Now</span>
+                <Factory className="h-4 w-4 text-[#14233C]" />
+              </div>
+              <div className="font-financial text-2xl sm:text-3xl font-bold text-[#14233C] mt-3">
+                {(activeStats.totalProducedMeters || 0).toLocaleString("en-IN")}{" "}
+                <span className="font-sans text-xs font-semibold text-[#14233C]">
+                  {activeUnitLabel}
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6B84] mt-2">
+                Cumulative finished weave from Society looms
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-[#FFFDF8] border border-[#FDBA74] p-5">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#9A3412]">
+                <span>Remaining Quota Deficit</span>
+                <Clock className="h-4 w-4 text-[#9A3412]" />
+              </div>
+              <div className="font-financial text-2xl sm:text-3xl font-bold text-[#9A3412] mt-3">
+                -{(activeStats.balanceToHandoverMeters || 0).toLocaleString("en-IN")}{" "}
+                <span className="font-sans text-xs font-semibold">
+                  {activeUnitLabel}
+                </span>
+              </div>
+              <p className="text-xs text-[#78531E] mt-2">
+                Pending target balance yet to be handed over
+              </p>
+            </div>
+          </section>
+        </RevealBlock>
+
+        <WeaveRule label="Variety Wise Quota & Loom Pipeline" />
+
+        {/* CHAPTER 3: Variety Comparison Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <RevealBlock className="lg:col-span-6" delayMs={40}>
+            <div className="rounded-2xl bg-white border border-[#E5DEC9] p-6 h-full space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-xl font-bold text-[#14233C]">
+                    Bleached Cotton Dhothis
+                  </h3>
+                  <p className="text-xs text-[#5B6B84] mt-0.5">
+                    {veatti.activeUnitsCount || 0} Loom Units ·{" "}
+                    {veatti.runningPaavuCount || 0} Running Paavus ·{" "}
+                    {veatti.unloadedPaavuCount || 0} Unloaded
+                  </p>
+                </div>
+                <span className="font-financial text-lg font-bold text-[#166534] bg-[#ECFDF5] border border-[#BBF7D0] px-3 py-1 rounded-lg">
+                  {dhothiPct.toFixed(1)}%
+                </span>
+              </div>
+
+              <DispatchTickRail
+                produced={veatti.totalProducedMeters || 0}
+                godown={veatti.godownAvailableMeters || 0}
+                handedOver={veatti.totalHandoveredMeters || 0}
+                target={veatti.targetMeters || 0}
+                unitLabel="Dhothis"
+              />
+
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[#F0eadc] text-xs">
+                <div>
+                  <div className="text-[#5B6B84]">Produced</div>
+                  <div className="font-financial font-bold text-[#14233C] text-sm mt-0.5">
+                    {(veatti.totalProducedMeters || 0).toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#5B6B84]">Godown Ready</div>
+                  <div className="font-financial font-bold text-[#B47B2B] text-sm mt-0.5">
+                    {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#5B6B84]">Weft In Godown</div>
+                  <div className="font-financial font-bold text-[#14233C] text-sm mt-0.5">
+                    {weftInfo.veatti?.godownStockBags || 0} Bags
+                  </div>
+                </div>
+              </div>
+            </div>
+          </RevealBlock>
+
+          <RevealBlock className="lg:col-span-6" delayMs={120}>
+            <div className="rounded-2xl bg-white border border-[#E5DEC9] p-6 h-full space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-display text-xl font-bold text-[#14233C]">
+                    Handloom &amp; Powerloom Sarees
+                  </h3>
+                  <p className="text-xs text-[#5B6B84] mt-0.5">
+                    {saree.activeUnitsCount || 0} Loom Units ·{" "}
+                    {saree.runningPaavuCount || 0} Running Paavus ·{" "}
+                    {saree.unloadedPaavuCount || 0} Unloaded
+                  </p>
+                </div>
+                <span className="font-financial text-lg font-bold text-[#14233C] bg-[#FAF7F0] border border-[#D4CAB0] px-3 py-1 rounded-lg">
+                  {sareePct.toFixed(1)}%
+                </span>
+              </div>
+
+              <DispatchTickRail
+                produced={saree.totalProducedMeters || 0}
+                godown={saree.godownAvailableMeters || 0}
+                handedOver={saree.totalHandoveredMeters || 0}
+                target={saree.targetMeters || 0}
+                unitLabel="Sarees"
+              />
+
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[#F0eadc] text-xs">
+                <div>
+                  <div className="text-[#5B6B84]">Produced</div>
+                  <div className="font-financial font-bold text-[#14233C] text-sm mt-0.5">
+                    {(saree.totalProducedMeters || 0).toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#5B6B84]">Godown Ready</div>
+                  <div className="font-financial font-bold text-[#B47B2B] text-sm mt-0.5">
+                    {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#5B6B84]">Weft In Godown</div>
+                  <div className="font-financial font-bold text-[#14233C] text-sm mt-0.5">
+                    {weftInfo.saree?.godownStockBags || 0} Bags
+                  </div>
+                </div>
+              </div>
+            </div>
+          </RevealBlock>
+        </div>
+
+        {/* CHAPTER 4: Horizontal 3-Step Physical Movement Chain */}
+        <RevealBlock delayMs={60}>
+          <section className="rounded-2xl bg-white border border-[#E5DEC9] p-6 sm:p-7">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b border-[#E5DEC9]">
+              <div>
+                <h3 className="font-display text-xl font-bold text-[#14233C]">
+                  Physical Stock Flow Verification Chain
+                </h3>
+                <p className="text-xs text-[#5B6B84] mt-0.5">
+                  Reconciled formula: Loom Output − Verified Govt Handover = Physical Godown Stock
+                </p>
+              </div>
+              <span className="font-financial text-xs font-semibold text-[#166534] inline-flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4" />
+                Zero Discrepancy Reconciled
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+              <div className="rounded-xl border border-[#E5DEC9] bg-[#FAF7F0] p-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-financial text-[11px] font-semibold text-[#5B6B84]">
+                    STEP 01 · WEAVING UNITS
+                  </div>
+                  <div className="text-sm font-bold text-[#14233C] mt-1">
+                    Powerloom Output
+                  </div>
+                  <div className="font-financial text-xl font-bold text-[#14233C] mt-2">
+                    {(activeStats.totalProducedMeters || 0).toLocaleString("en-IN")}{" "}
+                    {activeUnitLabel}
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-[#B47B2B] hidden md:block flex-shrink-0" />
+              </div>
+
+              <div className="rounded-xl border border-[#D49A42]/60 bg-[#FEF9EE] p-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-financial text-[11px] font-semibold text-[#78531E]">
+                    STEP 02 · SOCIETY GODOWN
+                  </div>
+                  <div className="text-sm font-bold text-[#14233C] mt-1">
+                    Ready Stock Held
+                  </div>
+                  <div className="font-financial text-xl font-bold text-[#92611D] mt-2">
+                    {(activeStats.godownAvailableMeters || 0).toLocaleString("en-IN")}{" "}
+                    {activeUnitLabel}
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-[#B47B2B] hidden md:block flex-shrink-0" />
+              </div>
+
+              <div className="rounded-xl border border-[#BBF7D0] bg-[#ECFDF5] p-4">
+                <div className="font-financial text-[11px] font-semibold text-[#166534]">
+                  STEP 03 · CO-OPTEX / GOVT
+                </div>
+                <div className="text-sm font-bold text-[#14233C] mt-1">
+                  Dispatched &amp; Receipted
+                </div>
+                <div className="font-financial text-xl font-bold text-[#166534] mt-2">
+                  {(activeStats.totalHandoveredMeters || 0).toLocaleString("en-IN")}{" "}
+                  {activeUnitLabel}
+                </div>
+              </div>
+            </div>
+          </section>
+        </RevealBlock>
+
+        <WeaveRule label="Verified Government Handover Challan Ledger" />
+
+        {/* CHAPTER 5: Searchable & Exportable Handover Challans Table */}
+        <RevealBlock delayMs={80}>
+          <section className="rounded-2xl bg-white border border-[#E5DEC9] overflow-hidden shadow-xs">
+            <div className="p-5 sm:p-6 border-b border-[#E5DEC9] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FAF7F0]/60">
+              <div>
+                <h3 className="font-display text-xl font-bold text-[#14233C] flex items-center gap-2.5">
+                  <span>Signed Co-optex Delivery Challans</span>
+                  <span className="font-financial text-xs px-2.5 py-0.5 rounded-md bg-[#14233C] text-white">
+                    {filteredHandovers.length} Records
+                  </span>
+                </h3>
+                <p className="text-xs text-[#5B6B84] mt-0.5">
+                  Chronological audit log of physical piece dispatches signed by verifying officers
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 no-print">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#5B6B84]" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Filter by Challan No, Officer, Unit..."
+                    className="w-full sm:w-72 rounded-xl border border-[#D4CAB0] bg-white pl-9 pr-3 py-2 text-xs font-medium text-[#14233C] placeholder-[#8A94A6] focus:border-[#14233C] focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-[13px]">
+                <thead>
+                  <tr>
+                    <th className="px-5 py-3.5 font-semibold text-[#5B6B84]">
+                      Challan No.
+                    </th>
+                    <th className="px-5 py-3.5 font-semibold text-[#5B6B84]">
+                      Dispatch Date
+                    </th>
+                    <th className="px-5 py-3.5 font-semibold text-[#5B6B84]">
+                      Variety
+                    </th>
+                    <th className="px-5 py-3.5 font-semibold text-[#5B6B84]">
+                      Delivered Quantity
+                    </th>
+                    <th className="px-5 py-3.5 font-semibold text-[#5B6B84]">
+                      Recipient Department
+                    </th>
+                    <th className="px-5 py-3.5 font-semibold text-[#5B6B84]">
+                      Officer / Vehicle
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0EADC]">
+                  {filteredHandovers.length > 0 ? (
+                    filteredHandovers.map((h) => {
+                      const pcs = resolvePieces(h);
+                      const isSaree = h.clothType === "SAREE";
+                      return (
+                        <tr
+                          key={h.id}
+                          className="hover:bg-[#FAF7F0] transition-colors"
+                        >
+                          <td className="px-5 py-3.5 font-financial font-semibold text-[#14233C]">
+                            {h.challanNo}
+                          </td>
+                          <td className="px-5 py-3.5 text-[#475569]">
+                            {new Date(h.handoverDate).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${
+                                isSaree
+                                  ? "bg-[#FEF5E4] text-[#92611D] border-[#E7C37B]"
+                                  : "bg-[#ECFDF5] text-[#166534] border-[#BBF7D0]"
+                              }`}
+                            >
+                              <Layers className="h-3 w-3" />
+                              {isSaree ? "Saree" : "Dhothi"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 font-financial font-bold text-[#14233C]">
+                            {pcs.toLocaleString("en-IN")} pcs
+                          </td>
+                          <td className="px-5 py-3.5 text-[#334155]">
+                            {h.recipientDept || "Tamil Nadu Handlooms / Co-optex"}
+                          </td>
+                          <td className="px-5 py-3.5 text-[#5B6B84] text-xs">
+                            <div>{h.officerName || "Society Despatch Clerk"}</div>
+                            {(h.vehicleNo || h.unit?.weaverName) && (
+                              <div className="font-financial text-[11px] text-[#8A94A6]">
+                                {h.vehicleNo || h.unit?.weaverName}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-14 text-center text-[#5B6B84]">
+                        <div className="flex flex-col items-center gap-2">
+                          <Package className="h-8 w-8 text-[#C7BFA9]" />
+                          <p className="text-sm font-semibold text-[#14233C]">
+                            No Handover Challans Match Your Filter
+                          </p>
+                          <p className="text-xs text-[#5B6B84]">
+                            Clear search criteria or switch variety tabs to inspect all records.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </RevealBlock>
       </main>
 
-      {/* =========================================================================
-       * 7. FULLSCREEN 3D POWERLOOM INSPECTION MODAL (SOLID CHROME)
-       * ========================================================================= */}
+      {/* Fullscreen 3D Powerloom Modal (Solid High-Contrast Chrome) */}
       {showLoomModal && (
         <div className="fixed inset-0 z-50 bg-[#04070f]">
           <ExecutiveBackground3D variant="fullscreen" activeCategory={activeTab} />
 
-          <div className="fixed top-5 left-5 z-10 flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#091020] border border-[#233457] text-xs font-semibold text-amber-200 shadow-xl">
-            <Factory className="h-4 w-4 text-amber-400" />
-            <span>Kinematic 3D Powerloom Simulation &bull; {activeTab}</span>
+          <div className="fixed top-5 left-5 z-10 flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#091020] border border-[#233457] text-xs font-semibold text-[#E7C37B]">
+            <Factory className="h-4 w-4 text-[#D49A42]" />
+            <span>Kinematic 3D Powerloom Simulation · {activeTab}</span>
           </div>
 
           <button
             type="button"
             onClick={() => setShowLoomModal(false)}
-            className="fixed top-5 right-5 z-10 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#091020] hover:bg-[#142240] border border-amber-400/45 text-xs font-bold text-white shadow-xl transition cursor-pointer"
+            className="fixed top-5 right-5 z-10 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#091020] hover:bg-[#142240] border border-[#D49A42]/50 text-xs font-bold text-white transition cursor-pointer"
           >
-            <X className="h-4 w-4 text-amber-300" />
+            <X className="h-4 w-4 text-[#E7C37B]" />
             <span>Close 3D View</span>
           </button>
 
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-[#091020] border border-[#233457] text-xs text-slate-300 shadow-xl pointer-events-none">
-            Move cursor to orbit perspective &bull; Synchronized gear train, shedding warp &amp; shuttle flight
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-full bg-[#091020] border border-[#233457] text-xs text-[#CBD5E1] pointer-events-none">
+            Move cursor to orbit perspective · Synchronized gear train, shedding warp &amp; shuttle flight
           </div>
         </div>
       )}

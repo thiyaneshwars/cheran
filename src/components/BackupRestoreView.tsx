@@ -19,7 +19,6 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react";
-import { DatabaseVault3D } from "./backup/DatabaseVault3D";
 import { SkeletonBackupRestoreView } from "./backup/SkeletonBackupRestoreView";
 
 interface BackupItem {
@@ -301,16 +300,67 @@ export const BackupRestoreView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Interactive 3D Stage & Action Operations Center */}
+      {/* 3. Vault Integrity Status & Action Operations Center */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left: 3D Holographic Vault (Three.js WebGL) */}
+        {/* Left: Statutory Ledger Archive Monitor */}
         <div className="lg:col-span-7 flex flex-col justify-between space-y-3">
-          <DatabaseVault3D
-            isBackingUp={isBackingUp}
-            isRestoring={isRestoring}
-            dDriveConnected={dDriveAvailable}
-          />
-          <div className="flex items-center justify-between text-xs text-slate-500 px-2 font-medium">
+          <div className="flex-1 rounded-2xl bg-[#14233C] text-[#FAF7F0] border border-[#14233C] p-6 sm:p-7 flex flex-col justify-between min-h-[260px]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[11px] font-semibold text-[#E7C37B]">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      dDriveAvailable ? "bg-[#4ADE80]" : "bg-[#FCA5A5]"
+                    }`}
+                  />
+                  <span>
+                    {dDriveAvailable
+                      ? "Archive Storage Mounted"
+                      : "Target Drive Offline"}
+                  </span>
+                </div>
+                <h3 className="font-display text-2xl font-bold text-white mt-4">
+                  Society Database Archive Vault
+                </h3>
+                <p className="text-xs text-[#CBD5E1] mt-1.5 max-w-md leading-relaxed">
+                  Direct binary replica protection for SQLite double-entry ledgers, bank reconciliation books, and Co-optex dispatch tallies.
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-[#0A101B] border border-[#B47B2B]/60 flex items-center justify-center text-[#E7C37B] flex-shrink-0">
+                <Database
+                  className={`h-6 w-6 ${
+                    isBackingUp || isRestoring ? "animate-pulse" : ""
+                  }`}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 pt-5 mt-6 border-t border-white/10">
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <div className="text-[11px] text-[#A8B6CE]">Target Path</div>
+                <div className="font-financial text-xs font-bold text-white mt-1 truncate">
+                  {backupDir}
+                </div>
+              </div>
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <div className="text-[11px] text-[#A8B6CE]">Archived Snaps</div>
+                <div className="font-financial text-base font-bold text-[#E7C37B] mt-0.5">
+                  {backups.length} Files
+                </div>
+              </div>
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                <div className="text-[11px] text-[#A8B6CE]">Engine Mode</div>
+                <div className="font-financial text-xs font-bold text-[#86EFAC] mt-1">
+                  {isBackingUp
+                    ? "WRITING..."
+                    : isRestoring
+                    ? "RESTORING..."
+                    : "WAL CHECKED"}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-[#5B6B84] px-2 font-medium">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
               <span>Full Double-Entry Database Snapshot Integrity Guaranteed</span>
@@ -346,7 +396,7 @@ export const BackupRestoreView: React.FC = () => {
               disabled={isBackingUp || !dDriveAvailable}
               className="w-full py-3 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
-              <HardDrive className={`h-4 w-4 ${isBackingUp ? "animate-bounce text-emerald-300" : "text-emerald-400"}`} />
+              <HardDrive className={`h-4 w-4 ${isBackingUp ? "animate-pulse text-emerald-300" : "text-emerald-400"}`} />
               <span>{isBackingUp ? "Writing Snapshot to D: Drive..." : "Hit Backup to D: Drive"}</span>
             </button>
           </div>
@@ -532,7 +582,7 @@ export const BackupRestoreView: React.FC = () => {
                       key={b.fileName}
                       className={`flex items-center justify-between p-3 text-xs cursor-pointer transition ${
                         selectedBackupForRestore === b.fileName
-                          ? "bg-amber-50 font-bold text-amber-950 border-l-4 border-l-amber-600"
+                          ? "bg-amber-50 font-bold text-amber-950 ring-1 ring-inset ring-amber-500/70"
                           : "hover:bg-white text-slate-700"
                       }`}
                     >

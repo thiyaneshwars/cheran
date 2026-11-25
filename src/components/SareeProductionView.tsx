@@ -435,10 +435,10 @@ export const SareeProductionView: React.FC = () => {
             S
           </span>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span>Saree Production & Accounting Ledger</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-normal leading-snug flex items-center gap-2.5">
+              <span>Saree Production &amp; Accounting Ledger</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5 leading-relaxed tracking-normal">
               Digital Powerloom Society Accounting: Saree Paavu Allocation, Loom Production, Varavu, Advance & Auto-Tally
             </p>
           </div>

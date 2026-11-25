@@ -364,7 +364,7 @@ export const WeftSuggestionView: React.FC<WeftSuggestionViewProps> = ({
             </div>
             <div>
               <div className="font-bold text-white text-sm">
-                Society Weft Balance: {societyTotals.isSocietyCovered ? "✅ Sufficient Godown Stock" : "⚠️ Low Godown Stock Alert"}
+                Society Weft Balance: {societyTotals.isSocietyCovered ? "Sufficient Godown Stock" : "Low Godown Stock Alert"}
               </div>
               <div className="text-slate-300 font-medium">
                 To run all <span className="font-bold text-white font-mono">{societyTotals.totalPieces.toLocaleString()} pending {itemsLabel}</span> across all looms requires{" "}
