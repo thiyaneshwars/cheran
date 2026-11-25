@@ -308,6 +308,77 @@ input::placeholder, textarea::placeholder {
   backdrop-filter: blur(4px) !important;
 }
 
+/* ========================================================
+   HIGHER OFFICIALS EXECUTIVE PORTAL — SCOPED DARK ATELIER
+   Overrides global light-table and light-input rules strictly
+   inside .executive-portal without affecting other modules.
+   ======================================================== */
+.executive-portal {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.35) rgba(7, 11, 22, 0.8);
+}
+
+.executive-portal table {
+  color: #e2e8f0 !important;
+}
+
+.executive-portal thead,
+.executive-portal thead tr,
+.executive-portal thead th {
+  background-color: rgba(9, 14, 28, 0.92) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+.executive-portal tbody tr {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.executive-portal tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.executive-portal tfoot tr {
+  background-color: rgba(15, 23, 42, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.executive-portal input,
+.executive-portal select,
+.executive-portal textarea {
+  background-color: rgba(7, 11, 22, 0.82) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.executive-portal input:focus,
+.executive-portal select:focus,
+.executive-portal textarea:focus {
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18) !important;
+  outline: none !important;
+}
+
+.executive-portal input::placeholder,
+.executive-portal textarea::placeholder {
+  color: #64748b !important;
+}
+
+.executive-portal ::-webkit-scrollbar-track {
+  background: rgba(7, 11, 22, 0.85);
+}
+
+.executive-portal ::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.32);
+  border-radius: 9999px;
+  border: 2px solid rgba(7, 11, 22, 0.85);
+}
+
+.executive-portal ::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.52);
+}
+
 /* Clean print styles */
 @media print {
   body {
