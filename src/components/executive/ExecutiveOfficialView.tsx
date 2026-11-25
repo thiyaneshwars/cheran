@@ -18,6 +18,8 @@ import {
   AlertCircle,
   Maximize2,
   Minimize2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { ExecutiveBackground3D } from "./ExecutiveBackground3D";
 import { exportToCSV } from "@/lib/export";
@@ -39,6 +41,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showLoomOnly, setShowLoomOnly] = useState(false);
 
   // Live IST Clock
   useEffect(() => {
@@ -235,26 +238,16 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
   return (
     <div className="executive-portal relative min-h-screen w-full bg-[#04070f] text-slate-100 overflow-x-hidden selection:bg-amber-400/30 selection:text-amber-100">
-      {/* Custom GPU Three.js Zari & Silk Loom Background */}
+      {/* Custom GPU Three.js Kinematic Powerloom Machine Background */}
       <ExecutiveBackground3D activeCategory={activeTab} />
-
-      {/* Atmospheric Depth Scrim — frames UI readably while keeping 3D silk & threads crisp */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 pointer-events-none z-[1]"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(4,7,15,0.74) 0%, rgba(4,7,15,0.20) 34%, rgba(4,7,15,0.44) 72%, rgba(4,7,15,0.88) 100%)",
-        }}
-      />
 
       {/* Main Content Layer */}
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* =========================================================================
          * 1. EXECUTIVE TOP BAR & AUTHORITY HEADER
          * ========================================================================= */}
-        <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#050914]/78 backdrop-blur-lg px-4 sm:px-6 lg:px-10 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.45)]">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <header className="sticky top-0 z-40 border-b border-white/[0.1] bg-[#040814]/65 backdrop-blur-md px-4 sm:px-6 lg:px-10 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.4)]">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Left: Crest Emblem & Society Identity */}
             <div className="flex items-center gap-3.5">
               <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-b from-amber-500/20 to-amber-600/10 border border-amber-400/35 shadow-[inset_0_1px_0_0_rgba(251,191,36,0.3)] flex-shrink-0">
@@ -280,9 +273,9 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
               </div>
             </div>
 
-            {/* Right: IST Sync, Refresh, Fullscreen & Sign Out */}
+            {/* Right: IST Sync, Refresh, 3D Loom View, Fullscreen & Sign Out */}
             <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#091022]/85 border border-white/[0.08] text-[11px] font-mono text-slate-300">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#091022]/80 border border-white/[0.08] text-[11px] font-mono text-slate-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 <Clock className="h-3.5 w-3.5 text-amber-300/80" />
                 <span className="tabular-nums">{currentTime || "IST Live Sync"}</span>
@@ -290,10 +283,24 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
               <button
                 type="button"
+                onClick={() => setShowLoomOnly((prev) => !prev)}
+                title={showLoomOnly ? "Show Portal Data Panels" : "Inspect 3D Powerloom Machine Unobstructed"}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 ${
+                  showLoomOnly
+                    ? "bg-amber-400 text-slate-950 border-amber-300 font-bold"
+                    : "bg-[#0B1326]/80 hover:bg-[#131E3A] border-white/[0.12] hover:border-amber-300/40 text-amber-200"
+                }`}
+              >
+                {showLoomOnly ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                <span>{showLoomOnly ? "Show Data" : "3D Loom"}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={fetchData}
                 disabled={refreshing}
                 title="Sync real-time stock and dispatch totals"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0B1326]/85 hover:bg-[#131E3A] border border-white/[0.1] hover:border-amber-300/35 text-xs font-semibold text-slate-200 transition cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0B1326]/80 hover:bg-[#131E3A] border border-white/[0.1] hover:border-amber-300/35 text-xs font-semibold text-slate-200 transition cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
               >
                 <RefreshCw
                   className={`h-3.5 w-3.5 text-amber-300 ${refreshing ? "animate-spin" : ""}`}
@@ -306,7 +313,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 onClick={toggleFullscreen}
                 title="Toggle Fullscreen Inspection Mode"
                 aria-label="Toggle Fullscreen Inspection Mode"
-                className="p-2 rounded-lg bg-[#0B1326]/85 hover:bg-[#131E3A] border border-white/[0.1] hover:border-amber-300/35 text-slate-300 hover:text-white transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
+                className="p-2 rounded-lg bg-[#0B1326]/80 hover:bg-[#131E3A] border border-white/[0.1] hover:border-amber-300/35 text-slate-300 hover:text-white transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
               >
                 {isFullscreen ? (
                   <Minimize2 className="h-4 w-4" />
@@ -322,7 +329,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                     onLogout();
                   }
                 }}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-950/50 hover:bg-rose-900/60 border border-rose-400/25 text-rose-200 text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/70 border border-rose-400/25 text-rose-200 text-xs font-semibold transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 <span>Sign Out</span>
@@ -334,9 +341,15 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
         {/* =========================================================================
          * 2. MAIN EXECUTIVE CONTENT
          * ========================================================================= */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-10 space-y-7">
+        <main
+          className={`flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-7 transition-all duration-300 ${
+            showLoomOnly
+              ? "opacity-0 pointer-events-none scale-[0.985]"
+              : "opacity-100 scale-100"
+          }`}
+        >
           {/* Statutory Oversight Summary Header */}
-          <section className="relative overflow-hidden rounded-2xl border border-white/[0.09] border-t-amber-300/25 bg-[#090F1E]/68 backdrop-blur-md px-5 py-5 sm:px-7 sm:py-6 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.65)]">
+          <section className="relative overflow-hidden rounded-2xl border border-white/[0.12] border-t-amber-300/30 bg-[#050A17]/42 backdrop-blur-[3px] px-5 py-4 sm:px-6 sm:py-5 shadow-[0_16px_45px_-12px_rgba(0,0,0,0.6)]">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
               <div className="space-y-1.5">
                 <h2 className="text-xl sm:text-2xl lg:text-[26px] font-bold text-white tracking-tight leading-snug">
@@ -347,7 +360,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 </p>
               </div>
 
-              <div className="self-start lg:self-auto px-4 py-3 rounded-xl bg-[#050914]/80 border border-white/[0.08] space-y-0.5 lg:text-right min-w-[230px]">
+              <div className="self-start lg:self-auto px-4 py-3 rounded-xl bg-[#040813]/55 border border-white/[0.1] space-y-0.5 lg:text-right min-w-[230px]">
                 <span className="text-[11px] font-medium text-slate-400 block">
                   Inspecting Official
                 </span>
@@ -366,7 +379,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
            * ========================================================================= */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Card A: Overall Consolidated Quota */}
-            <div className="rounded-2xl border border-white/[0.09] border-t-amber-300/30 bg-[#090F1E]/68 backdrop-blur-md p-6 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-amber-300/25">
+            <div className="rounded-2xl border border-white/[0.12] border-t-amber-300/35 bg-[#050A17]/42 backdrop-blur-[3px] p-6 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-amber-300/30">
               <div>
                 <div className="flex items-center justify-between gap-2 text-xs font-semibold text-amber-300">
                   <span className="flex items-center gap-1.5">
@@ -387,14 +400,14 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   <div className="mt-5 flex items-center justify-between gap-4">
                     <div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl sm:text-5xl font-bold font-financial tabular-nums tracking-tight text-white">
+                        <span className="text-4xl sm:text-5xl font-bold font-financial tabular-nums tracking-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                           {overallPercent}%
                         </span>
                         <span className="text-sm font-semibold text-emerald-300">
                           Completed
                         </span>
                       </div>
-                      <p className="mt-2 text-xs text-slate-300 font-medium tabular-nums">
+                      <p className="mt-2 text-xs text-slate-200 font-medium tabular-nums">
                         {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")} of{" "}
                         {(total.targetMeters || 0).toLocaleString("en-IN")} pieces handovered
                       </p>
@@ -408,7 +421,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                           cy="32"
                           r={ringRadius}
                           fill="none"
-                          stroke="rgba(255,255,255,0.08)"
+                          stroke="rgba(255,255,255,0.1)"
                           strokeWidth="4.5"
                         />
                         <circle
@@ -434,13 +447,13 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
               {/* Clean Progress Track */}
               <div className="mt-6 space-y-2">
-                <div className="h-2.5 w-full rounded-full bg-[#050914] overflow-hidden border border-white/[0.06]">
+                <div className="h-2.5 w-full rounded-full bg-[#040813]/80 overflow-hidden border border-white/[0.08]">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-700 ease-out"
                     style={{ width: `${Math.min(100, Math.max(2, overallPercent))}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 tabular-nums">
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-300 tabular-nums">
                   <span>0%</span>
                   <span className="text-amber-200 font-semibold">
                     Balance Quota: {(total.balanceToHandoverMeters || 0).toLocaleString("en-IN")} Pcs
@@ -451,7 +464,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
             </div>
 
             {/* Card B: Dhothi Scheme Progress */}
-            <div className="rounded-2xl border border-white/[0.09] border-t-emerald-400/30 bg-[#090F1E]/68 backdrop-blur-md p-6 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-emerald-400/25">
+            <div className="rounded-2xl border border-white/[0.12] border-t-emerald-400/35 bg-[#050A17]/42 backdrop-blur-[3px] p-6 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-emerald-400/30">
               <div>
                 <div className="flex items-center justify-between gap-2 text-xs font-semibold text-emerald-300">
                   <span className="flex items-center gap-1.5">
@@ -471,32 +484,32 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 ) : (
                   <>
                     <div className="mt-5 flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-emerald-300">
+                      <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-emerald-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                         {dhothiPercent}%
                       </span>
-                      <span className="text-xs font-semibold text-emerald-200/80 uppercase tracking-wider">
+                      <span className="text-xs font-semibold text-emerald-200/85 uppercase tracking-wider">
                         Handovered
                       </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-white/[0.08]">
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-white/[0.1]">
                       <div>
-                        <span className="text-[11px] text-emerald-100/70 block">
+                        <span className="text-[11px] text-emerald-100/75 block">
                           Govt Handovered
                         </span>
                         <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
                           {(veatti.totalHandoveredMeters || 0).toLocaleString("en-IN")}
                         </span>
-                        <span className="text-[11px] text-emerald-300/85">Dhothis dispatched</span>
+                        <span className="text-[11px] text-emerald-300/90">Dhothis dispatched</span>
                       </div>
                       <div>
-                        <span className="text-[11px] text-emerald-100/70 block">
+                        <span className="text-[11px] text-emerald-100/75 block">
                           In Godown Stock
                         </span>
                         <span className="text-lg font-bold font-mono tabular-nums text-amber-200 mt-0.5 block">
                           {(veatti.godownAvailableMeters || 0).toLocaleString("en-IN")}
                         </span>
-                        <span className="text-[11px] text-amber-300/80">Dhothis ready</span>
+                        <span className="text-[11px] text-amber-300/85">Dhothis ready</span>
                       </div>
                     </div>
                   </>
@@ -504,20 +517,20 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
               </div>
 
               <div className="mt-5 space-y-1.5">
-                <div className="h-2 w-full rounded-full bg-[#050914] overflow-hidden border border-white/[0.06]">
+                <div className="h-2 w-full rounded-full bg-[#040813]/80 overflow-hidden border border-white/[0.08]">
                   <div
                     className="h-full rounded-full bg-emerald-400 transition-all duration-700 ease-out"
                     style={{ width: `${Math.min(100, Math.max(2, dhothiPercent))}%` }}
                   />
                 </div>
-                <div className="text-[11px] text-emerald-100/70 text-right font-mono tabular-nums">
+                <div className="text-[11px] text-emerald-100/80 text-right font-mono tabular-nums">
                   Target: {(veatti.targetMeters || 0).toLocaleString("en-IN")} Dhothis
                 </div>
               </div>
             </div>
 
             {/* Card C: Saree Scheme Progress */}
-            <div className="rounded-2xl border border-white/[0.09] border-t-rose-400/30 bg-[#090F1E]/68 backdrop-blur-md p-6 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-rose-400/25">
+            <div className="rounded-2xl border border-white/[0.12] border-t-rose-400/35 bg-[#050A17]/42 backdrop-blur-[3px] p-6 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] flex flex-col justify-between transition-colors hover:border-rose-400/30">
               <div>
                 <div className="flex items-center justify-between gap-2 text-xs font-semibold text-rose-300">
                   <span className="flex items-center gap-1.5">
@@ -537,32 +550,32 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 ) : (
                   <>
                     <div className="mt-5 flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-rose-300">
+                      <span className="text-4xl sm:text-[44px] font-bold font-financial tabular-nums tracking-tight text-rose-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                         {sareePercent}%
                       </span>
-                      <span className="text-xs font-semibold text-rose-200/80 uppercase tracking-wider">
+                      <span className="text-xs font-semibold text-rose-200/85 uppercase tracking-wider">
                         Handovered
                       </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-white/[0.08]">
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs pt-3.5 border-t border-white/[0.1]">
                       <div>
-                        <span className="text-[11px] text-rose-100/70 block">
+                        <span className="text-[11px] text-rose-100/75 block">
                           Govt Handovered
                         </span>
                         <span className="text-lg font-bold font-mono tabular-nums text-white mt-0.5 block">
                           {(saree.totalHandoveredMeters || 0).toLocaleString("en-IN")}
                         </span>
-                        <span className="text-[11px] text-rose-300/85">Sarees dispatched</span>
+                        <span className="text-[11px] text-rose-300/90">Sarees dispatched</span>
                       </div>
                       <div>
-                        <span className="text-[11px] text-rose-100/70 block">
+                        <span className="text-[11px] text-rose-100/75 block">
                           In Godown Stock
                         </span>
                         <span className="text-lg font-bold font-mono tabular-nums text-amber-200 mt-0.5 block">
                           {(saree.godownAvailableMeters || 0).toLocaleString("en-IN")}
                         </span>
-                        <span className="text-[11px] text-amber-300/80">Sarees ready</span>
+                        <span className="text-[11px] text-amber-300/85">Sarees ready</span>
                       </div>
                     </div>
                   </>
@@ -570,13 +583,13 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
               </div>
 
               <div className="mt-5 space-y-1.5">
-                <div className="h-2 w-full rounded-full bg-[#050914] overflow-hidden border border-white/[0.06]">
+                <div className="h-2 w-full rounded-full bg-[#040813]/80 overflow-hidden border border-white/[0.08]">
                   <div
                     className="h-full rounded-full bg-rose-400 transition-all duration-700 ease-out"
                     style={{ width: `${Math.min(100, Math.max(2, sareePercent))}%` }}
                   />
                 </div>
-                <div className="text-[11px] text-rose-100/70 text-right font-mono tabular-nums">
+                <div className="text-[11px] text-rose-100/80 text-right font-mono tabular-nums">
                   Target: {(saree.targetMeters || 0).toLocaleString("en-IN")} Sarees
                 </div>
               </div>
@@ -586,14 +599,14 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
           {/* =========================================================================
            * 4. 3-STEP STATUTORY TALLY PIPELINE (Powerloom -> Godown -> Govt)
            * ========================================================================= */}
-          <section className="rounded-2xl border border-white/[0.09] bg-[#090F1E]/72 backdrop-blur-md p-6 sm:p-7 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.65)] space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+          <section className="rounded-2xl border border-white/[0.12] bg-[#050A17]/46 backdrop-blur-[3px] p-6 sm:p-7 shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.1] pb-4">
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
                   <span>Statutory Stock Flow: Powerloom &rarr; Godown &rarr; Government Handover</span>
                 </h3>
-                <p className="text-xs text-slate-300 mt-1">
+                <p className="text-xs text-slate-200 mt-1">
                   Every woven piece enters central godown stock first and deducts strictly upon verified Co-optex dispatch.
                 </p>
               </div>
@@ -605,31 +618,31 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch relative">
               {/* Loom Produced */}
-              <div className="rounded-xl border border-white/[0.08] bg-[#050914]/70 p-5 space-y-3 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+              <div className="rounded-xl border border-white/[0.1] bg-[#040813]/52 p-5 space-y-3 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
                   <span>Loom Produced</span>
-                  <span className="p-2 rounded-lg bg-white/[0.07] text-slate-200 border border-white/[0.12]">
+                  <span className="p-2 rounded-lg bg-white/[0.08] text-slate-200 border border-white/[0.12]">
                     <Factory className="h-4 w-4" />
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-white">
+                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                     {(total.totalProducedMeters || 0).toLocaleString("en-IN")}
                   </span>
                   <span className="text-xs font-medium text-slate-300 ml-1.5">Pieces</span>
                 </div>
 
-                <div className="text-xs text-slate-300 pt-2.5 border-t border-white/[0.08] font-mono tabular-nums space-y-1">
+                <div className="text-xs text-slate-200 pt-2.5 border-t border-white/[0.1] font-mono tabular-nums space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Dhothis Woven</span>
-                    <strong className="text-slate-100">
+                    <span className="text-slate-300">Dhothis Woven</span>
+                    <strong className="text-white">
                       {(veatti.totalProducedMeters || 0).toLocaleString("en-IN")}
                     </strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Sarees Woven</span>
-                    <strong className="text-slate-100">
+                    <span className="text-slate-300">Sarees Woven</span>
+                    <strong className="text-white">
                       {(saree.totalProducedMeters || 0).toLocaleString("en-IN")}
                     </strong>
                   </div>
@@ -637,26 +650,24 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
               </div>
 
               {/* In Central Storage Godown */}
-              <div className="rounded-xl border border-amber-400/35 bg-[#0E1629]/82 p-5 space-y-3 flex flex-col justify-between shadow-[inset_0_1px_0_0_rgba(251,191,36,0.2)]">
+              <div className="rounded-xl border border-amber-400/40 bg-[#0A1020]/58 p-5 space-y-3 flex flex-col justify-between shadow-[inset_0_1px_0_0_rgba(251,191,36,0.22)]">
                 <div className="flex items-center justify-between text-xs font-semibold text-amber-200">
-                  <span className="flex items-center gap-1.5">
-                    <span>In Central Godown Stock</span>
-                  </span>
+                  <span>In Central Godown Stock</span>
                   <span className="p-2 rounded-lg bg-amber-500/20 text-amber-200 border border-amber-400/30">
                     <Warehouse className="h-4 w-4" />
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-amber-300">
+                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                     {(total.godownAvailableMeters || 0).toLocaleString("en-IN")}
                   </span>
-                  <span className="text-xs font-medium text-amber-200/90 ml-1.5">
+                  <span className="text-xs font-medium text-amber-200 ml-1.5">
                     Pieces Available
                   </span>
                 </div>
 
-                <div className="text-xs text-amber-100/80 pt-2.5 border-t border-amber-400/15 font-mono tabular-nums space-y-1">
+                <div className="text-xs text-amber-100/85 pt-2.5 border-t border-amber-400/20 font-mono tabular-nums space-y-1">
                   <div className="flex justify-between">
                     <span>Dhothi Godown</span>
                     <strong className="text-amber-200">
@@ -673,7 +684,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
               </div>
 
               {/* Government Handovered */}
-              <div className="rounded-xl border border-emerald-400/25 bg-[#050914]/70 p-5 space-y-3 flex flex-col justify-between">
+              <div className="rounded-xl border border-emerald-400/30 bg-[#040813]/52 p-5 space-y-3 flex flex-col justify-between">
                 <div className="flex items-center justify-between text-xs font-semibold text-emerald-200">
                   <span>Government Handovered</span>
                   <span className="p-2 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-400/25">
@@ -682,15 +693,15 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                 </div>
 
                 <div>
-                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-emerald-300">
+                  <span className="text-3xl sm:text-4xl font-bold font-financial tabular-nums text-emerald-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
                     {(total.totalHandoveredMeters || 0).toLocaleString("en-IN")}
                   </span>
-                  <span className="text-xs font-medium text-emerald-200/90 ml-1.5">
+                  <span className="text-xs font-medium text-emerald-200 ml-1.5">
                     Pieces Dispatched
                   </span>
                 </div>
 
-                <div className="text-xs text-emerald-100/80 pt-2.5 border-t border-emerald-400/15 font-mono tabular-nums space-y-1">
+                <div className="text-xs text-emerald-100/85 pt-2.5 border-t border-emerald-400/20 font-mono tabular-nums space-y-1">
                   <div className="flex justify-between">
                     <span>Dhothis Handovered</span>
                     <strong className="text-emerald-200">
@@ -708,7 +719,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
             </div>
 
             {/* Statutory Equation Strip */}
-            <div className="px-4 py-3.5 rounded-xl bg-[#050914]/85 border border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-300">
+            <div className="px-4 py-3.5 rounded-xl bg-[#040813]/65 border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-200">
               <div className="font-mono tabular-nums flex items-center gap-2 flex-wrap">
                 <span className="text-slate-400 font-sans">Stock Balance Equation:</span>
                 <span className="text-white font-semibold bg-white/[0.06] px-2.5 py-1 rounded-md border border-white/[0.06]">
@@ -734,7 +745,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
           {/* =========================================================================
            * 5. OFFICIAL GOVERNMENT HANDOVER CHALLANS LEDGER
            * ========================================================================= */}
-          <section className="rounded-2xl border border-white/[0.09] bg-[#090F1E]/76 backdrop-blur-md shadow-[0_20px_50px_-15px_rgba(0,0,0,0.65)] overflow-hidden space-y-5 p-6 sm:p-7">
+          <section className="rounded-2xl border border-white/[0.12] bg-[#050A17]/48 backdrop-blur-[3px] shadow-[0_18px_45px_-15px_rgba(0,0,0,0.65)] overflow-hidden space-y-5 p-6 sm:p-7">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
               <div>
                 <div className="flex items-center gap-2.5 flex-wrap">
@@ -821,7 +832,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
             </div>
 
             {/* Scoped Dark Obsidian Ledger Table */}
-            <div className="overflow-x-auto rounded-xl border border-white/[0.09] bg-[#050914]/65">
+            <div className="overflow-x-auto rounded-xl border border-white/[0.1] bg-[#040813]/48">
               <table className="w-full text-left text-xs min-w-[850px]">
                 <thead className="font-semibold uppercase tracking-wider text-[11px]">
                   <tr>
@@ -940,6 +951,22 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
             </div>
           </footer>
         </main>
+
+        {/* Floating return pill when Inspecting 3D Powerloom unobstructed */}
+        {showLoomOnly && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#050914]/80 border border-amber-400/35 backdrop-blur-md shadow-2xl">
+            <span className="text-xs font-medium text-amber-100">
+              Live 3D Powerloom Weaving View &bull; Move cursor to pan camera
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowLoomOnly(false)}
+              className="px-3 py-1 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition cursor-pointer"
+            >
+              Show Data Panels
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

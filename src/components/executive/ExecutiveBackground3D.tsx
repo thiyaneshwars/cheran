@@ -56,8 +56,8 @@ function createSpurGearGeometry(
   const geo = new THREE.ExtrudeGeometry(shape, {
     depth,
     bevelEnabled: true,
-    bevelThickness: 0.02,
-    bevelSize: 0.015,
+    bevelThickness: 0.022,
+    bevelSize: 0.016,
     bevelSegments: 2,
     curveSegments: 12,
   });
@@ -66,16 +66,7 @@ function createSpurGearGeometry(
 }
 
 /**
- * Custom Three.js r187 WebGL background:
- * "Kinematic Powerloom Machine Assembly"
- * Synchronized industrial weaving simulation featuring:
- * - Twin cast-iron gantry arch & shuttle boxes
- * - Turning spoked flywheel, meshing brass tappet gears, and crank linkage
- * - Alternating heald harnesses on upper rollers
- * - GPU-shader split warp shed parted cleanly between picks
- * - Reciprocating sley & steel reed beater
- * - Flying pointed boat shuttle laying glowing weft picks
- * - Rear Paavu warp beam and front woven cloth take-up roller
+ * High-visibility Three.js r187 3D Kinematic Powerloom Machine Assembly.
  */
 export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
   className = "",
@@ -100,12 +91,12 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
-    // 1. Scene, Camera, Tone-Mapped Renderer
+    // 1. Scene, Closer Showcase Camera, Tone-Mapped Renderer
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x04070f, 0.032);
+    scene.fog = new THREE.FogExp2(0x060b18, 0.024);
 
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 140);
-    camera.position.set(-1.6, 2.6, 11.4);
+    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 140);
+    camera.position.set(-1.35, 2.35, 9.2);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -115,213 +106,254 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = intensity === "subtle" ? 0.92 : 1.1;
+    renderer.toneMappingExposure = intensity === "subtle" ? 1.0 : 1.25;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
     const accentTarget = new THREE.Color(CATEGORY_ACCENT_HEX[categoryRef.current]);
     const currentAccent = accentTarget.clone();
-    const opacityScale = intensity === "subtle" ? 0.65 : 1.0;
+    const opacityScale = intensity === "subtle" ? 0.75 : 1.0;
 
-    // Track disposable resources uniformly
     const disposables: { dispose: () => void }[] = [];
     const track = <T extends { dispose: () => void }>(res: T): T => {
       disposables.push(res);
       return res;
     };
 
-    // 2. Calibrated Studio & Loom Worklight Rig
-    const hemiLight = new THREE.HemisphereLight(0x93c5fd, 0x090d1a, 0.75);
+    // 2. High-Contrast Architectural Lighting Rig
+    const hemiLight = new THREE.HemisphereLight(0xcbd5e1, 0x0b132b, 1.25);
     scene.add(hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff1d6, 2.4);
-    keyLight.position.set(7, 10, 8);
+    const keyLight = new THREE.DirectionalLight(0xfff4dd, 3.0);
+    keyLight.position.set(6, 9, 8);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xf59e0b, 1.8);
-    rimLight.position.set(-8, 4, -7);
+    const frontFillLight = new THREE.DirectionalLight(0x93c5fd, 1.4);
+    frontFillLight.position.set(-6, 3, 7);
+    scene.add(frontFillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xfbbf24, 2.6);
+    rimLight.position.set(-7, 5, -7);
     scene.add(rimLight);
 
-    // Physical candela point lights over the beating point & drive gears
-    const loomWorkLight = new THREE.PointLight(0xfbbf24, 95, 22, 2);
-    loomWorkLight.position.set(0.5, 2.8, 1.8);
+    // Bright loom worklight illuminating shuttle race & beat zone
+    const loomWorkLight = new THREE.PointLight(0xfde047, 175, 26, 1.6);
+    loomWorkLight.position.set(0.8, 2.8, 2.0);
     scene.add(loomWorkLight);
 
-    const sideAccentLight = new THREE.PointLight(currentAccent.clone(), 60, 20, 2);
-    sideAccentLight.position.set(-4.2, 0.8, 3.2);
+    const sideAccentLight = new THREE.PointLight(currentAccent.clone(), 110, 22, 1.6);
+    sideAccentLight.position.set(-4.2, 0.8, 3.0);
     scene.add(sideAccentLight);
 
     // =========================================================================
-    // 3. Shared PBR Materials
+    // 3. Crisp High-Contrast PBR & Outline Materials
     // =========================================================================
     const castIronMat = track(
       new THREE.MeshStandardMaterial({
-        color: 0x162033,
-        metalness: 0.78,
-        roughness: 0.44,
+        color: 0x2a3f66,
+        emissive: 0x0d172c,
+        emissiveIntensity: 0.45,
+        metalness: 0.72,
+        roughness: 0.34,
       })
     );
     const steelShaftMat = track(
       new THREE.MeshStandardMaterial({
-        color: 0x94a3b8,
-        metalness: 0.9,
-        roughness: 0.22,
+        color: 0xcbd5e1,
+        emissive: 0x334155,
+        emissiveIntensity: 0.25,
+        metalness: 0.88,
+        roughness: 0.18,
       })
     );
     const brassGearMat = track(
       new THREE.MeshStandardMaterial({
-        color: 0xd97706,
-        emissive: 0x78350f,
-        emissiveIntensity: 0.25,
-        metalness: 0.9,
-        roughness: 0.26,
+        color: 0xf59e0b,
+        emissive: 0xb45309,
+        emissiveIntensity: 0.6,
+        metalness: 0.88,
+        roughness: 0.22,
       })
     );
     const copperAccentMat = track(
       new THREE.MeshStandardMaterial({
-        color: 0xf59e0b,
-        emissive: 0x92400e,
-        emissiveIntensity: 0.35,
-        metalness: 0.88,
+        color: 0xfbbf24,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.72,
+        metalness: 0.85,
+        roughness: 0.18,
+      })
+    );
+    const shuttleBodyMat = track(
+      new THREE.MeshStandardMaterial({
+        color: 0xfef08a,
+        emissive: 0xf59e0b,
+        emissiveIntensity: 1.45,
+        metalness: 0.35,
         roughness: 0.2,
       })
     );
-    const shuttleWoodMat = track(
-      new THREE.MeshStandardMaterial({
-        color: 0xb45309,
-        emissive: 0xd97706,
-        emissiveIntensity: 0.45,
-        metalness: 0.45,
-        roughness: 0.35,
+    const chassisOutlineMat = track(
+      new THREE.LineBasicMaterial({
+        color: 0xfbbf24,
+        transparent: true,
+        opacity: 0.58 * opacityScale,
+        blending: THREE.AdditiveBlending,
       })
     );
-    const loomWireframeMat = track(
+    const gearOutlineMat = track(
       new THREE.LineBasicMaterial({
-        color: 0xf59e0b,
+        color: 0xfef08a,
         transparent: true,
-        opacity: 0.24 * opacityScale,
+        opacity: 0.65 * opacityScale,
         blending: THREE.AdditiveBlending,
       })
     );
 
     // =========================================================================
-    // 4. Master Powerloom Machine Group
+    // 4. Master Powerloom Machine Assembly (Framed Clearly Mid-Stage)
     // =========================================================================
     const loomGroup = new THREE.Group();
-    loomGroup.position.set(1.2, -0.45, -1.6);
-    loomGroup.rotation.set(0.16, -0.48, 0);
+    loomGroup.position.set(1.15, -0.05, -0.9);
+    loomGroup.rotation.set(0.16, -0.44, 0);
+    loomGroup.scale.setScalar(1.12);
     scene.add(loomGroup);
 
-    const LOOM_WIDTH = 5.8; // X span (-2.9 to +2.9)
-    const CLOTH_WIDTH = 4.5; // Woven cloth / warp bed width (-2.25 to +2.25)
+    const LOOM_WIDTH = 5.8;
+    const CLOTH_WIDTH = 4.5;
     const FRAME_X = LOOM_WIDTH / 2;
 
-    // 4A. Twin Cast-Iron Side Frames, Top Castle Arch & Tie-Bars
+    // 4A. Twin Cast-Iron Gantry Frames & Top Castle Arch
     const sideLegGeo = track(new THREE.BoxGeometry(0.18, 3.2, 3.4));
-    const uprightPostGeo = track(new THREE.BoxGeometry(0.16, 1.5, 0.26));
-    const archBeamGeo = track(new THREE.BoxGeometry(LOOM_WIDTH + 0.5, 0.2, 0.28));
-    const tieRodGeo = track(new THREE.CylinderGeometry(0.055, 0.055, LOOM_WIDTH + 0.4, 16));
+    const uprightPostGeo = track(new THREE.BoxGeometry(0.16, 1.55, 0.26));
+    const archBeamGeo = track(new THREE.BoxGeometry(LOOM_WIDTH + 0.55, 0.22, 0.28));
+    const tieRodGeo = track(new THREE.CylinderGeometry(0.06, 0.06, LOOM_WIDTH + 0.4, 16));
     tieRodGeo.rotateZ(Math.PI / 2);
+
+    const sideEdgesGeo = track(new THREE.EdgesGeometry(sideLegGeo, 20));
+    const postEdgesGeo = track(new THREE.EdgesGeometry(uprightPostGeo, 20));
+    const archEdgesGeo = track(new THREE.EdgesGeometry(archBeamGeo, 20));
 
     [-FRAME_X, FRAME_X].forEach((xPos) => {
       const sideBase = new THREE.Mesh(sideLegGeo, castIronMat);
       sideBase.position.set(xPos, -0.65, 0);
       loomGroup.add(sideBase);
 
-      // Architectural wireframe contour highlight on side chassis
-      const baseEdges = track(new THREE.EdgesGeometry(sideLegGeo, 20));
-      const baseLines = new THREE.LineSegments(baseEdges, loomWireframeMat);
-      baseLines.position.copy(sideBase.position);
-      loomGroup.add(baseLines);
+      const baseOutline = new THREE.LineSegments(sideEdgesGeo, chassisOutlineMat);
+      baseOutline.position.copy(sideBase.position);
+      loomGroup.add(baseOutline);
 
       const post = new THREE.Mesh(uprightPostGeo, castIronMat);
       post.position.set(xPos, 1.65, -0.15);
       loomGroup.add(post);
+
+      const postOutline = new THREE.LineSegments(postEdgesGeo, chassisOutlineMat);
+      postOutline.position.copy(post.position);
+      loomGroup.add(postOutline);
     });
 
-    // Top Harness "Castle" Cross-Arch
     const topArch = new THREE.Mesh(archBeamGeo, castIronMat);
-    topArch.position.set(0, 2.35, -0.15);
+    topArch.position.set(0, 2.38, -0.15);
     loomGroup.add(topArch);
 
-    const archEdges = track(new THREE.EdgesGeometry(archBeamGeo, 20));
-    const archLines = new THREE.LineSegments(archEdges, loomWireframeMat);
+    const archLines = new THREE.LineSegments(archEdgesGeo, chassisOutlineMat);
     archLines.position.copy(topArch.position);
     loomGroup.add(archLines);
 
-    // Lower Tie-Rods & Breast Beam
     [
       [0, -1.75, 1.3],
       [0, -1.75, -1.3],
-      [0, 0.45, 1.45], // Front Breast Beam (over which woven cloth bends down)
-      [0, 0.52, -1.55], // Rear Back-Rest Bar (guiding warp from Paavu beam)
+      [0, 0.45, 1.45],
+      [0, 0.52, -1.55],
     ].forEach(([x, y, z]) => {
       const rod = new THREE.Mesh(tieRodGeo, steelShaftMat);
       rod.position.set(x, y, z);
       loomGroup.add(rod);
     });
 
-    // Left & Right Shuttle Boxes
-    const shuttleBoxGeo = track(new THREE.BoxGeometry(0.95, 0.26, 0.38));
+    // Left & Right Shuttle Boxes with Luminous Gold Edge Trim
+    const shuttleBoxGeo = track(new THREE.BoxGeometry(0.95, 0.28, 0.4));
+    const shuttleBoxEdgesGeo = track(new THREE.EdgesGeometry(shuttleBoxGeo, 20));
     [-FRAME_X - 0.52, FRAME_X + 0.52].forEach((xPos) => {
       const sBox = new THREE.Mesh(shuttleBoxGeo, castIronMat);
       sBox.position.set(xPos, 0.48, 0.72);
       loomGroup.add(sBox);
+
+      const boxOutline = new THREE.LineSegments(shuttleBoxEdgesGeo, chassisOutlineMat);
+      boxOutline.position.copy(sBox.position);
+      loomGroup.add(boxOutline);
     });
 
     // =========================================================================
-    // 4B. Drive Side Mechanical Gear Train, Spoked Flywheel & Cam Assembly
+    // 4B. Drive Gear Train, Spoked Brass Flywheel & Axle Mounts
     // =========================================================================
     const driveX = -FRAME_X - 0.22;
 
-    // Axle-aligned mount groups keep local Z rotation aligned strictly on X axle
     const flywheelMount = new THREE.Group();
-    flywheelMount.position.set(driveX - 0.14, -0.15, 0.05);
+    flywheelMount.position.set(driveX - 0.16, -0.15, 0.05);
     flywheelMount.rotation.y = Math.PI / 2;
     loomGroup.add(flywheelMount);
 
     const flywheelGroup = new THREE.Group();
     flywheelMount.add(flywheelGroup);
 
-    const rimGeo = track(new THREE.TorusGeometry(0.88, 0.075, 14, 48));
-    const rimMesh = new THREE.Mesh(rimGeo, brassGearMat);
-    flywheelGroup.add(rimMesh);
+    const rimGeo = track(new THREE.TorusGeometry(0.92, 0.085, 14, 48));
+    flywheelGroup.add(new THREE.Mesh(rimGeo, brassGearMat));
 
-    const spokeGeo = track(new THREE.CylinderGeometry(0.032, 0.032, 1.66, 8));
+    const spokeGeo = track(new THREE.CylinderGeometry(0.038, 0.038, 1.72, 10));
     for (let k = 0; k < 3; k++) {
-      const spoke = new THREE.Mesh(spokeGeo, castIronMat);
+      const spoke = new THREE.Mesh(spokeGeo, steelShaftMat);
       spoke.rotation.z = (k * Math.PI) / 3;
       flywheelGroup.add(spoke);
     }
-    const hubGeo = track(new THREE.CylinderGeometry(0.18, 0.18, 0.22, 20));
+    const hubGeo = track(new THREE.CylinderGeometry(0.2, 0.2, 0.24, 20));
     hubGeo.rotateX(Math.PI / 2);
     flywheelGroup.add(new THREE.Mesh(hubGeo, copperAccentMat));
 
-    // Meshing Upper Crankshaft Gear (18 teeth) & Lower Tappet Cam Gear (36 teeth, 1:2 ratio)
+    // Meshing 18T Crank Gear + 36T Cam Gear (both outlined for vivid teeth visibility)
     const crankGearMount = new THREE.Group();
     crankGearMount.position.set(driveX + 0.06, -0.15, 0.05);
     crankGearMount.rotation.y = Math.PI / 2;
     loomGroup.add(crankGearMount);
-    const crankGearGeo = track(createSpurGearGeometry(0.46, 0.37, 18, 0.12, 0.1));
+    const crankGearGeo = track(createSpurGearGeometry(0.48, 0.38, 18, 0.13, 0.1));
     const crankGear = new THREE.Mesh(crankGearGeo, brassGearMat);
+    const crankGearOutline = new THREE.LineSegments(
+      track(new THREE.EdgesGeometry(crankGearGeo, 25)),
+      gearOutlineMat
+    );
+    crankGear.add(crankGearOutline);
     crankGearMount.add(crankGear);
 
     const camGearMount = new THREE.Group();
     camGearMount.position.set(driveX + 0.06, -1.42, 0.05);
     camGearMount.rotation.y = Math.PI / 2;
     loomGroup.add(camGearMount);
-    const camGearGeo = track(createSpurGearGeometry(0.88, 0.78, 36, 0.12, 0.14));
+    const camGearGeo = track(createSpurGearGeometry(0.9, 0.78, 36, 0.13, 0.14));
     const camGear = new THREE.Mesh(camGearGeo, copperAccentMat);
+    const camGearOutline = new THREE.LineSegments(
+      track(new THREE.EdgesGeometry(camGearGeo, 25)),
+      gearOutlineMat
+    );
+    camGear.add(camGearOutline);
     camGearMount.add(camGear);
 
-    // Opposite Side Balance Pulley
+    // Opposite Side Balance Pulley (clearly visible from 3/4 right angle!)
     const pulleyMount = new THREE.Group();
-    pulleyMount.position.set(FRAME_X + 0.2, -0.15, 0.05);
+    pulleyMount.position.set(FRAME_X + 0.24, -0.15, 0.05);
     pulleyMount.rotation.y = Math.PI / 2;
     loomGroup.add(pulleyMount);
-    const pulleyGeo = track(new THREE.TorusGeometry(0.62, 0.05, 12, 40));
-    const rightPulley = new THREE.Mesh(pulleyGeo, brassGearMat);
+    const pulleyGeo = track(new THREE.TorusGeometry(0.72, 0.065, 14, 48));
+    const rightPulley = new THREE.Group();
+    rightPulley.add(new THREE.Mesh(pulleyGeo, brassGearMat));
+    for (let k = 0; k < 3; k++) {
+      const sp = new THREE.Mesh(
+        track(new THREE.CylinderGeometry(0.028, 0.028, 1.36, 8)),
+        steelShaftMat
+      );
+      sp.rotation.z = (k * Math.PI) / 3;
+      rightPulley.add(sp);
+    }
     pulleyMount.add(rightPulley);
 
     // Crank Shaft & Bottom Cam Shaft Bars
@@ -333,57 +365,57 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
     camShaftMesh.position.set(0, -1.42, 0.05);
     loomGroup.add(camShaftMesh);
 
-    // Twin Shedding Tappet Rollers on Top Arch
+    // Upper Shedding Tappet Rollers
     const topRollerGroup1 = new THREE.Group();
     const topRollerGroup2 = new THREE.Group();
-    const rollerWheelGeo = track(new THREE.CylinderGeometry(0.16, 0.16, 0.08, 24));
+    const rollerWheelGeo = track(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 24));
     rollerWheelGeo.rotateZ(Math.PI / 2);
 
-    topRollerGroup1.position.set(-0.9, 2.22, -0.15);
-    topRollerGroup2.position.set(0.9, 2.22, -0.15);
+    topRollerGroup1.position.set(-0.95, 2.22, -0.15);
+    topRollerGroup2.position.set(0.95, 2.22, -0.15);
     topRollerGroup1.add(new THREE.Mesh(rollerWheelGeo, brassGearMat));
     topRollerGroup2.add(new THREE.Mesh(rollerWheelGeo, brassGearMat));
     loomGroup.add(topRollerGroup1, topRollerGroup2);
 
     // =========================================================================
-    // 4C. Alternating Heald Harness Frames (Harness 1 & Harness 2)
+    // 4C. Alternating Heald Harness Frames (Vivid Vertical Motion)
     // =========================================================================
-    const buildHealdFrame = (zPos: number, accentMat: THREE.Material) => {
+    const buildHealdFrame = (zPos: number, accentMat: THREE.Material, wireHex: number) => {
       const frame = new THREE.Group();
       frame.position.set(0, 0.45, zPos);
 
-      const railGeo = track(new THREE.BoxGeometry(CLOTH_WIDTH + 0.3, 0.055, 0.05));
-      const sideBarGeo = track(new THREE.BoxGeometry(0.055, 1.35, 0.05));
+      const railGeo = track(new THREE.BoxGeometry(CLOTH_WIDTH + 0.3, 0.065, 0.055));
+      const sideBarGeo = track(new THREE.BoxGeometry(0.065, 1.42, 0.055));
 
-      const topRail = new THREE.Mesh(railGeo, steelShaftMat);
-      topRail.position.y = 0.65;
-      const botRail = new THREE.Mesh(railGeo, steelShaftMat);
-      botRail.position.y = -0.65;
+      const topRail = new THREE.Mesh(railGeo, copperAccentMat);
+      topRail.position.y = 0.68;
+      const botRail = new THREE.Mesh(railGeo, copperAccentMat);
+      botRail.position.y = -0.68;
 
       const leftBar = new THREE.Mesh(sideBarGeo, accentMat);
       leftBar.position.x = -(CLOTH_WIDTH + 0.25) / 2;
       const rightBar = new THREE.Mesh(sideBarGeo, accentMat);
       rightBar.position.x = (CLOTH_WIDTH + 0.25) / 2;
 
-      // Dense metallic heald wires in 1 single LineSegments call
-      const wireCount = 54;
+      const wireCount = 56;
       const wireVerts = new Float32Array(wireCount * 2 * 3);
       for (let i = 0; i < wireCount; i++) {
         const x = ((i / (wireCount - 1)) - 0.5) * CLOTH_WIDTH;
         wireVerts[i * 6] = x;
-        wireVerts[i * 6 + 1] = -0.62;
+        wireVerts[i * 6 + 1] = -0.65;
         wireVerts[i * 6 + 2] = 0;
         wireVerts[i * 6 + 3] = x;
-        wireVerts[i * 6 + 4] = 0.62;
+        wireVerts[i * 6 + 4] = 0.65;
         wireVerts[i * 6 + 5] = 0;
       }
       const wiresGeo = track(new THREE.BufferGeometry());
       wiresGeo.setAttribute("position", new THREE.BufferAttribute(wireVerts, 3));
       const wiresMat = track(
         new THREE.LineBasicMaterial({
-          color: 0xe2e8f0,
+          color: wireHex,
           transparent: true,
-          opacity: 0.28 * opacityScale,
+          opacity: 0.55 * opacityScale,
+          blending: THREE.AdditiveBlending,
         })
       );
       const healdWires = new THREE.LineSegments(wiresGeo, wiresMat);
@@ -393,152 +425,155 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       return frame;
     };
 
-    const harnessFrame1 = buildHealdFrame(-0.24, brassGearMat);
-    const harnessFrame2 = buildHealdFrame(-0.04, copperAccentMat);
+    const harnessFrame1 = buildHealdFrame(-0.26, brassGearMat, 0xfef3c7);
+    const harnessFrame2 = buildHealdFrame(-0.04, steelShaftMat, 0x93c5fd);
 
     // =========================================================================
-    // 4D. Reciprocating Sley Sword Pivot Assembly, Reed Comb & Boat Shuttle
+    // 4D. Reciprocating Sley Swords, Bright Reed Comb & Luminous Boat Shuttle
     // =========================================================================
     const sleyPivot = new THREE.Group();
-    sleyPivot.position.set(0, -1.65, 0.72); // Bottom rock-shaft pivot
+    sleyPivot.position.set(0, -1.65, 0.72);
     loomGroup.add(sleyPivot);
 
-    // Left & Right Sley Swords
-    const swordGeo = track(new THREE.BoxGeometry(0.08, 2.25, 0.14));
+    const swordGeo = track(new THREE.BoxGeometry(0.09, 2.28, 0.15));
     [-FRAME_X + 0.18, FRAME_X - 0.18].forEach((xPos) => {
       const sword = new THREE.Mesh(swordGeo, castIronMat);
       sword.position.set(xPos, 1.12, 0);
       sleyPivot.add(sword);
     });
 
-    // Shuttle Raceboard + Reed Top Cap
-    const raceGeo = track(new THREE.BoxGeometry(CLOTH_WIDTH + 1.8, 0.08, 0.34));
+    const raceGeo = track(new THREE.BoxGeometry(CLOTH_WIDTH + 1.85, 0.085, 0.34));
     const raceBoard = new THREE.Mesh(raceGeo, castIronMat);
     raceBoard.position.set(0, 2.02, 0.02);
     sleyPivot.add(raceBoard);
 
-    const reedCapGeo = track(new THREE.BoxGeometry(CLOTH_WIDTH + 0.5, 0.085, 0.09));
-    const reedCap = new THREE.Mesh(reedCapGeo, brassGearMat);
-    reedCap.position.set(0, 2.52, -0.05);
+    const reedCapGeo = track(new THREE.BoxGeometry(CLOTH_WIDTH + 0.55, 0.095, 0.1));
+    const reedCap = new THREE.Mesh(reedCapGeo, copperAccentMat);
+    reedCap.position.set(0, 2.54, -0.05);
     sleyPivot.add(reedCap);
 
-    // Steel Reed Comb Teeth (72 gleaming vertical dents in 1 draw call)
+    // Steel Reed Comb Dents
     const dentCount = 72;
     const dentVerts = new Float32Array(dentCount * 2 * 3);
     for (let d = 0; d < dentCount; d++) {
-      const x = ((d / (dentCount - 1)) - 0.5) * (CLOTH_WIDTH + 0.1);
+      const x = ((d / (dentCount - 1)) - 0.5) * (CLOTH_WIDTH + 0.12);
       dentVerts[d * 6] = x;
       dentVerts[d * 6 + 1] = 2.06;
       dentVerts[d * 6 + 2] = -0.05;
       dentVerts[d * 6 + 3] = x;
-      dentVerts[d * 6 + 4] = 2.49;
+      dentVerts[d * 6 + 4] = 2.51;
       dentVerts[d * 6 + 5] = -0.05;
     }
     const reedGeo = track(new THREE.BufferGeometry());
     reedGeo.setAttribute("position", new THREE.BufferAttribute(dentVerts, 3));
     const reedMat = track(
       new THREE.LineBasicMaterial({
-        color: 0xfde68a,
+        color: 0xfef08a,
         transparent: true,
-        opacity: 0.45 * opacityScale,
+        opacity: 0.78 * opacityScale,
+        blending: THREE.AdditiveBlending,
       })
     );
-    const reedDents = new THREE.LineSegments(reedGeo, reedMat);
-    sleyPivot.add(reedDents);
+    sleyPivot.add(new THREE.LineSegments(reedGeo, reedMat));
 
-    // Mechanical Crank Connecting Rods linking Crankshaft to Sley Swords
-    const crankArmGeo = track(new THREE.CylinderGeometry(0.04, 0.04, 0.85, 10));
+    const crankArmGeo = track(new THREE.CylinderGeometry(0.045, 0.045, 0.9, 10));
     crankArmGeo.rotateX(Math.PI / 2);
-    const leftConnectingRod = new THREE.Mesh(crankArmGeo, steelShaftMat);
-    const rightConnectingRod = new THREE.Mesh(crankArmGeo, steelShaftMat);
+    const leftConnectingRod = new THREE.Mesh(crankArmGeo, brassGearMat);
+    const rightConnectingRod = new THREE.Mesh(crankArmGeo, brassGearMat);
     loomGroup.add(leftConnectingRod, rightConnectingRod);
 
-    // Pointed Powerloom Boat Shuttle (Lathe Spindle + Steel Tips + Pirn Coil)
+    // Pointed Boat Shuttle with Glowing Halo Aura
     const shuttleGroup = new THREE.Group();
     const shuttleProfile = [
-      new THREE.Vector2(0.0, -0.52),
-      new THREE.Vector2(0.025, -0.42),
-      new THREE.Vector2(0.095, -0.2),
-      new THREE.Vector2(0.11, 0.0),
-      new THREE.Vector2(0.095, 0.2),
-      new THREE.Vector2(0.025, 0.42),
-      new THREE.Vector2(0.0, 0.52),
+      new THREE.Vector2(0.0, -0.58),
+      new THREE.Vector2(0.032, -0.45),
+      new THREE.Vector2(0.115, -0.22),
+      new THREE.Vector2(0.135, 0.0),
+      new THREE.Vector2(0.115, 0.22),
+      new THREE.Vector2(0.032, 0.45),
+      new THREE.Vector2(0.0, 0.58),
     ];
-    const shuttleBodyGeo = track(new THREE.LatheGeometry(shuttleProfile, 14));
+    const shuttleBodyGeo = track(new THREE.LatheGeometry(shuttleProfile, 16));
     shuttleBodyGeo.rotateZ(Math.PI / 2);
-    const shuttleBody = new THREE.Mesh(shuttleBodyGeo, shuttleWoodMat);
-    shuttleGroup.add(shuttleBody);
+    shuttleGroup.add(new THREE.Mesh(shuttleBodyGeo, shuttleBodyMat));
 
-    // Inner bright golden weft Pirn bobbin inside the shuttle
-    const pirnGeo = track(new THREE.CylinderGeometry(0.052, 0.052, 0.34, 14));
+    const pirnGeo = track(new THREE.CylinderGeometry(0.06, 0.06, 0.36, 14));
     pirnGeo.rotateZ(Math.PI / 2);
     const pirnMesh = new THREE.Mesh(pirnGeo, copperAccentMat);
-    pirnMesh.position.y = 0.03;
+    pirnMesh.position.y = 0.04;
     shuttleGroup.add(pirnMesh);
+
+    // Radiant additive halo tracking the darting shuttle
+    const shuttleHaloGeo = track(new THREE.SphereGeometry(0.28, 16, 12));
+    const shuttleHaloMat = track(
+      new THREE.MeshBasicMaterial({
+        color: 0xfde047,
+        transparent: true,
+        opacity: 0.24 * opacityScale,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    );
+    shuttleGroup.add(new THREE.Mesh(shuttleHaloGeo, shuttleHaloMat));
 
     shuttleGroup.position.set(0, 2.13, 0.05);
     sleyPivot.add(shuttleGroup);
 
     // =========================================================================
-    // 4E. Rear Paavu Warp Beam & Front Woven Cloth Take-Up Roller
+    // 4E. Rear Paavu Beam & Front Cloth Take-Up Roller
     // =========================================================================
-    // Rear Warp Beam (wound yarn beam)
     const paavuBeamGroup = new THREE.Group();
     paavuBeamGroup.position.set(0, -0.48, -1.62);
     loomGroup.add(paavuBeamGroup);
 
-    const beamBarrelGeo = track(new THREE.CylinderGeometry(0.42, 0.42, CLOTH_WIDTH + 0.1, 32));
+    const beamBarrelGeo = track(new THREE.CylinderGeometry(0.45, 0.45, CLOTH_WIDTH + 0.1, 32));
     beamBarrelGeo.rotateZ(Math.PI / 2);
     const yarnBeamMat = track(
       new THREE.MeshStandardMaterial({
-        color: 0xd97706,
-        emissive: 0x451a03,
-        emissiveIntensity: 0.3,
+        color: 0xf59e0b,
+        emissive: 0x92400e,
+        emissiveIntensity: 0.55,
         metalness: 0.25,
-        roughness: 0.72,
+        roughness: 0.6,
       })
     );
-    const paavuBarrel = new THREE.Mesh(beamBarrelGeo, yarnBeamMat);
-    paavuBeamGroup.add(paavuBarrel);
+    paavuBeamGroup.add(new THREE.Mesh(beamBarrelGeo, yarnBeamMat));
 
-    // Metallic Beam Flanges
-    const flangeGeo = track(new THREE.CylinderGeometry(0.56, 0.56, 0.06, 32));
+    const flangeGeo = track(new THREE.CylinderGeometry(0.6, 0.6, 0.07, 32));
     flangeGeo.rotateZ(Math.PI / 2);
     [-CLOTH_WIDTH / 2 - 0.08, CLOTH_WIDTH / 2 + 0.08].forEach((xPos) => {
-      const flange = new THREE.Mesh(flangeGeo, castIronMat);
+      const flange = new THREE.Mesh(flangeGeo, steelShaftMat);
       flange.position.x = xPos;
       paavuBeamGroup.add(flange);
     });
 
-    // Front Take-Up Cloth Roller (winding finished cloth below breast beam)
     const clothRollerGroup = new THREE.Group();
     clothRollerGroup.position.set(0, -0.62, 1.28);
     loomGroup.add(clothRollerGroup);
 
-    const clothBarrelGeo = track(new THREE.CylinderGeometry(0.32, 0.32, CLOTH_WIDTH + 0.1, 28));
+    const clothBarrelGeo = track(new THREE.CylinderGeometry(0.34, 0.34, CLOTH_WIDTH + 0.1, 28));
     clothBarrelGeo.rotateZ(Math.PI / 2);
     const clothRollerMat = track(
       new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
+        color: 0x334155,
         emissive: currentAccent.clone(),
-        emissiveIntensity: 0.15,
-        metalness: 0.2,
-        roughness: 0.75,
+        emissiveIntensity: 0.35,
+        metalness: 0.25,
+        roughness: 0.65,
       })
     );
     clothRollerGroup.add(new THREE.Mesh(clothBarrelGeo, clothRollerMat));
 
     // =========================================================================
-    // 4F. GPU-Driven Split Warp Threads (Odd/Even Shed Parting Shader)
+    // 4F. GPU Split Warp Shed (Vivid Luminous Odd/Even Warp Separation)
     // =========================================================================
-    // Each of 68 threads is subdivided into 28 segments from Rear Beam -> Heald -> Fell
-    const warpThreadCount = 68;
+    const warpThreadCount = 72;
     const warpSegs = 28;
     const warpVertPositions = new Float32Array(warpThreadCount * warpSegs * 2 * 3);
-    const warpAttributes = new Float32Array(warpThreadCount * warpSegs * 2 * 3); // [progress u, parity (+1/-1), lateralNorm]
+    const warpAttributes = new Float32Array(warpThreadCount * warpSegs * 2 * 3);
 
     for (let t = 0; t < warpThreadCount; t++) {
-      const latNorm = (t / (warpThreadCount - 1)) * 2 - 1; // -1 to +1
+      const latNorm = (t / (warpThreadCount - 1)) * 2 - 1;
       const x = latNorm * (CLOTH_WIDTH / 2);
       const parity = t % 2 === 0 ? 1.0 : -1.0;
 
@@ -577,7 +612,7 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
         blending: THREE.AdditiveBlending,
         uniforms: {
           uShedOffset: { value: 0 },
-          uGoldColor: { value: new THREE.Color(0xfbbf24) },
+          uGoldColor: { value: new THREE.Color(0xfde047) },
           uAccentColor: { value: currentAccent.clone() },
           uOpacityScale: { value: opacityScale },
         },
@@ -585,18 +620,15 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
           attribute vec3 aWarp;
           uniform float uShedOffset;
           varying float vBorderFactor;
-          varying float vProgress;
           varying float vParity;
 
           void main() {
             float u = aWarp.x;
             float parity = aWarp.y;
-            vBorderFactor = smoothstep(0.76, 0.98, abs(aWarp.z));
-            vProgress = u;
+            vBorderFactor = smoothstep(0.74, 0.98, abs(aWarp.z));
             vParity = parity;
 
             vec3 pos = position;
-            // Anchor ends cleanly at Rear Bar (u=0) and Fell of Cloth (u=1); peak lift at Heald frame (u~0.58)
             float envelope = u < 0.58
               ? smoothstep(0.0, 0.58, u)
               : smoothstep(1.0, 0.58, u);
@@ -610,16 +642,14 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
           uniform vec3 uAccentColor;
           uniform float uOpacityScale;
           varying float vBorderFactor;
-          varying float vProgress;
           varying float vParity;
 
           void main() {
-            // Subtle warm cotton ivory center + vivid Zari & accent selvedge borders
-            vec3 bodyColor = mix(vec3(0.88, 0.91, 0.98), uGoldColor, 0.35 + vParity * 0.12);
-            vec3 borderColor = mix(uGoldColor, uAccentColor, 0.5);
+            vec3 bodyColor = mix(vec3(0.95, 0.97, 1.0), uGoldColor, 0.45 + vParity * 0.15);
+            vec3 borderColor = mix(uGoldColor, uAccentColor, 0.48);
             vec3 col = mix(bodyColor, borderColor, vBorderFactor);
 
-            float alpha = mix(0.32, 0.72, vBorderFactor) * uOpacityScale;
+            float alpha = mix(0.58, 0.95, vBorderFactor) * uOpacityScale;
             gl_FragColor = vec4(col, alpha);
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
@@ -628,13 +658,11 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       })
     );
 
-    const warpShedMesh = new THREE.LineSegments(warpGeo, warpMat);
-    loomGroup.add(warpShedMesh);
+    loomGroup.add(new THREE.LineSegments(warpGeo, warpMat));
 
     // =========================================================================
-    // 4G. Front Woven Cloth Sheet Scrolling Over Breast Beam Down to Cloth Roller
+    // 4G. Scrolling Woven Cloth Sheet + Bright Zari Borders
     // =========================================================================
-    // Curved path from Cloth Fell (z=0.96, y=0.47) -> Breast Beam (z=1.45, y=0.47) -> Take-up Roller (z=1.32, y=-0.55)
     const clothCols = 48;
     const clothRows = 28;
     const clothVertCount = (clothCols + 1) * (clothRows + 1);
@@ -693,7 +721,7 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
         depthWrite: false,
         uniforms: {
           uScroll: { value: 0 },
-          uGoldColor: { value: new THREE.Color(0xf59e0b) },
+          uGoldColor: { value: new THREE.Color(0xfbbf24) },
           uAccentColor: { value: currentAccent.clone() },
           uOpacityScale: { value: opacityScale },
         },
@@ -720,32 +748,28 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
           varying vec3 vViewPos;
 
           void main() {
-            // Micro-woven warp + advancing weft picks scrolling along woven cloth
-            float warpLine = sin(vUv.x * 240.0) * 0.5 + 0.5;
-            float weftLine = sin((vUv.y - uScroll) * 180.0) * 0.5 + 0.5;
+            float warpLine = sin(vUv.x * 220.0) * 0.5 + 0.5;
+            float weftLine = sin((vUv.y - uScroll) * 165.0) * 0.5 + 0.5;
             float fabricGrid = mix(warpLine, weftLine, 0.5);
 
-            // Traditional South Indian Zari selvedge borders along left & right cloth edges
             float edgeDist = abs(vUv.x - 0.5) * 2.0;
-            float isBorder = smoothstep(0.76, 0.85, edgeDist);
-            float zariStripe = step(0.87, edgeDist) * (0.55 + 0.45 * sin((vUv.y - uScroll) * 40.0));
+            float isBorder = smoothstep(0.74, 0.84, edgeDist);
+            float zariStripe = step(0.86, edgeDist) * (0.6 + 0.4 * sin((vUv.y - uScroll) * 40.0));
 
-            vec3 clothBody = vec3(0.11, 0.16, 0.28) + fabricGrid * 0.08;
-            vec3 borderBody = mix(uAccentColor * 0.72, uGoldColor, zariStripe * 0.85);
+            vec3 clothBody = vec3(0.18, 0.25, 0.42) + fabricGrid * 0.14;
+            vec3 borderBody = mix(uAccentColor * 0.9, uGoldColor, zariStripe * 0.9);
             vec3 col = mix(clothBody, borderBody, isBorder);
 
-            // Bright freshly beaten cloth edge highlight at fell (vUv.y near 0)
-            float fellGlow = smoothstep(0.12, 0.0, vUv.y);
-            col += uGoldColor * fellGlow * 0.35;
+            float fellGlow = smoothstep(0.14, 0.0, vUv.y);
+            col += uGoldColor * fellGlow * 0.55;
 
-            // Specular fabric sheen
             vec3 N = normalize(vNormalView);
             vec3 V = normalize(vViewPos);
-            float fresnel = pow(1.0 - max(dot(N, V), 0.0), 2.2);
-            col += uGoldColor * fresnel * 0.25;
+            float fresnel = pow(1.0 - max(dot(N, V), 0.0), 2.1);
+            col += uGoldColor * fresnel * 0.38;
 
             float bottomFade = smoothstep(1.0, 0.78, vUv.y);
-            float alpha = (0.72 + isBorder * 0.16) * bottomFade * uOpacityScale;
+            float alpha = (0.85 + isBorder * 0.12) * bottomFade * uOpacityScale;
 
             gl_FragColor = vec4(col, alpha);
             #include <tonemapping_fragment>
@@ -755,60 +779,67 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       })
     );
 
-    const wovenClothMesh = new THREE.Mesh(wovenClothGeo, wovenClothMat);
-    loomGroup.add(wovenClothMesh);
+    loomGroup.add(new THREE.Mesh(wovenClothGeo, wovenClothMat));
 
-    // Trailing Glowing Weft Thread linking Fell of Cloth to the Shuttle in Flight
+    // Bright Glowing Weft Thread linking Fell Edge to Darting Shuttle
     const weftTrailVerts = new Float32Array(6);
     const weftTrailGeo = track(new THREE.BufferGeometry());
     weftTrailGeo.setAttribute("position", new THREE.BufferAttribute(weftTrailVerts, 3));
     const weftTrailMat = track(
       new THREE.LineBasicMaterial({
-        color: 0xfde68a,
+        color: 0xfef08a,
         transparent: true,
-        opacity: 0.75 * opacityScale,
+        opacity: 0.95 * opacityScale,
         blending: THREE.AdditiveBlending,
       })
     );
-    const weftTrailLine = new THREE.Line(weftTrailGeo, weftTrailMat);
-    loomGroup.add(weftTrailLine);
+    loomGroup.add(new THREE.Line(weftTrailGeo, weftTrailMat));
 
     // =========================================================================
-    // 5. Distant Ghosted Loom Fleet Silhouette (Weaving Shed Depth)
+    // 5. Left Background Loom Row Silhouette (Weaving Shed Symmetry)
     // =========================================================================
     const ghostLoomGroup = new THREE.Group();
-    ghostLoomGroup.position.set(-6.5, -0.55, -8.2);
-    ghostLoomGroup.rotation.set(0.14, -0.42, 0);
-    ghostLoomGroup.scale.setScalar(0.82);
+    ghostLoomGroup.position.set(-5.8, -0.35, -6.5);
+    ghostLoomGroup.rotation.set(0.14, -0.38, 0);
+    ghostLoomGroup.scale.setScalar(0.86);
     scene.add(ghostLoomGroup);
 
-    const ghostArch = new THREE.LineSegments(archEdges, loomWireframeMat);
+    const ghostOutlineMat = track(
+      new THREE.LineBasicMaterial({
+        color: 0xf59e0b,
+        transparent: true,
+        opacity: 0.34 * opacityScale,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    const ghostArch = new THREE.LineSegments(archEdgesGeo, ghostOutlineMat);
     ghostArch.position.copy(topArch.position);
     ghostLoomGroup.add(ghostArch);
 
-    const ghostSideGeo = track(new THREE.EdgesGeometry(sideLegGeo, 20));
     [-FRAME_X, FRAME_X].forEach((xPos) => {
-      const gl = new THREE.LineSegments(ghostSideGeo, loomWireframeMat);
+      const gl = new THREE.LineSegments(sideEdgesGeo, ghostOutlineMat);
       gl.position.set(xPos, -0.65, 0);
       ghostLoomGroup.add(gl);
     });
-    const ghostBeamEdges = track(new THREE.EdgesGeometry(beamBarrelGeo, 28));
-    const ghostBeam = new THREE.LineSegments(ghostBeamEdges, loomWireframeMat);
+    const ghostBeam = new THREE.LineSegments(
+      track(new THREE.EdgesGeometry(beamBarrelGeo, 28)),
+      ghostOutlineMat
+    );
     ghostBeam.position.set(0, -0.48, -1.62);
     ghostLoomGroup.add(ghostBeam);
 
     // =========================================================================
-    // 6. Subtle Cotton/Silk Lint & Zari Dust Motes (GPU Shader, 1 Draw Call)
+    // 6. Floating Silk & Zari Lint Motes (1 Draw Call)
     // =========================================================================
-    const moteCount = 95;
+    const moteCount = 100;
     const motePos = new Float32Array(moteCount * 3);
     const moteMeta = new Float32Array(moteCount * 3);
     for (let i = 0; i < moteCount; i++) {
-      motePos[i * 3] = (Math.random() - 0.5) * 28;
-      motePos[i * 3 + 1] = (Math.random() - 0.5) * 16;
-      motePos[i * 3 + 2] = -1 - Math.random() * 14;
-      moteMeta[i * 3] = 9.0 + Math.random() * 13.0;
-      moteMeta[i * 3 + 1] = 0.14 + Math.random() * 0.28;
+      motePos[i * 3] = (Math.random() - 0.5) * 26;
+      motePos[i * 3 + 1] = (Math.random() - 0.5) * 14;
+      motePos[i * 3 + 2] = -0.5 - Math.random() * 12;
+      moteMeta[i * 3] = 10.0 + Math.random() * 14.0;
+      moteMeta[i * 3 + 1] = 0.16 + Math.random() * 0.3;
       moteMeta[i * 3 + 2] = Math.random() * 6.283;
     }
 
@@ -824,7 +855,7 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
         uniforms: {
           uTime: { value: 0 },
           uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 2) },
-          uGoldColor: { value: new THREE.Color(0xfde68a) },
+          uGoldColor: { value: new THREE.Color(0xfef08a) },
           uOpacityScale: { value: opacityScale },
         },
         vertexShader: /* glsl */ `
@@ -835,11 +866,11 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
 
           void main() {
             vec3 pos = position;
-            float span = 16.0;
+            float span = 14.0;
             pos.y = mod(pos.y + uTime * aMote.y + span * 0.5, span) - span * 0.5;
             pos.x += sin(uTime * 0.35 + aMote.z) * 0.4;
 
-            vAlpha = smoothstep(-8.0, -3.5, pos.y) * smoothstep(8.0, 3.5, pos.y);
+            vAlpha = smoothstep(-7.0, -2.5, pos.y) * smoothstep(7.0, 2.5, pos.y);
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_PointSize = aMote.x * uPixelRatio * (10.0 / max(-mvPosition.z, 1.0));
             gl_Position = projectionMatrix * mvPosition;
@@ -853,7 +884,7 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
           void main() {
             float dist = length(gl_PointCoord - 0.5);
             float disc = smoothstep(0.5, 0.08, dist);
-            gl_FragColor = vec4(uGoldColor, disc * vAlpha * 0.36 * uOpacityScale);
+            gl_FragColor = vec4(uGoldColor, disc * vAlpha * 0.45 * uOpacityScale);
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
           }
@@ -863,15 +894,14 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
 
     scene.add(new THREE.Points(motesGeo, motesMat));
 
-    // Subtle Atelier Horizon Floor Grid (engineered machine bay plane)
-    const floorGrid = new THREE.GridHelper(34, 34, 0x334155, 0x0f172a);
-    floorGrid.position.set(0, -2.26, -3);
+    const floorGrid = new THREE.GridHelper(34, 34, 0x3b4d70, 0x111a2e);
+    floorGrid.position.set(0, -2.1, -2);
     (floorGrid.material as THREE.Material).transparent = true;
-    (floorGrid.material as THREE.Material).opacity = 0.28 * opacityScale;
+    (floorGrid.material as THREE.Material).opacity = 0.42 * opacityScale;
     scene.add(floorGrid);
 
     // =========================================================================
-    // 7. Pointer Parallax, ResizeObserver & Synchronized Loom Loop
+    // 7. Pointer Parallax, ResizeObserver & Master Crank Loop
     // =========================================================================
     let targetMouseX = 0;
     let targetMouseY = 0;
@@ -904,7 +934,6 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
     const timer = new THREE.Timer();
     timer.connect(document);
 
-    // Master Crankshaft Speed (smooth executive cadence: ~1.5 picks/sec)
     const CRANK_SPEED = 2.6;
     let crankTheta = 0;
     let timeElapsed = 0;
@@ -917,7 +946,6 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       timeElapsed += delta * speedScale;
       crankTheta += delta * CRANK_SPEED * speedScale;
 
-      // 1. Category Accent Transition
       accentTarget.setHex(CATEGORY_ACCENT_HEX[categoryRef.current]);
       const colorBlend = 1 - Math.exp(-3.5 * delta);
       currentAccent.lerp(accentTarget, colorBlend);
@@ -928,19 +956,17 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       clothRollerMat.emissive.copy(currentAccent);
       motesMat.uniforms.uTime.value = timeElapsed;
 
-      // 2. Drive Gears, Flywheel & Yarn Beams Rotation
       flywheelGroup.rotation.z = crankTheta;
       crankGear.rotation.z = crankTheta;
-      camGear.rotation.z = -crankTheta * 0.5; // Meshed 18T -> 36T half-speed tappet ratio
+      camGear.rotation.z = -crankTheta * 0.5;
       rightPulley.rotation.z = crankTheta;
 
       paavuBeamGroup.rotation.x = -crankTheta * 0.045;
       clothRollerGroup.rotation.x = crankTheta * 0.055;
-      wovenClothMat.uniforms.uScroll.value = crankTheta * 0.018;
+      wovenClothMat.uniforms.uScroll.value = crankTheta * 0.02;
 
-      // 3. Alternating Heald Shed Motion (flat-dwell harmonic so shuttle crosses open shed!)
       const halfPhase = crankTheta * 0.5;
-      const shedLift = Math.tanh(2.1 * Math.sin(halfPhase)) * 0.42;
+      const shedLift = Math.tanh(2.2 * Math.sin(halfPhase)) * 0.54;
 
       harnessFrame1.position.y = 0.45 + shedLift;
       harnessFrame2.position.y = 0.45 - shedLift;
@@ -948,9 +974,6 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       topRollerGroup2.rotation.x = -shedLift * 2.4;
       warpMat.uniforms.uShedOffset.value = shedLift;
 
-      // 4. Reciprocating Sley Beat Motion:
-      // At crankTheta = 0 (beatCos = +1): sley tilts FORWARD (+Z) so reed beats at fell (z ~ 0.96)
-      // At crankTheta = PI (beatCos = -1): sley swings BACK (-Z) clearing space for shuttle flight
       const beatCos = Math.cos(crankTheta);
       const sleyTilt = beatCos * 0.11 + 0.01;
       sleyPivot.rotation.x = sleyTilt;
@@ -960,10 +983,8 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       leftConnectingRod.position.set(-FRAME_X + 0.18, 0.2 + rodLiftY, 0.36 + sleyAdvanceZ);
       rightConnectingRod.position.set(FRAME_X - 0.18, 0.2 + rodLiftY, 0.36 + sleyAdvanceZ);
 
-      // 5. Pointed Boat Shuttle Projectile Across Open Shed (Pick Direction Alternates Each Revolution!)
       const pickIndex = Math.floor(crankTheta / (Math.PI * 2));
-      const inPickPhase = (crankTheta % (Math.PI * 2)) / (Math.PI * 2); // 0 to 1
-      // Shuttle flies smoothly while sley is swung back (phase 0.22 -> 0.78)
+      const inPickPhase = (crankTheta % (Math.PI * 2)) / (Math.PI * 2);
       const flightT = THREE.MathUtils.clamp((inPickPhase - 0.22) / 0.56, 0, 1);
       const easedT = flightT * flightT * (3 - 2 * flightT);
 
@@ -975,7 +996,6 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       shuttleGroup.position.x = shuttleX;
       pirnMesh.rotation.x = shuttleX * 3.5;
 
-      // Exact rotated shuttle coordinate in loom space for trailing weft pick filament
       const sinS = Math.sin(sleyTilt);
       const cosS = Math.cos(sleyTilt);
       const shuttleLocalY = 2.13;
@@ -995,21 +1015,20 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       trailArr[5] = shuttleLoomZ;
       trailPosAttr.needsUpdate = true;
 
-      // 6. Damped Interactive Camera Parallax
+      // Smooth damped pointer parallax + gentle subtle orbital breathing
       const damp = 1 - Math.exp(-4.0 * delta);
       currentMouseX += (targetMouseX - currentMouseX) * damp;
       currentMouseY += (targetMouseY - currentMouseY) * damp;
 
-      camera.position.x = -1.6 + currentMouseX * 0.85;
-      camera.position.y = 2.6 + currentMouseY * 0.45;
-      camera.lookAt(0.4, 0.1, -1.6);
+      camera.position.x = -1.35 + Math.sin(timeElapsed * 0.14) * 0.45 + currentMouseX * 1.1;
+      camera.position.y = 2.35 + Math.cos(timeElapsed * 0.11) * 0.2 + currentMouseY * 0.55;
+      camera.lookAt(0.45, 0.25, -0.9);
 
       renderer.render(scene, camera);
     };
 
     renderer.setAnimationLoop(animate);
 
-    // 8. Dispose All Geometries, Materials, Timers & Observer Cleanly
     return () => {
       renderer.setAnimationLoop(null);
       timer.disconnect();
@@ -1038,7 +1057,7 @@ export const ExecutiveBackground3D: React.FC<ExecutiveBackground3DProps> = ({
       className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${className}`}
       style={{
         background:
-          "radial-gradient(ellipse 105% 75% at 62% 28%, #0e1932 0%, #060b18 54%, #03060d 100%)",
+          "radial-gradient(ellipse 100% 78% at 58% 35%, #122142 0%, #070d1d 55%, #04070f 100%)",
       }}
     />
   );
