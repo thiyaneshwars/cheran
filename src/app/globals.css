@@ -218,6 +218,17 @@
   animation: ledgerTabEnter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Desktop Resizable Sidebar Synchronization */
+@media (min-width: 1024px) {
+  .sidebar-shell {
+    width: var(--sidebar-w, 232px) !important;
+  }
+
+  .sidebar-offset {
+    padding-left: var(--sidebar-w, 232px) !important;
+  }
+}
+
 /* Unified Temple-Indigo & Kora Ivory Workspace Harmonization
    Explicitly keeps sans headings airy and legible without tight/condensed letter cramping */
 :where(.workspace-ledger .tracking-tight) {

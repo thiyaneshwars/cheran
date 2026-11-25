@@ -26,15 +26,25 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<NavItemKey>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(232);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [isResizingSidebar, setIsResizingSidebar] = useState<boolean>(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [banks, setBanks] = useState<any[]>([]);
   const [parties, setParties] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Initialize font size preference on mount
+  // Restore saved sidebar layout preference and font size on mount
   useEffect(() => {
     try {
+      const savedWidth = Number(localStorage.getItem("cheran_sidebar_width"));
+      if (Number.isFinite(savedWidth) && savedWidth >= 180 && savedWidth <= 360) {
+        setSidebarWidth(savedWidth);
+      }
+      if (localStorage.getItem("cheran_sidebar_collapsed") === "true") {
+        setSidebarCollapsed(true);
+      }
       const savedFontSize = localStorage.getItem("cheran_font_size");
       if (savedFontSize === "large") {
         document.documentElement.setAttribute("data-font-size", "large");
@@ -45,6 +55,30 @@ export default function Home() {
       // localStorage may not be available in SSR or strict privacy mode
     }
   }, []);
+
+  const handleResizeSidebarWidth = (nextWidth: number) => {
+    const clamped = Math.max(180, Math.min(360, Math.round(nextWidth)));
+    setSidebarWidth(clamped);
+    setSidebarCollapsed(false);
+    try {
+      localStorage.setItem("cheran_sidebar_width", String(clamped));
+      localStorage.setItem("cheran_sidebar_collapsed", "false");
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const handleToggleSidebarCollapse = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("cheran_sidebar_collapsed", String(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  };
 
   // Check auth session
   useEffect(() => {
@@ -219,8 +253,13 @@ export default function Home() {
     }
   };
 
+  const activeSidebarWidth = sidebarCollapsed ? 76 : sidebarWidth;
+
   return (
-    <div className="min-h-screen bg-[#FAF7F0] text-[#14233C] font-sans">
+    <div
+      className="min-h-screen bg-[#FAF7F0] text-[#14233C] font-sans"
+      style={{ "--sidebar-w": `${activeSidebarWidth}px` } as React.CSSProperties}
+    >
       <ScrollThreadBar />
       {/* Sidebar Navigation */}
       <Sidebar
@@ -230,10 +269,19 @@ export default function Home() {
         onLogout={handleLogout}
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
+        widthPx={sidebarWidth}
+        collapsed={sidebarCollapsed}
+        onResizeWidth={handleResizeSidebarWidth}
+        onToggleCollapse={handleToggleSidebarCollapse}
+        onResizingChange={setIsResizingSidebar}
       />
 
       {/* Main Content Area */}
-      <div className="flex flex-col lg:pl-72 transition-all">
+      <div
+        className={`flex flex-col min-w-0 sidebar-offset ${
+          isResizingSidebar ? "" : "transition-[padding] duration-150 ease-out"
+        }`}
+      >
         <Header
           title={getPageTitle(currentTab)}
           onOpenMobileMenu={() => setSidebarOpen(true)}

@@ -154,7 +154,7 @@ Warm archival ivory and woven linen ground the application, reservedly punctuate
 
 ## Layout
 
-Desktop-first office monitor grid (`max-w-7xl` on Officials Portal, `288px` (`lg:w-72`) fixed Temple Indigo navigation rail + `80px` sticky Ivory header on the Accounting Workspace) with `.scrollbar-landscape` horizontal scrollbars for wide production registers.
+Desktop-first office monitor grid (`max-w-7xl` on Officials Portal, `232px` default horizontally resizable [`180px–360px`] and `76px` collapsible Temple Indigo navigation rail + `80px` sticky Ivory header on the Accounting Workspace) with `.scrollbar-landscape` horizontal scrollbars for wide production registers.
 
 ## Elevation & Depth
 
