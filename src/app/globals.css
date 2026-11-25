@@ -218,6 +218,78 @@
   animation: ledgerTabEnter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Higher Officials Portal First-Half Sliding Motion */
+@keyframes heroStageSlideLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-26px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroStageSlideRight {
+  from {
+    opacity: 0;
+    transform: translate3d(26px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroStageSlideUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes bridgeBeamSlide {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(380%, 0, 0);
+  }
+}
+
+@keyframes railSheenSlide {
+  0% {
+    transform: translate3d(-120%, 0, 0);
+  }
+  100% {
+    transform: translate3d(420%, 0, 0);
+  }
+}
+
+.hero-slide-enter-left {
+  animation: heroStageSlideLeft 580ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-slide-enter-right {
+  animation: heroStageSlideRight 620ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+.hero-slide-enter-up {
+  animation: heroStageSlideUp 540ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+}
+
+.bridge-beam-runner {
+  animation: bridgeBeamSlide 4.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.rail-sheen-runner {
+  animation: railSheenSlide 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* Desktop Resizable Sidebar Synchronization */
 @media (min-width: 1024px) {
   .sidebar-shell {
@@ -296,7 +368,12 @@
   .shuttle-thread-runner,
   .rail-fill-animated,
   .skeleton-shimmer,
-  .ledger-tab-enter {
+  .ledger-tab-enter,
+  .hero-slide-enter-left,
+  .hero-slide-enter-right,
+  .hero-slide-enter-up,
+  .bridge-beam-runner,
+  .rail-sheen-runner {
     animation: none !important;
     transition: none !important;
   }

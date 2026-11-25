@@ -17,7 +17,6 @@ import {
   AlertTriangle,
   Layers,
   ChevronRight,
-  ChevronLeft,
   Package,
   Maximize2,
   X,
@@ -47,6 +46,10 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const [handovers, setHandovers] = useState<any[]>([]);
   // Top First-Half Interactive Swipe Deck ("DHOTHI" default, swipe left/right to "SAREE")
   const [heroSlide, setHeroSlide] = useState<"DHOTHI" | "SAREE">("DHOTHI");
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [isDeckHovered, setIsDeckHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   // Second-Half Statutory Filter ("ALL" | "DHOTHI" | "SAREE")
   const [activeTab, setActiveTab] = useState<"ALL" | "DHOTHI" | "SAREE">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,6 +58,11 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
   const [showLoomModal, setShowLoomModal] = useState(false);
 
   const swipeStartXRef = useRef<number | null>(null);
+  const swipeViewportRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const elapsedCycleMsRef = useRef<number>(0);
+
+  const SLIDE_CYCLE_MS = 6500;
 
   const loadExecutiveData = async (isManualSync = false) => {
     try {
@@ -241,6 +249,65 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  useEffect(() => {
+    elapsedCycleMsRef.current = 0;
+    if (progressBarRef.current) {
+      progressBarRef.current.style.transform = "scaleX(0)";
+    }
+  }, [heroSlide]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleReducedMotionChange = (event: MediaQueryListEvent) => {
+      setReducedMotion(event.matches);
+    };
+    mq.addEventListener("change", handleReducedMotionChange);
+
+    if (
+      mq.matches ||
+      reducedMotion ||
+      isDeckHovered ||
+      isDragging ||
+      showLoomModal ||
+      loading
+    ) {
+      return () => mq.removeEventListener("change", handleReducedMotionChange);
+    }
+
+    let rafId = 0;
+    let lastTimestamp = performance.now();
+
+    const tick = (now: number) => {
+      const dt = Math.min(now - lastTimestamp, 100);
+      lastTimestamp = now;
+
+      if (typeof document === "undefined" || !document.hidden) {
+        elapsedCycleMsRef.current += dt;
+        const pct = Math.min(1, elapsedCycleMsRef.current / SLIDE_CYCLE_MS);
+        if (progressBarRef.current) {
+          progressBarRef.current.style.transform = `scaleX(${pct})`;
+        }
+        if (elapsedCycleMsRef.current >= SLIDE_CYCLE_MS) {
+          elapsedCycleMsRef.current = 0;
+          if (progressBarRef.current) {
+            progressBarRef.current.style.transform = "scaleX(0)";
+          }
+          setHeroSlide((prev) => (prev === "DHOTHI" ? "SAREE" : "DHOTHI"));
+          return;
+        }
+      }
+
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    rafId = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      mq.removeEventListener("change", handleReducedMotionChange);
+    };
+  }, [heroSlide, reducedMotion, isDeckHovered, isDragging, showLoomModal, loading]);
+
   const handleSwapSlide = (target?: "DHOTHI" | "SAREE") => {
     if (target) {
       setHeroSlide(target);
@@ -251,16 +318,56 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     swipeStartXRef.current = e.clientX;
+    setIsDragging(true);
+    setDragOffset(0);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore synthetic events where pointer capture is unavailable
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || swipeStartXRef.current === null) return;
+    const rawDx = e.clientX - swipeStartXRef.current;
+    const maxPull = (swipeViewportRef.current?.clientWidth || 640) * 0.85;
+    const atOuterEdge =
+      (heroSlide === "DHOTHI" && rawDx > 0) ||
+      (heroSlide === "SAREE" && rawDx < 0);
+    const boundedDx = Math.max(-maxPull, Math.min(maxPull, rawDx));
+    setDragOffset(atOuterEdge ? boundedDx * 0.24 : boundedDx);
+  };
+
+  const finishPointerSwipe = (
+    e: React.PointerEvent<HTMLDivElement>,
+    allowSwitch: boolean
+  ) => {
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Ignore release errors on cancelled pointers
+    }
+    const startX = swipeStartXRef.current;
+    swipeStartXRef.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+
+    if (!allowSwitch || startX === null) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) >= 48) {
+      if (dx < 0 && heroSlide === "DHOTHI") setHeroSlide("SAREE");
+      else if (dx > 0 && heroSlide === "SAREE") setHeroSlide("DHOTHI");
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (swipeStartXRef.current === null) return;
-    const dx = e.clientX - swipeStartXRef.current;
-    swipeStartXRef.current = null;
-    if (Math.abs(dx) >= 42) {
-      if (dx < 0) setHeroSlide("SAREE");
-      else setHeroSlide("DHOTHI");
-    }
+    finishPointerSwipe(e, true);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    finishPointerSwipe(e, false);
   };
 
   const handleHeroKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -427,7 +534,7 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
        * FIRST HALF (STATIC HERO COMMAND STAGE + SWIPEABLE DHOTHI <-> SAREE + 3D LOOM)
        * Seamless dark-indigo top deck merging smoothly into warm ivory dossier below
        * ========================================================================= */}
-      <section className="relative bg-gradient-to-b from-[#070D1D] via-[#0B152C] to-[#132240] text-white border-b border-[#24375C]">
+      <section className="relative overflow-x-clip bg-gradient-to-b from-[#070D1D] via-[#0B152C] to-[#132240] text-white border-b border-[#24375C]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-8 sm:pb-10 space-y-6">
           {error && (
             <div className="p-4 rounded-xl bg-[#3A121C] border border-[#991B1B] text-[#FECACA] text-xs font-medium flex items-center justify-between gap-3">
@@ -451,25 +558,34 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
             <div
               tabIndex={0}
               onKeyDown={handleHeroKeyDown}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
+              onMouseEnter={() => setIsDeckHovered(true)}
+              onMouseLeave={() => setIsDeckHovered(false)}
               aria-label="Swipe or swap left and right between Dhothi and Saree inspection decks"
-              className="lg:col-span-7 rounded-2xl bg-[#0D1830] border border-[#223354] overflow-hidden flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-[#D49A42]/60 select-none"
+              className="lg:col-span-7 hero-slide-enter-left rounded-2xl bg-[#0D1830] border border-[#223354] overflow-hidden flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-[#D49A42]/60 select-none"
             >
-              {/* Deck Top Control Bar: Slide Title Tabs + Left/Right Swap Arrows */}
-              <div className="px-5 sm:px-6 py-4 bg-[#0A1326] border-b border-[#1E2E4E] flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
+              {/* Deck Top Control Bar: Sliding Segmented Pill + Active Variety Readout */}
+              <div className="px-5 sm:px-6 py-3.5 bg-[#0A1326] border-b border-[#1E2E4E] flex flex-wrap items-center justify-between gap-3">
+                {/* Sliding Segmented Control */}
+                <div className="relative inline-grid grid-cols-2 p-1 rounded-xl bg-[#070E1D] border border-[#1E2E4E]">
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-lg border transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+                      heroSlide === "DHOTHI"
+                        ? "translate-x-0 bg-[#0E2E22] border-[#10B981]/50"
+                        : "translate-x-full bg-[#2C1E0B] border-[#D49A42]/50"
+                    }`}
+                  />
                   <button
                     type="button"
                     onClick={() => handleSwapSlide("DHOTHI")}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 border ${
+                    className={`relative z-10 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors duration-300 cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
                       heroSlide === "DHOTHI"
-                        ? "bg-[#0E2E22] text-[#6EE7B7] border-[#10B981]/50"
-                        : "bg-[#111D38] text-[#94A8C7] border-transparent hover:text-white"
+                        ? "text-[#6EE7B7]"
+                        : "text-[#94A8C7] hover:text-white"
                     }`}
                   >
                     <span
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2 rounded-full transition-colors duration-300 ${
                         heroSlide === "DHOTHI" ? "bg-[#34D399]" : "bg-[#475569]"
                       }`}
                     />
@@ -478,14 +594,14 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSwapSlide("SAREE")}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 border ${
+                    className={`relative z-10 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors duration-300 cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
                       heroSlide === "SAREE"
-                        ? "bg-[#2C1E0B] text-[#FCD34D] border-[#D49A42]/50"
-                        : "bg-[#111D38] text-[#94A8C7] border-transparent hover:text-white"
+                        ? "text-[#FCD34D]"
+                        : "text-[#94A8C7] hover:text-white"
                     }`}
                   >
                     <span
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2 rounded-full transition-colors duration-300 ${
                         heroSlide === "SAREE" ? "bg-[#FBBF24]" : "bg-[#475569]"
                       }`}
                     />
@@ -493,186 +609,231 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
                   </button>
                 </div>
 
-                {/* Tactile Left / Right Swap Arrows */}
-                <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline text-[11px] font-medium text-[#7B90B3] mr-1">
-                    Swipe or swap
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleSwapSlide("DHOTHI")}
-                    disabled={heroSlide === "DHOTHI"}
-                    aria-label="Show Dhothi slide"
-                    className="p-2 rounded-lg bg-[#111D38] hover:bg-[#1B2C52] border border-[#25375D] text-white transition cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSwapSlide("SAREE")}
-                    disabled={heroSlide === "SAREE"}
-                    aria-label="Show Saree slide"
-                    className="p-2 rounded-lg bg-[#111D38] hover:bg-[#1B2C52] border border-[#25375D] text-white transition cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
+                <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-md bg-[#0F1B35] border border-[#1E2E4E] font-financial text-[11px] font-semibold text-[#94A8C7]">
+                  {heroSlide === "DHOTHI" ? "01 / 02 · DHOTHI" : "02 / 02 · SAREE"}
+                </span>
               </div>
 
-              {/* Sliding Viewport Track (Dhothi 0% <-> Saree -50%) */}
-              <div className="overflow-hidden flex-1">
+              {/* Synced Auto-Slide Sweep Timer Rail */}
+              <div
+                aria-hidden="true"
+                className="h-[2.5px] w-full bg-[#101C36] overflow-hidden"
+              >
                 <div
-                  className="flex w-[200%] h-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                  ref={progressBarRef}
+                  className="h-full w-full origin-left scale-x-0"
                   style={{
-                    transform:
+                    background:
                       heroSlide === "DHOTHI"
-                        ? "translateX(0%)"
-                        : "translateX(-50%)",
+                        ? "linear-gradient(90deg, #10B981 0%, #6EE7B7 100%)"
+                        : "linear-gradient(90deg, #B47B2B 0%, #FCD34D 100%)",
+                  }}
+                />
+              </div>
+
+              {/* Sliding Viewport Track with Real-Time Pointer Drag + Parallax (Dhothi 0% <-> Saree -50%) */}
+              <div
+                ref={swipeViewportRef}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
+                className="overflow-hidden flex-1 touch-pan-y cursor-grab active:cursor-grabbing"
+              >
+                <div
+                  className={`flex w-[200%] h-full will-change-transform ${
+                    isDragging
+                      ? "transition-none"
+                      : "transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                  }`}
+                  style={{
+                    transform: `translate3d(calc(${
+                      heroSlide === "DHOTHI" ? "0%" : "-50%"
+                    } + ${dragOffset}px), 0, 0)`,
                   }}
                 >
-                  {productSlides.map((slide) => (
-                    <div
-                      key={slide.key}
-                      className="w-1/2 p-5 sm:p-6 flex flex-col justify-between gap-5"
-                    >
-                      {/* Upper Pair: Product Photograph + Completion Ring / Summary */}
-                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-stretch">
-                        {/* Authentic Product Photography Frame */}
-                        <div className="sm:col-span-5 relative min-h-[210px] sm:min-h-[230px] rounded-xl overflow-hidden border border-[#283B61] bg-[#081022]">
-                          <Image
-                            src={slide.image}
-                            alt={slide.imageAlt}
-                            fill
-                            sizes="(max-width: 640px) 100vw, 320px"
-                            className="object-cover"
-                            priority
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#070D1D]/90 via-transparent to-transparent" />
-                          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
-                            <span
-                              className={`px-2.5 py-1 rounded-md text-[11px] font-bold border ${slide.badgeClass}`}
-                            >
-                              {slide.key === "DHOTHI" ? "DHOTHI STOCK" : "SAREE STOCK"}
-                            </span>
-                            <span className="font-financial text-xs font-semibold text-white bg-[#070D1D]/85 px-2 py-0.5 rounded border border-white/15">
-                              {slide.unitsCount} Looms
-                            </span>
-                          </div>
-                        </div>
+                  {productSlides.map((slide) => {
+                    const isActive = heroSlide === slide.key;
+                    const directionalRest =
+                      slide.key === "DHOTHI"
+                        ? "-translate-x-5 opacity-45"
+                        : "translate-x-5 opacity-45";
+                    const contentSlideState =
+                      isActive || isDragging
+                        ? "translate-x-0 opacity-100"
+                        : directionalRest;
 
-                        {/* Telemetry Readout Right beside Photo */}
-                        <div className="sm:col-span-7 flex flex-col justify-between gap-4">
-                          <div>
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <h2 className="font-display text-2xl sm:text-[26px] font-bold text-white leading-tight">
-                                  {slide.title}
-                                </h2>
-                                <p className="text-xs text-[#94A8C7] mt-1 leading-relaxed">
-                                  {slide.subtitle}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Big Completion Headline Metric */}
-                            <div className="mt-4 flex items-baseline justify-between gap-3 rounded-xl bg-[#091224] border border-[#1E2E4E] px-4 py-3.5">
-                              <div>
-                                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#94A8C7]">
-                                  Quota Completion
-                                </div>
-                                <div className="font-financial text-3xl sm:text-4xl font-bold text-white mt-0.5 tabular-nums">
-                                  {slide.pct.toFixed(1)}%
-                                </div>
-                              </div>
-                              <div className="text-right font-financial text-xs">
-                                <div className="text-[#94A8C7]">Target Quota</div>
-                                <div className="text-sm font-bold text-[#F3CA7A] mt-0.5">
-                                  {slide.targetPcs.toLocaleString("en-IN")} {slide.unitWord}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Crisp Fulfillment Progress Track */}
-                          <div className="space-y-1.5">
-                            <div className="h-2.5 w-full rounded-full bg-[#172544] overflow-hidden border border-[#253860]">
-                              <div
-                                className="h-full rail-fill-animated rounded-full"
-                                style={{
-                                  width: `${slide.pct}%`,
-                                  backgroundColor: slide.accentBar,
-                                }}
-                              />
-                            </div>
-                            <div className="flex items-center justify-between text-[11px] font-financial text-[#94A8C7]">
-                              <span>
-                                Running Paavu: {slide.runningPaavus} · Unloaded:{" "}
-                                {slide.unloadedPaavus}
+                    return (
+                      <div
+                        key={slide.key}
+                        className="w-1/2 p-5 sm:p-6 flex flex-col justify-between gap-5"
+                      >
+                        {/* Upper Pair: Product Photograph + Completion Ring / Summary */}
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-stretch">
+                          {/* Authentic Product Photography Frame with Parallax Zoom-Glide */}
+                          <div className="sm:col-span-5 relative min-h-[210px] sm:min-h-[230px] rounded-xl overflow-hidden border border-[#283B61] bg-[#081022]">
+                            <Image
+                              src={slide.image}
+                              alt={slide.imageAlt}
+                              fill
+                              sizes="(max-width: 640px) 100vw, 320px"
+                              draggable={false}
+                              className={`object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+                                isActive || isDragging
+                                  ? "scale-100 translate-x-0"
+                                  : slide.key === "DHOTHI"
+                                  ? "scale-[1.08] -translate-x-3"
+                                  : "scale-[1.08] translate-x-3"
+                              }`}
+                              priority
+                            />
+                            <div
+                              aria-hidden="true"
+                              className={`pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-[-18deg] transition-transform duration-1000 ease-out motion-reduce:hidden ${
+                                isActive ? "translate-x-[360%]" : "-translate-x-full"
+                              }`}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#070D1D]/90 via-transparent to-transparent" />
+                            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+                              <span
+                                className={`px-2.5 py-1 rounded-md text-[11px] font-bold border ${slide.badgeClass}`}
+                              >
+                                {slide.key === "DHOTHI"
+                                  ? "DHOTHI STOCK"
+                                  : "SAREE STOCK"}
                               </span>
-                              <span>Weft Godown: {slide.weftBags} Bags</span>
+                              <span className="font-financial text-xs font-semibold text-white bg-[#070D1D]/85 px-2 py-0.5 rounded border border-white/15">
+                                {slide.unitsCount} Looms
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Telemetry Readout Right beside Photo (Staggered Slide Transition) */}
+                          <div className="sm:col-span-7 flex flex-col justify-between gap-4">
+                            <div
+                              className={`transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${contentSlideState}`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <h2 className="font-display text-2xl sm:text-[26px] font-bold text-white leading-tight">
+                                    {slide.title}
+                                  </h2>
+                                  <p className="text-xs text-[#94A8C7] mt-1 leading-relaxed">
+                                    {slide.subtitle}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Big Completion Headline Metric */}
+                              <div
+                                className={`mt-4 flex items-baseline justify-between gap-3 rounded-xl bg-[#091224] border border-[#1E2E4E] px-4 py-3.5 transition-all duration-700 delay-[60ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${contentSlideState}`}
+                              >
+                                <div>
+                                  <div className="text-[11px] font-semibold uppercase tracking-wider text-[#94A8C7]">
+                                    Quota Completion
+                                  </div>
+                                  <div className="font-financial text-3xl sm:text-4xl font-bold text-white mt-0.5 tabular-nums">
+                                    {slide.pct.toFixed(1)}%
+                                  </div>
+                                </div>
+                                <div className="text-right font-financial text-xs">
+                                  <div className="text-[#94A8C7]">Target Quota</div>
+                                  <div className="text-sm font-bold text-[#F3CA7A] mt-0.5">
+                                    {slide.targetPcs.toLocaleString("en-IN")}{" "}
+                                    {slide.unitWord}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Crisp Fulfillment Progress Track with Live Sliding Sheen */}
+                            <div className="space-y-1.5">
+                              <div className="h-2.5 w-full rounded-full bg-[#172544] overflow-hidden border border-[#253860]">
+                                <div
+                                  className="relative h-full rail-fill-animated rounded-full overflow-hidden"
+                                  style={{
+                                    width: `${slide.pct}%`,
+                                    backgroundColor: slide.accentBar,
+                                  }}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="rail-sheen-runner absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between text-[11px] font-financial text-[#94A8C7]">
+                                <span>
+                                  Running Paavu: {slide.runningPaavus} · Unloaded:{" "}
+                                  {slide.unloadedPaavus}
+                                </span>
+                                <span>Weft Godown: {slide.weftBags} Bags</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Lower 4 Statutory Piece Counters Inside Active Slide */}
+                        <div
+                          className={`grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 transition-all duration-700 delay-[110ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${contentSlideState}`}
+                        >
+                          <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
+                            <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
+                              Sent to Govt
+                            </div>
+                            <div className="font-financial text-lg sm:text-xl font-bold text-[#6EE7B7] mt-1 whitespace-nowrap truncate">
+                              {slide.sentPcs.toLocaleString("en-IN")}{" "}
+                              <span className="text-[11px] font-sans font-semibold text-[#A7F3D0]">
+                                pcs
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
+                            <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
+                              Remaining Quota
+                            </div>
+                            <div className="font-financial text-lg sm:text-xl font-bold text-[#FDBA74] mt-1 whitespace-nowrap truncate">
+                              -{slide.remainingPcs.toLocaleString("en-IN")}{" "}
+                              <span className="text-[11px] font-sans font-semibold text-[#FED7AA]">
+                                pcs
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
+                            <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
+                              Loom Produced
+                            </div>
+                            <div className="font-financial text-lg sm:text-xl font-bold text-white mt-1 whitespace-nowrap truncate">
+                              {slide.producedPcs.toLocaleString("en-IN")}{" "}
+                              <span className="text-[11px] font-sans font-semibold text-[#CBD5E1]">
+                                pcs
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
+                            <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
+                              Godown Ready
+                            </div>
+                            <div className="font-financial text-lg sm:text-xl font-bold text-[#FCD34D] mt-1 whitespace-nowrap truncate">
+                              {slide.godownPcs.toLocaleString("en-IN")}{" "}
+                              <span className="text-[11px] font-sans font-semibold text-[#FDE68A]">
+                                pcs
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Lower 4 Statutory Piece Counters Inside Active Slide */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                        <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
-                          <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
-                            Sent to Govt
-                          </div>
-                          <div className="font-financial text-lg sm:text-xl font-bold text-[#6EE7B7] mt-1 whitespace-nowrap truncate">
-                            {slide.sentPcs.toLocaleString("en-IN")}{" "}
-                            <span className="text-[11px] font-sans font-semibold text-[#A7F3D0]">
-                              pcs
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
-                          <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
-                            Remaining Quota
-                          </div>
-                          <div className="font-financial text-lg sm:text-xl font-bold text-[#FDBA74] mt-1 whitespace-nowrap truncate">
-                            -{slide.remainingPcs.toLocaleString("en-IN")}{" "}
-                            <span className="text-[11px] font-sans font-semibold text-[#FED7AA]">
-                              pcs
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
-                          <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
-                            Loom Produced
-                          </div>
-                          <div className="font-financial text-lg sm:text-xl font-bold text-white mt-1 whitespace-nowrap truncate">
-                            {slide.producedPcs.toLocaleString("en-IN")}{" "}
-                            <span className="text-[11px] font-sans font-semibold text-[#CBD5E1]">
-                              pcs
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl bg-[#0A1326] border border-[#1E2E4E] p-3.5 min-w-0">
-                          <div className="text-[11px] font-medium text-[#8FA4C7] truncate">
-                            Godown Ready
-                          </div>
-                          <div className="font-financial text-lg sm:text-xl font-bold text-[#FCD34D] mt-1 whitespace-nowrap truncate">
-                            {slide.godownPcs.toLocaleString("en-IN")}{" "}
-                            <span className="text-[11px] font-sans font-semibold text-[#FDE68A]">
-                              pcs
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
             {/* RIGHT (5 Cols): Live Kinematic 3D Powerloom Weaving Machine Stage */}
-            <div className="lg:col-span-5 relative rounded-2xl border border-[#25375D] bg-[#060B18] min-h-[360px] lg:min-h-[430px] overflow-hidden">
+            <div className="lg:col-span-5 hero-slide-enter-right relative rounded-2xl border border-[#25375D] bg-[#060B18] min-h-[360px] lg:min-h-[430px] overflow-hidden">
               <div className="absolute inset-0 z-0">
                 <ExecutiveBackground3D variant="stage" activeCategory={heroSlide} />
               </div>
@@ -706,7 +867,14 @@ export const ExecutiveOfficialView: React.FC<ExecutiveOfficialViewProps> = ({
           </div>
 
           {/* Seamless Merge Bridge Strip Connecting Top Executive Deck to Second-Half Audit Ledger */}
-          <div className="rounded-xl bg-[#0A1326] border border-[#223457] px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="hero-slide-enter-up relative overflow-hidden rounded-xl bg-[#0A1326] border border-[#223457] px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-0 left-0 right-0 h-[1.5px] overflow-hidden"
+            >
+              <div className="bridge-beam-runner h-full w-1/3 bg-gradient-to-r from-transparent via-[#D49A42] to-transparent" />
+            </div>
+
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#D49A42]" />
